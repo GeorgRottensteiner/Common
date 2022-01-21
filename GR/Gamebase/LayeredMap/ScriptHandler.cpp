@@ -18,6 +18,7 @@ Loona<ScriptEngine>::tRegType ScriptEngine::s_Methods[] =
 {
   { "FindObjectByID", &ScriptEngine::FindObjectByID },
   { "FindObjectByType", &ScriptEngine::FindObjectByType },
+  { "SpawnObject", &ScriptEngine::SpawnObject },
   { "GetControlledObject", &ScriptEngine::GetControlledObject },
   { "SetControlledObject", &ScriptEngine::SetControlledObject },
   { "RemoveObject", &ScriptEngine::RemoveObject },
@@ -26,6 +27,33 @@ Loona<ScriptEngine>::tRegType ScriptEngine::s_Methods[] =
   { "CenterCameraOnObject", &ScriptEngine::CenterCameraOnObject },
   { 0, 0 }
 };
+
+
+
+int ScriptEngine::SpawnObject( LuaInstance& Lua )
+{
+  if ( Lua.GetTop() != 3 )
+  {
+    Lua.PopAll();
+    return 0;
+  }
+
+  int x = Lua.ToNumber( -3 );
+  int y = Lua.ToNumber( -2 );
+  GR::String type = Lua.ToString( -1 );
+  Lua.PopAll();
+
+  GR::Gamebase::GameObject* pObj = m_pJREngine->SpawnObject( type, x, y );
+  if ( pObj == NULL )
+  {
+    Lua.PushNIL();
+  }
+  else
+  {
+    Loona<ScriptGameObject>::PushObject( Lua, new ScriptGameObject( m_pJREngine, pObj ) );
+  }
+  return 1;
+}
 
 
 
@@ -272,6 +300,7 @@ Loona<ScriptLayer>::tRegType ScriptLayer::s_Methods[] =
   { "DetachObject", &ScriptLayer::DetachObject },
   { "AttachObject", &ScriptLayer::AttachObject },
   { "AwakenObject", &ScriptLayer::AwakenObject },
+  { "SpawnObject", &ScriptLayer::SpawnObject },
   { "FindObjectByType", &ScriptLayer::FindObjectByType },
   { 0, 0 }
 };
@@ -290,6 +319,33 @@ int ScriptLayer::FindObjectByType( LuaInstance& Lua )
   Lua.PopAll();
 
   GR::Gamebase::GameObject*   pObj = (GR::Gamebase::GameObject*)( (GR::Gamebase::ObjectLayer*)m_pLayer )->FindObjectByType( type );
+  if ( pObj == NULL )
+  {
+    Lua.PushNIL();
+  }
+  else
+  {
+    Loona<ScriptGameObject>::PushObject( Lua, new ScriptGameObject( m_pJREngine, pObj ) );
+  }
+  return 1;
+}
+
+
+
+int ScriptLayer::SpawnObject( LuaInstance& Lua )
+{
+  if ( Lua.GetTop() != 3 )
+  {
+    Lua.PopAll();
+    return 0;
+  }
+
+  int x = Lua.ToNumber( -3 );
+  int y = Lua.ToNumber( -2 );
+  GR::String type = Lua.ToString( -1 );
+  Lua.PopAll();
+
+  GR::Gamebase::GameObject* pObj = m_pJREngine->SpawnObject( type, x, y );
   if ( pObj == NULL )
   {
     Lua.PushNIL();

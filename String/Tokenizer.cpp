@@ -381,8 +381,8 @@ namespace GR
 				    ++i;
 			    }
 			    --i;   //Need to decrement it because in the for loop, i will be incremented
-			    if     ( token.m_Type == TokenType::INT )   token.m_Integer   = atoi( token.m_String.c_str() );
-			    else if( token.m_Type == TokenType::REAL )  token.m_dbReal = atof( token.m_String.c_str() );
+			    if     ( token.m_Type == TokenType::INT )   token.m_Integer   = GR::Convert::ToI64( token.m_String );
+			    else if( token.m_Type == TokenType::REAL )  token.m_dbReal = GR::Convert::ToF64( token.m_String );
 
 	        //if invalid decimal number is given
     // 			if( token.m_Type == Tokens::realT && token.m_dbReal == 0.0 ) token.m_Type = Tokens::errorT;

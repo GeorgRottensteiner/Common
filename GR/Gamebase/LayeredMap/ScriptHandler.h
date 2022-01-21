@@ -41,6 +41,7 @@ class ScriptEngine
     int ChangeMap( LuaInstance& Lua );
     int CurrentMap( LuaInstance& Lua );
     int CenterCameraOnObject( LuaInstance& Lua );
+    int SpawnObject( LuaInstance& Lua );
     int RemoveObject( LuaInstance& Lua );
 };
 
@@ -94,6 +95,8 @@ class ScriptLayer
     int AwakenObject( LuaInstance& Lua );
 
     int FindObjectByType( LuaInstance& Lua );
+
+    int SpawnObject( LuaInstance& Lua );
 
 };
 

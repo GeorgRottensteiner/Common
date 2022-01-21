@@ -1,7 +1,7 @@
 #ifndef GR_MATH_UTIL_H
 #define GR_MATH_UTIL_H
 
-#include <math/vector3.h>
+#include <Math/vector3.h>
 
 #include <GR/GRTypes.h>
 

@@ -2,11 +2,6 @@
 #define XTREME_OPENGL_TEXTURE_H
 
 
-#include <windows.h>
-#include <gl\gl.h>
-#include <gl\glu.h>
-#include <gl\glext.h>
-
 #include <Xtreme/XTexture.h>
 
 #include <list>
@@ -14,21 +9,27 @@
 
 
 
+class OpenGLRenderClass;
+
 class OpenGLTexture : public XTexture
 {
 
   public:
 
-    GLuint                            m_TextureID;
+    OpenGLRenderClass*                m_pRenderer;
 
-    std::list<GR::String>            m_listFileNames;
+    GR::u32                           m_TextureID;
+
+    std::list<GR::String>             m_listFileNames;
 
     std::list<GR::Graphic::ImageData> m_StoredImageData;
 
-    bool                              AllowUsageAsRenderTarget;
+    bool                              m_AllowUsageAsRenderTarget;
+    GR::u32                           m_RenderTargetFrameBufferID;
+    GR::u32                           m_RenderBufferDepthStencil;
 
 
-    OpenGLTexture();
+    OpenGLTexture( OpenGLRenderClass* pRenderer, bool AllowUsageAsRenderTarget );
     virtual ~OpenGLTexture();
 
     virtual bool                      Release();

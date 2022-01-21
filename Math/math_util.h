@@ -1,7 +1,8 @@
-#ifndef _math_util_h
-#define _math_util_h
+#ifndef MATH_UTIL_H
+#define MATH_UTIL_H
   
 #include <limits>
+#include <float.h>
 
 namespace math
 {
@@ -147,4 +148,4 @@ namespace math
   }
 
 }
-#endif// _math_util_h
+#endif// MATH_UTIL_H

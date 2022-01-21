@@ -1,24 +1,49 @@
 #pragma once
 
 
+#if ( OPERATING_SYSTEM == OS_WEB )
+#define GL_GLEXT_PROTOTYPES
+#include <emscripten.h>
+#include <SDL.h>
+#include <SDL_opengl.h>
+#include <SDL_opengl_glext.h>
+
+const GLubyte* APIENTRY gluErrorString( GLenum   errCode );
+#elif OPERATING_SUB_SYSTEM == OS_SUB_SDL
+#include <SDL.h>
+#include <SDL_opengl.h>
+#include <SDL_opengl_glext.h>
+#include <gl\glu.h>
+#else
 #include <windows.h>
 #include <gl\gl.h>
 #include <gl\glu.h>
 #include <gl\glext.h>
+#endif
+
 
 
 #include <Xtreme/XBasicRenderer.h>
 
 
 
+class OpenGLTexture;
+
 class OpenGLRenderClass : public XBasicRenderer
 {
 
   private:
 
+#if OPERATING_SUB_SYSTEM == OS_SUB_SDL
+    SDL_GLContext                 m_GLContext;
+    SDL_Window*                   m_pMainWindow;
+#else
     HGLRC                         m_RC;
 
     HDC                           m_DC;
+
+    PIXELFORMATDESCRIPTOR         m_pfd;
+#endif
 
     bool                          m_FullScreen;
 
@@ -27,22 +52,25 @@ class OpenGLRenderClass : public XBasicRenderer
                                   m_OldPixelFormat,
                                   m_Depth;
 
-    PIXELFORMATDESCRIPTOR         m_pfd;
-
     GR::f32                       m_AlphaRefValue;
     GR::u32                       m_AlphaFuncValue;
     GR::u32                       m_SrcBlend;
     GR::u32                       m_DestBlend;
 
     bool                          m_Ready;
+    XTexture*                     m_pSetRenderTargetTexture;
+    GR::tPoint                    m_SetRenderTargetTextureSize;
 
     XTexture*                     m_pSetTextures[8];
+
+    bool                          m_SupportsVBO;
+    bool                          m_2dModeActive;
 
 
   public:
 
 
-    OpenGLRenderClass( HINSTANCE hInstance );
+    OpenGLRenderClass();
     virtual ~OpenGLRenderClass();
 
 
@@ -173,6 +201,21 @@ class OpenGLRenderClass : public XBasicRenderer
 
     void                          SetAlpha( GR::u32 AlphaTest, GR::u32 AlphaBlend );
 
-    void CheckError();
+    bool                          IsExtensionSupported( const GR::String& TargetExtension );
+
+    void                          CheckError( const GR::String& Function );
+
+    void                          Set2DMode();
+    void                          Set3DMode();
+
+    int                           VisibleWidth();
+    int                           VisibleHeight();
+
+    void                          InvertCullMode();
+
+    void                          ReleaseTexture( OpenGLTexture* pTexture );
+
+    friend class OpenGLVertexBuffer;
+    friend class OpenGLTexture;
 
 };

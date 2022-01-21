@@ -771,7 +771,25 @@ GR::String Win::Util::LoadString( GR::u32 ResourceId )
 
 Win::Util::eWindowsVersion Win::Util::GetWindowsVersion()
 {
-
+#if ( ( ( OPERATING_SYSTEM == OS_WINDOWS ) && ( OPERATING_SUB_SYSTEM == OS_SUB_UNIVERSAL_APP ) ) \
+||      ( ( OPERATING_SYSTEM == OS_WINDOWS ) && ( OPERATING_SUB_SYSTEM == OS_SUB_WINDOWS_PHONE ) ) )
+  if ( IsWindows10OrGreater() )
+  {
+    return WV_WIN10;
+  }
+  else if ( IsWindows7OrGreater() )
+  {
+    return WV_WIN7;
+  }
+  else if ( IsWindows7OrGreater() )
+  {
+    return WV_WIN7;
+  }
+  else if ( IsWindowsXPOrGreater() )
+  {
+    return WV_WINXP;
+  }
+#else
   OSVERSIONINFO   osInfo;
 
   osInfo.dwOSVersionInfoSize = sizeof( osInfo );
@@ -841,8 +859,8 @@ Win::Util::eWindowsVersion Win::Util::GetWindowsVersion()
     {
       return WV_HIGHER_THAN_KNOWN;
     }
-
   }
+#endif
   return WV_UNKNOWN;
 }
 

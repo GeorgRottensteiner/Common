@@ -15,6 +15,8 @@
 
 #include <String/ParamList.h>
 
+#include <debug/debugclient.h>
+
 
 
 template <typename T> class IGameStateManager;

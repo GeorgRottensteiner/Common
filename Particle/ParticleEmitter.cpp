@@ -1,7 +1,7 @@
 #include "ParticleEmitter.h"
 #include "ParticleSystem.h"
 
-#include <math/random.h>
+#include <Math/Random.h>
 
 
 namespace Particle

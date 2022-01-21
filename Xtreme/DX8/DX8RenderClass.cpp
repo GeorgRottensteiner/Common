@@ -1616,7 +1616,7 @@ HRESULT CDX8RenderClass::Resize3DEnvironment()
       Log( "Renderer.General", "TestCooperativeLevel failed" );
       return hr;
     }
-    Log( "Renderer.General", "TestCooperativeLevel -> Device not reset" );
+    //Log( "Renderer.General", "TestCooperativeLevel -> Device not reset" );
   }
   /*
   else
@@ -2749,7 +2749,6 @@ XVertexBuffer* CDX8RenderClass::CreateVertexBuffer( const Mesh::IMesh& MeshObjec
 
 void CDX8RenderClass::DestroyVertexBuffer( XVertexBuffer* pVBBuffer )
 {
-
   if ( pVBBuffer == NULL )
   {
     return;
@@ -2759,7 +2758,6 @@ void CDX8RenderClass::DestroyVertexBuffer( XVertexBuffer* pVBBuffer )
 
   m_VertexBuffers.remove( pVBBuffer );
   delete pVBBuffer;
-
 }
 
 

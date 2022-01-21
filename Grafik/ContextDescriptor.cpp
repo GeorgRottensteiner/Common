@@ -234,7 +234,10 @@ namespace GR
     {
       ImageData::operator=( rhsCD );
 
-      AssignColorDepth();
+      if ( rhsCD.m_ImageFormat != IF_UNKNOWN )
+      {
+        AssignColorDepth();
+      }
 
       return *this;
     }
@@ -6319,7 +6322,11 @@ namespace GR
         m_ClipRight    = m_Width - 1;
         m_ClipBottom   = m_Height - 1;
         m_NothingVisible = false;
-        AssignColorDepth();
+
+        if ( imageFormat != IF_UNKNOWN )
+        {
+          AssignColorDepth();
+        }
       }
       return bResult;
     }

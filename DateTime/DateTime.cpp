@@ -92,7 +92,7 @@ namespace GR
       //int tm_isdst; /* Daylight Savings Time flag */
 
       NowDateTime.ConvertToLocalTime();
-#elif OPERATING_SYSTEM == OS_ANDROID
+#elif ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB )
       NowDateTime.FromTime( CurrentTime );
       NowDateTime.ConvertToLocalTime();
 #elif OPERATING_SYSTEM == OS_WINDOWS
@@ -152,7 +152,7 @@ namespace GR
 
       TimeInS += Days * 60 * 60 * 24;
 
-#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID )
+#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB )
       m_Date = *std::localtime( &TimeInS );      
 #else      
       localtime_s( &m_Date, &TimeInS );
@@ -317,7 +317,7 @@ namespace GR
 
 	    for ( ; ; ) 
       {
-#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID )
+#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB )
         std::tm* pTM = gmtime( &t );
         if ( !pTM )
         {
@@ -465,7 +465,7 @@ namespace GR
         case 2:
           return "Februar";
         case 3:
-          return "März";
+          return "M\xe4rz";
         case 4:
           return "April";
         case 5:
@@ -600,7 +600,7 @@ namespace GR
 
     bool DateTime::FromTime( time_t UTCTime )
     {
-#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID )
+#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB )
       std::tm* pTM = gmtime( &UTCTime );
       if ( !pTM )
       {
@@ -628,7 +628,7 @@ namespace GR
       }
       time_t    utcTime = ToTime();
 
-#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID )
+#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB )
       std::tm*  pUTCStamp = gmtime( &utcTime );
       if ( pUTCStamp == NULL )
       {
@@ -655,7 +655,7 @@ namespace GR
       }
       time_t  utcTime = ToTime();
       
-#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID )
+#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB )
       std::tm*  pLocalStamp = localtime( &utcTime );
       if ( pLocalStamp == NULL )
       {

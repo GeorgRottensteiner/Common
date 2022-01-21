@@ -195,6 +195,39 @@ namespace Xtreme
 
 
 
+    void XAssetLoader::ReleaseAllAssets( const eXAssetType AssetType )
+    {
+      tMapAssets::iterator    it( m_mapAssets.find( AssetType ) );
+      if ( it != m_mapAssets.end() )
+      {
+        AssetTypeData& data( it->second );
+
+        delete data.pXMLAssetGroup;
+        data.pXMLAssetGroup = NULL;
+
+        tResourceMap& mapAssets( it->second.Resources );
+
+        tResourceMap::iterator    itR( mapAssets.begin() );
+        while ( itR != mapAssets.end() )
+        {
+          XAsset* pAsset( itR->second.second );
+
+          if ( pAsset )
+          {
+            dh::Log( "Asset %s is still allocated!", itR->first.c_str() );
+            //pAsset->Release();
+            //delete pAsset;
+          }
+          delete itR->second.first;
+
+          ++itR;
+        }
+        m_mapAssets.erase( it );
+      }
+    }
+
+
+
     void XAssetLoader::ReleaseAllAssets()
     {
       tMapAssets::iterator    it( m_mapAssets.begin() );

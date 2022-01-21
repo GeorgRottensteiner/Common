@@ -612,6 +612,21 @@ GR::u32 SDLSound::MasterVolume( const eSoundType sType )
 
 void SDLSound::ReleaseAssets()
 {
+  if ( XSoundBase::m_pEnvironment )
+  {
+    Xtreme::Asset::IAssetLoader* pLoader = ( Xtreme::Asset::IAssetLoader* )XSoundBase::m_pEnvironment->Service( "AssetLoader" );
+    if ( pLoader )
+    {
+      GR::up    assetCount = pLoader->AssetTypeCount( Xtreme::Asset::XA_SOUND );
+      for ( GR::up i = 0; i < assetCount; ++i )
+      {
+        Xtreme::Asset::XAsset* pAsset = pLoader->Asset( Xtreme::Asset::XA_SOUND, i );
+
+        delete pAsset;
+        pLoader->SetAsset( Xtreme::Asset::XA_SOUND, i, NULL );
+      }
+    }
+  }
 }
 
 

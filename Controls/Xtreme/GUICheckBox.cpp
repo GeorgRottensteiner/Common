@@ -1,5 +1,5 @@
 #include "GUIComponentDisplayer.h"
-#include "GUICheckbox.h"
+#include "GUICheckBox.h"
 
 
 

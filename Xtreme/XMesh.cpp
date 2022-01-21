@@ -3,9 +3,9 @@
 
 #include <IO\FileStream.h>
 
-#include <Debug\debugclient.h>
+#include <debug/debugclient.h>
 
-#include <math/mathutil.h>
+#include <Math/MathUtil.h>
 
 #include <vector>
 

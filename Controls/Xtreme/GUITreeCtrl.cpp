@@ -1,4 +1,4 @@
-#include <Debug\debugclient.h>
+#include <debug/debugclient.h>
 
 #include <Xtreme/XRenderer.h>
 

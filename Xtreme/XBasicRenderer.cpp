@@ -1,5 +1,3 @@
-#pragma once
-
 #include "XBasicRenderer.h"
 #include "XBasicFont.h"
 
@@ -12,7 +10,7 @@
 #include <Interface/IValueStorage.h>
 #include <Interface/IFileLocator.h>
 
-#include <Debug/DebugService.h>
+#include <debug/DebugService.h>
 
 #include <Xtreme/XAsset/XAssetLoader.h>
 #include <Xtreme/XAsset/XAssetImage.h>

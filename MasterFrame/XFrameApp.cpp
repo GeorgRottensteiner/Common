@@ -40,6 +40,11 @@ using namespace Windows::UI::Core;
 #include <Xtreme/DX11/DX11Renderer.h>
 #include <Xtreme/Audio/XAudio2Sound.h>
 //#include "OggXAudio2.h"
+#elif OPERATING_SYSTEM == OS_WEB
+#include <Xtreme/SDL/SDLInput.h>
+#include <Xtreme/OpenGL/OpenGLRenderClass.h>
+#include <Xtreme/NullSound/XNullMusic.h>
+#include <Xtreme/NullSound/XNullSound.h>
 #elif OPERATING_SUB_SYSTEM == OS_SUB_SDL
 #include <Xtreme/SDL/SDLInput.h>
 #include <Xtreme/SDL/SDLRenderClass.h>
@@ -57,7 +62,6 @@ using namespace Windows::UI::Core;
 XFrameApp*      g_pFrameApp = NULL;
 
 
-
 XFrameApp::XFrameApp() :
   m_pConsoleFont( NULL ),
   m_FixedLogicTimeStep( 0.05f ),
@@ -71,6 +75,8 @@ XFrameApp::XFrameApp() :
   m_GUI( GUIComponentDisplayer::Instance() ),
   m_ForceFixedSize( false )
 {
+  g_pFrameApp = this;
+
   GR::Service::Environment::Instance().AddHandler( fastdelegate::MakeDelegate( this, &XFrameApp::OnEnvironmentEvent ) );
 
   GR::Service::Environment::Instance().SetService( "GlobalRegistry", (LocalRegistry*)this );
@@ -277,6 +283,54 @@ bool XFrameApp::RunDefaultModules()
     m_RenderFrame.m_DisplayMode.FullScreen = false;
   }
 
+#if OPERATING_SYSTEM != OS_WEB
+  XRenderer* pExistingRenderer = (XRenderer*)GR::Service::Environment::Instance().Service( "Renderer" );
+  if ( pExistingRenderer != NULL )
+  {
+    m_pRenderClass = pExistingRenderer;
+    if ( !m_pRenderClass->Initialize( m_RenderFrame.m_DisplayMode.Width, m_RenderFrame.m_DisplayMode.Height, 32, 0, GR::Service::Environment::Instance() ) )
+    {
+      return false;
+    }
+    m_RenderFrame.SetSize( m_RenderFrame.m_DisplayMode.Width, m_RenderFrame.m_DisplayMode.Height );
+
+    EventProducer<GR::Gamebase::tXFrameEvent>::SendEvent( GR::Gamebase::tXFrameEvent( GR::Gamebase::tXFrameEvent::ET_RENDERER_SWITCHED ) );
+  }
+#endif
+
+  Xtreme::XInput* pExistingInput = ( Xtreme::XInput* )GR::Service::Environment::Instance().Service( "Input" );
+  if ( pExistingInput != NULL )
+  {
+    m_pInputClass = pExistingInput;
+    if ( !m_pInputClass->Initialize( GR::Service::Environment::Instance() ) )
+    {
+      return false;
+    }
+    EventProducer<GR::Gamebase::tXFrameEvent>::SendEvent( GR::Gamebase::tXFrameEvent( GR::Gamebase::tXFrameEvent::ET_INPUT_SWITCHED ) );
+  }
+
+  XSound* pExistingSound = (XSound*)GR::Service::Environment::Instance().Service( "Sound" );
+  if ( pExistingSound != NULL )
+  {
+    m_pSoundClass = pExistingSound;
+    if ( !m_pSoundClass->Initialize( GR::Service::Environment::Instance() ) )
+    {
+      return false;
+    }
+    EventProducer<GR::Gamebase::tXFrameEvent>::SendEvent( GR::Gamebase::tXFrameEvent( GR::Gamebase::tXFrameEvent::ET_SOUND_SWITCHED ) );
+  }
+
+  XMusic* pExistingMusic = (XMusic*)GR::Service::Environment::Instance().Service( "Music" );
+  if ( pExistingMusic != NULL )
+  {
+    m_pMusicPlayer = pExistingMusic;
+    if ( !m_pMusicPlayer->Initialize( GR::Service::Environment::Instance() ) )
+    {
+      return false;
+    }
+    EventProducer<GR::Gamebase::tXFrameEvent>::SendEvent( GR::Gamebase::tXFrameEvent( GR::Gamebase::tXFrameEvent::ET_MUSIC_PLAYER_SWITCHED ) );
+  }
+
   GR::Gamebase::Framework::RunDefaultModules();
 
   std::list<GR::String>    potentialRenderers;
@@ -336,11 +390,37 @@ bool XFrameApp::RunDefaultModules()
   m_pRenderClass->SetState( XRenderer::RS_MAGFILTER, XRenderer::RSV_FILTER_POINT );
   m_pRenderClass->SetState( XRenderer::RS_MINFILTER, XRenderer::RSV_FILTER_POINT );
   m_pRenderClass->SetState( XRenderer::RS_MIPFILTER, XRenderer::RSV_FILTER_POINT );
+#elif OPERATING_SYSTEM == OS_WEB
+  if ( m_pRenderClass == NULL )
+  {
+    m_pRenderClass = new OpenGLRenderClass();
+    GR::Service::Environment::Instance().SetService( "Renderer", m_pRenderClass );
+  }
+  if ( m_pSoundClass == NULL )
+  {
+    m_pSoundClass = new XNullSound();
+  }
+  if ( m_pMusicPlayer == NULL )
+  {
+    m_pMusicPlayer = new XNullMusic();
+  }
 #elif OPERATING_SUB_SYSTEM == OS_SUB_SDL
-  m_pRenderClass = new SDLRenderClass();
-  m_pSoundClass = new XNullSound();
-  m_pInputClass = new SDLInput();
-  m_pMusicPlayer = new XNullMusic();
+  if ( m_pRenderClass == NULL )
+  {
+    m_pRenderClass = new SDLRenderClass();
+  }
+  if ( m_pSoundClass == NULL )
+  {
+    m_pSoundClass = new XNullSound();
+  }
+  if ( m_pInputClass == NULL )
+  {
+    m_pInputClass = new SDLInput();
+  }
+  if ( m_pMusicPlayer == NULL )
+  {
+    m_pMusicPlayer = new XNullMusic();
+  }
 
   if ( !m_pInputClass->Initialize( GR::Service::Environment::Instance() ) )
   {
@@ -427,6 +507,146 @@ bool XFrameApp::RunDefaultModules()
 
 
 
+#if OPERATING_SYSTEM == OS_WEB
+void XFrameApp::OneLoopIterationStub()
+{
+  g_pFrameApp->OneLoopIteration();
+}
+
+
+
+void XFrameApp::OneLoopIteration()
+{
+  SDL_Event   sdlEvent;
+
+  if ( !m_ApplicationActive )
+  {
+    while ( SDL_PollEvent( &sdlEvent ) != 0 )
+    {
+      //User requests quit
+      if ( sdlEvent.type == SDL_QUIT )
+      {
+        m_ShutDown = true;
+      }
+      else if ( sdlEvent.type == SDL_WINDOWEVENT )
+      {
+        switch ( sdlEvent.window.event )
+        {
+          case SDL_WINDOWEVENT_FOCUS_GAINED:
+            SetActive( true );
+            break;
+          case SDL_WINDOWEVENT_FOCUS_LOST:
+            SetActive( false );
+            break;
+          default:
+            dh::Log( "unsupported window event %d", sdlEvent.window.event );
+        }
+      }
+      else
+      {
+        dh::Log( "unsupported SDL event %x", sdlEvent.type );
+      }
+    }
+  }
+  else
+  {
+    while ( SDL_PollEvent( &sdlEvent ) != 0 )
+    {
+      //User requests quit
+      if ( sdlEvent.type == SDL_QUIT )
+      {
+        m_ShutDown = true;
+      }
+      if ( ( sdlEvent.type >= SDL_KEYDOWN )
+      &&   ( sdlEvent.type < SDL_CLIPBOARDUPDATE ) )
+      {
+        ( (SDLInput*)m_pInputClass )->OnSDLEvent( sdlEvent );
+      }
+    }
+
+    GR::f64   fNewFrameTime = Time::Timer::Time();
+    GR::f32   ElapsedTime = (GR::f32)Time::Timer::Time( Time::Timer::TF_GETELAPSEDTIME );
+    GR::f32   fElapsedFixedTime = (GR::f32)(GR::f64)( fNewFrameTime - m_LastFixedFrameTime );
+
+    if ( ElapsedTime > 10.0f )
+    {
+      ElapsedTime = 0.0f;
+    }
+    //dh::Log( "TTElapsedTime %.6f", elapsedTime );
+    //dh::Log( "ElapsedTime %.6f", ElapsedTime );
+
+    if ( m_ConsoleVisible )
+    {
+      ElapsedTime = 0.0f;
+      m_LastFixedFrameTime = fNewFrameTime;
+      m_LastFrameTime = fNewFrameTime;
+    }
+
+    int     iSafetyLoopCounter = 0;
+    while ( fElapsedFixedTime >= m_FixedLogicTimeStep )
+    {
+      iSafetyLoopCounter++;
+      if ( iSafetyLoopCounter > 25 )
+      {
+        // Safety-Break um eventuelle Endlosloops zu verhindern
+        m_LastFixedFrameTime = fNewFrameTime;
+        break;
+      }
+      m_StateManager.UpdateCurrentState();
+      UpdateFixedLogic();
+      EventProducer<GR::Gamebase::tXFrameEvent>::ProcessEventQueue();
+      fElapsedFixedTime -= (GR::f32)m_FixedLogicTimeStep;
+      m_LastFixedFrameTime += m_FixedLogicTimeStep;
+    }
+    m_LastFrameTime = fNewFrameTime;
+
+    if ( m_pInputClass )
+    {
+      m_pInputClass->Update( ElapsedTime );
+    }
+
+    if ( ( m_pRenderClass )
+    &&   ( m_pInputClass ) )
+    {
+      if ( m_pInputClass->ReleasedKeyPressed( Xtreme::KEY_F3 ) )
+      {
+        ++m_CurScreenshotNumber;
+        GR::String     screenShotFile = Misc::Format( "shot%1%.tga" ) << m_CurScreenshotNumber;
+        m_pRenderClass->SaveScreenShot( screenShotFile.c_str() );
+      }
+    }
+    m_StateManager.UpdateStatesPerDisplayFrame( ElapsedTime );
+    UpdatePerDisplayFrame( ElapsedTime );
+    UpdateAssets( ElapsedTime );
+    EventProducer<GR::Gamebase::tXFrameEvent>::ProcessEventQueue();
+    EventQueue::Instance().ProcessQueue();
+
+    if ( m_pRenderClass )
+    {
+      if ( m_pRenderClass->BeginScene() )
+      {
+        DisplayFrame( *m_pRenderClass );
+
+        if ( m_pInputClass )
+        {
+          RenderCustomCursor( m_pInputClass->MousePos() );
+        }
+
+        if ( m_ConsoleVisible )
+        {
+          DisplayConsole();
+        }
+
+        m_pRenderClass->EndScene();
+        Present();
+      }
+    }
+  }
+}
+#endif
+
+
+
 void XFrameApp::RunLoop()
 {
   while ( !m_ShutDown )
@@ -470,6 +690,24 @@ void XFrameApp::RunLoop()
         if ( sdlEvent.type == SDL_QUIT )
         {
           m_ShutDown = true;
+        }
+        else if ( sdlEvent.type == SDL_WINDOWEVENT )
+        {
+          switch ( sdlEvent.window.event )
+          {
+            case SDL_WINDOWEVENT_FOCUS_GAINED:
+              SetActive( true );
+              break;
+            case SDL_WINDOWEVENT_FOCUS_LOST:
+              SetActive( false );
+              break;
+            default:
+              dh::Log( "unsupported window event %d", sdlEvent.window.event );
+          }
+        }
+        else
+        {
+          dh::Log( "unsupported SDL event %x", sdlEvent.type );
         }
       }
 #elif OPERATING_SYSTEM == OS_ANDROID
@@ -531,6 +769,11 @@ void XFrameApp::RunLoop()
         if ( sdlEvent.type == SDL_QUIT )
         {
           m_ShutDown = true;
+        }
+        if ( ( sdlEvent.type >= SDL_KEYDOWN )
+             && ( sdlEvent.type < SDL_CLIPBOARDUPDATE ) )
+        {
+          ( (SDLInput*)m_pInputClass )->OnSDLEvent( sdlEvent );
         }
       }
 #elif OPERATING_SYSTEM == OS_ANDROID
@@ -721,7 +964,7 @@ int XFrameApp::PreLoopRun()
       std::list<GR::String>::iterator    it( listLogParams.begin() );
       while ( it != listLogParams.end() )
       {
-        m_DebugService.LogEnable( it->c_str() );
+        m_DebugService.LogEnable( *it );
 
         ++it;
       }
@@ -737,8 +980,8 @@ int XFrameApp::PreLoopRun()
       std::list<GR::String>::iterator    it( listLogParams.begin() );
       while ( it != listLogParams.end() )
       {
-        m_DebugService.LogEnable( it->c_str() );
-        m_DebugService.LogToFile( it->c_str() );
+        m_DebugService.LogEnable( *it );
+        m_DebugService.LogToFile( *it );
 
         ++it;
       }
@@ -754,6 +997,7 @@ int XFrameApp::PreLoopRun()
 
   if ( !InitInstance() )
   {
+    dh::Log( "initinstance failed" );
     ReleaseAssets();
     SwitchRenderer( NULL );
     SwitchInput();
@@ -765,6 +1009,15 @@ int XFrameApp::PreLoopRun()
 
   m_LastFrameTime = Time::Timer::Time();
   m_LastFixedFrameTime = m_LastFrameTime;
+
+#if OPERATING_SYSTEM == OS_WEB
+  emscripten_pause_main_loop();
+  m_ApplicationActive = true;
+  emscripten_set_main_loop_timing( EM_TIMING_RAF, 1 );
+
+  emscripten_set_main_loop( OneLoopIterationStub, 0, 1 );
+  emscripten_resume_main_loop();
+#endif
 
   return m_ExitCode;
 }
@@ -839,6 +1092,16 @@ void XFrameApp::ReleaseModules()
     }
 #endif
   }
+#if OPERATING_SUB_SYSTEM == OS_SUB_SDL
+  // combined music/sound player
+  if ( ( m_pSoundClass != NULL )
+  &&   ( m_pMusicPlayer != NULL ) )
+  {
+    m_pMusicPlayer->Stop();
+    m_pMusicPlayer = NULL;
+    GR::Service::Environment::Instance().RemoveService( "Music" );
+  }
+#endif
   GR::Gamebase::Framework::ReleaseModules();
 }
 
@@ -1286,21 +1549,20 @@ bool XFrameApp::Create( GR::u32 Style, int Width, int Height, const char* Captio
   //dh::Log( "NativeSize: %dx%d   Ratio %.2f", nativeSize.x, nativeSize.y, (float)nativeSize.x / (float)nativeSize.y );
 
 #elif OPERATING_SUB_SYSTEM == OS_SUB_SDL
-  if ( SDL_Init( SDL_INIT_VIDEO ) < 0 )
-  {
-    return false;
-  }
+  dh::Log( "SDL_CreateWindow" );
   m_Window.m_pMainWindow = SDL_CreateWindow( m_EnvironmentConfig.Caption.c_str(), 
                                              SDL_WINDOWPOS_UNDEFINED, 
                                              SDL_WINDOWPOS_UNDEFINED, 
                                              m_EnvironmentConfig.StartUpWidth,
                                              m_EnvironmentConfig.StartUpHeight,
-                                             SDL_WINDOW_SHOWN );
+                                             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL );
   if ( m_Window.m_pMainWindow == NULL )
   {
     return false;
   }
+  dh::Log( "SDL_CreateWindow 2" );
   m_Window.m_pMainSurface = SDL_GetWindowSurface( m_Window.m_pMainWindow );
+  dh::Log( "SDL_CreateWindow 3" );
 #endif
 
   InitialiseAssets();
@@ -2248,6 +2510,10 @@ void XFrameApp::OnEnvironmentEvent( GR::Service::Environment::EnvironmentEvent E
 
 void XFrameApp::AdjustCanvas( int Width, int Height )
 {
+  if ( !m_pRenderClass->IsReady() )
+  {
+    return;
+  }
   //dh::Log( "AdjustCanvas called" );
 
   //GR::tPoint  origVirtualSize = m_pRenderClass->VirtualSize();
@@ -2372,9 +2638,11 @@ void XFrameApp::ChangeWindowSize( int Width, int Height, int Depth )
   else
   {
     //dh::Log( "wasFullscreen, re-calling SetMode" );
-
-    XRendererDisplayMode    mode( Width, Height, GR::Graphic::ImageData::ImageFormatFromDepth( Depth ), true );
-    m_pRenderClass->SetMode( mode );
+    if ( m_pRenderClass->IsReady() )
+    {
+      XRendererDisplayMode    mode( Width, Height, GR::Graphic::ImageData::ImageFormatFromDepth( Depth ), true );
+      m_pRenderClass->SetMode( mode );
+    }
   }
   m_RenderFrame.SetSize( Width, Height );
   m_GUI.SetScreenSizes( GR::tPoint( Width, Height ), m_GUI.VirtualSize() );
@@ -2390,6 +2658,10 @@ void XFrameApp::DetermineBestFullscreenMatch( XRendererDisplayMode& Mode )
   }
 
   std::vector<XRendererDisplayMode>       modeList( m_pRenderClass->NumberDisplayModes() );
+  if ( modeList.empty() )
+  {
+    return;
+  }
 
   if ( !m_pRenderClass->ListDisplayModes( &modeList[0], modeList.size() * sizeof( XRendererDisplayMode ) ) )
   {

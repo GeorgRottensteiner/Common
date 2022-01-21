@@ -55,6 +55,7 @@ namespace Xtreme
         static XAssetLoader&              Instance();
 
         bool                              LoadAssets( const GR::Char* Filename );
+        void                              ReleaseAllAssets( const eXAssetType AssetType );
         void                              ReleaseAllAssets();
 
         XAsset*                           Asset( const eXAssetType AssetType, const GR::Char* Name );

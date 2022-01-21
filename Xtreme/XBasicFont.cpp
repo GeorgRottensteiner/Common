@@ -9,7 +9,7 @@
 
 #include <Misc/Misc.h>
 
-#include <math/SectionLayouter.h>
+#include <Math/SectionLayouter.h>
 
 #include <set>
 
@@ -187,7 +187,7 @@ int XBasicFont::TextHeight( const GR::String& Text ) const
 {
   if ( Text.empty() )
   {
-    return TextHeight( "AOU!ÄÖÜßyg" );
+    return TextHeight( "AOU!\xC4\xD6\xDC\xDFyg" );
   }
   int   height = 0;
   unsigned int   length = (unsigned int)Text.length();
@@ -214,7 +214,7 @@ int XBasicFont::TextHeight( const GR::Char* Text ) const
   const GR::Char* Copy = Text;
   if ( Copy == NULL )
   {
-    Copy = "AOU!ÄÖÜßyg";
+    Copy = "AOU!\xC4\xD6\xDC\xDFyg";
   }
   int   iHeight = 0;
   unsigned int   length = (unsigned int)strlen( Copy );
@@ -623,7 +623,7 @@ bool XBasicFont::LoadFont( const char* FileName, GR::u32 Flags, GR::u32 Transpar
   std::multiset<GR::tPoint>         ptLetterSizes;
 
 
-  while ( chunk = fileFont.ReadU32() )
+  while ( ( chunk = fileFont.ReadU32() ) )
   {
     if ( chunk == 0x0001 )
     {
@@ -829,13 +829,10 @@ bool XBasicFont::LoadFont( const char* FileName, GR::u32 Flags, GR::u32 Transpar
     }
 
     cdPreTexture.ConvertSelfTo( formatToUse, 0, true, TransparentColor );
-
     m_pRenderer->CopyDataToTexture( pTexture, cdPreTexture );
 
-    /*
-    GR::Graphic::Image    ImgFont( cdPreTexture );
-
-    ImgFont.Save( "komplettfont.igf" );*/
+    //GR::Graphic::Image    ImgFont( cdPreTexture );
+    //ImgFont.Save( "komplettfont.igf" );
 
     ++itLayout;
   }

@@ -119,6 +119,20 @@ public:
 
 
 
+  static T* GetObject( lua_State* L, int narg )
+  {
+    userdataType* ud = static_cast<userdataType*>( luaL_checkudata( L, narg, T::s_ClassName ) );
+    if ( !ud )
+    {
+      luaL_argerror( L, narg, T::s_ClassName );
+    }
+    T* pObj = ud->pT;
+
+    return pObj;
+  }
+
+
+
   static void PushObject( LuaInstance& Lua, T* pObject )
   {
     userdataType* ud = static_cast<userdataType*>( lua_newuserdata( Lua.m_LuaInstance, sizeof( userdataType ) ) );

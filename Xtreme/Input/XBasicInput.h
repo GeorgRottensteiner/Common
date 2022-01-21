@@ -173,7 +173,7 @@ class XBasicInput : public EventProducerImpl<Xtreme::tInputEvent,GR::Service::Se
 
     tMapKeyHandler                m_KeyHandler;
 
-#if ( OPERATING_SYSTEM == OS_WINDOWS ) && ( OPERATING_SUB_SYSTEM != OS_SUB_WINDOWS_PHONE ) && ( OPERATING_SUB_SYSTEM != OS_SUB_SDL )
+#if ( OPERATING_SYSTEM == OS_WINDOWS ) && ( OPERATING_SUB_SYSTEM != OS_SUB_WINDOWS_PHONE ) && ( OPERATING_SUB_SYSTEM != OS_SUB_SDL ) && ( OPERATING_SUB_SYSTEM != OS_SUB_UNIVERSAL_APP )
     HWND                          m_hwndInput,
                                   m_hwndRelativeMouseTo;
 #endif

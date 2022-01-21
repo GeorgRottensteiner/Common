@@ -197,7 +197,10 @@ class XFrameApp : public Console,
     virtual void          OnSizeChanged();
 
 
-
+#if OPERATING_SYSTEM == OS_WEB
+    void                  OneLoopIteration();
+    static void           OneLoopIterationStub();
+#endif
 
 };
 

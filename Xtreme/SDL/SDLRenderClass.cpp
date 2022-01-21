@@ -9,7 +9,7 @@
 #include <Xtreme/XAsset/XAssetFont.h>
 #include <Xtreme/XAsset/XAssetMesh.h>
 
-#include <MasterFrame/XWindowSDL.h>
+#include <Xtreme/Environment/XWindowSDL.h>
 
 #include <Xtreme/MeshFormate/T3DLoader.h>
 

@@ -1,10 +1,13 @@
 #include "OpenGLTexture.h"
+#include "OpenGLRenderClass.h"
 
 
-
-OpenGLTexture::OpenGLTexture() :
+OpenGLTexture::OpenGLTexture( OpenGLRenderClass* pRenderer, bool AllowUsageAsRenderTarget ) :
+  m_pRenderer( pRenderer ),
   m_TextureID( 0 ),
-  AllowUsageAsRenderTarget( false )
+  m_AllowUsageAsRenderTarget( AllowUsageAsRenderTarget ),
+  m_RenderTargetFrameBufferID( 0 ),
+  m_RenderBufferDepthStencil( 0 )
 {
 }
 
@@ -19,7 +22,8 @@ OpenGLTexture::~OpenGLTexture()
 
 bool OpenGLTexture::Release()
 {
-  //TODO
+  m_pRenderer->ReleaseTexture( this );
+
   return true;
 }
 
@@ -27,7 +31,7 @@ bool OpenGLTexture::Release()
 
 bool OpenGLTexture::RequiresRebuild()
 {
-  if ( !AllowUsageAsRenderTarget )
+  if ( !m_AllowUsageAsRenderTarget )
   {
     return false;
   }

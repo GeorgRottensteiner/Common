@@ -6,7 +6,7 @@
 
 #include <debug/debugclient.h>
 
-#include <MasterFrame/XWindow.h>
+#include <Xtreme/Environment/XWindow.h>
 
 #include "DXMidi.h"
 

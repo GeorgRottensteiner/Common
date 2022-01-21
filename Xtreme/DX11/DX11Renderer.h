@@ -64,10 +64,71 @@ class DX11Renderer : public XBasicRenderer
       math::matrix4     Model;
       math::matrix4     View;
       math::matrix4     ViewIT;
+      //math::matrix4     InverseTransposeWorldMatrix;
       math::matrix4     Projection;
       math::matrix4     ScreenCoord2d;
       math::matrix4     TextureTransform;
     };
+
+    /*
+    struct Light
+    {
+      Light()
+        : Position( 0.0f, 0.0f, 0.0f ),
+          PositionW( 1.0f ),
+          Direction( 0.0f, 0.0f, 1.0f ),
+          DirectionW( 0.0f )
+        , Color( 0xffffffff )
+        , SpotAngle( 1.570796327f )
+        , ConstantAttenuation( 1.0f )
+        , LinearAttenuation( 0.0f )
+        , QuadraticAttenuation( 0.0f )
+        , LightType( XLight::LT_DIRECTIONAL )
+        , Enabled( 0 )
+      {
+      }
+
+      GR::tVector          Position;
+      GR::f32              PositionW;
+      //----------------------------------- (16 byte boundary)
+      GR::tVector          Direction;
+      GR::f32              DirectionW;
+      //----------------------------------- (16 byte boundary)
+      ColorValue           Color;
+      //----------------------------------- (16 byte boundary)
+      ColorValue           Specular;
+      //----------------------------------- (16 byte boundary)
+      ColorValue           Ambient;
+      //----------------------------------- (16 byte boundary)
+      float       SpotAngle;
+      float       ConstantAttenuation;
+      float       LinearAttenuation;
+      float       QuadraticAttenuation;
+      //----------------------------------- (16 byte boundary)
+      int         LightType;
+      int         Enabled;
+      // Add some padding to make this struct size a multiple of 16 bytes.
+      int         Padding[2];
+      //----------------------------------- (16 byte boundary)
+    };  // Total:                              80 bytes ( 5 * 16 )
+
+    struct LightsConstantBuffer
+    {
+      LightsConstantBuffer()
+        : EyePosition( 0.0f, 0.0f, 0.0f )
+        , GlobalAmbient( 0x00000000 )
+      {
+      }
+
+      GR::tVector         EyePosition;
+      GR::f32             PaddingL1;
+      //----------------------------------- (16 byte boundary)
+      ColorValue          GlobalAmbient;
+      //----------------------------------- (16 byte boundary)
+      //Light               Lights[8];        // 80 * 8 bytes
+      Light               Lights[2];        // 80 * 8 bytes
+    };  // Total:                                672 bytes (42 * 16)
+    */
 
     struct DirectionLight
     {
@@ -83,7 +144,7 @@ class DX11Renderer : public XBasicRenderer
       ColorValue        Ambient;
       GR::tVector       EyePos;
       GR::f32           PaddingLC1;
-      DirectionLight    Light[8];
+      DirectionLight    Lights[8];
 
       LightsConstantBuffer()
       {

@@ -1,4 +1,4 @@
-#include ".\guivbviewer.h"
+#include "GUIVBViewer.h"
 #include "GUIComponentDisplayer.h"
 
 

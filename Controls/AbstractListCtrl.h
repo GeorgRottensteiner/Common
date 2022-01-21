@@ -1258,7 +1258,7 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
 
       if ( m_pFont )
       {
-        SetItemHeight( m_pFont->TextHeight( "ÄÖÜßylgA0" ) );
+        SetItemHeight( m_pFont->TextHeight( "\xC4\xD6\xDC\xDFylgA0" ) );
         m_HeaderHeight = m_ItemHeight + 2;
         UpdateScrollBar();
       }

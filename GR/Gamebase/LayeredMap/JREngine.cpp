@@ -258,7 +258,11 @@ namespace GR
       ClearMap();
 
       GR::IO::FileStream    inFile( MapPath( MapName ).c_str() );
-      m_Map.Load( inFile );
+      if ( !m_Map.Load( inFile ) )
+      {
+        dh::Log( "Map Load failed for (%s)", MapPath( MapName ).c_str() );
+        return;
+      }
 
       m_MapChanged        = true;
       m_CurrentMap        = MapName;

@@ -17,17 +17,13 @@ HighScore::HighScore( GR::u32 Entries, size_t ItemDataLength, bool HigherScoreUp
   m_HigherUp( HigherScoreUp ),
   m_ItemDataLength( ItemDataLength )
 {
-
   Initialise( Entries, ItemDataLength, HigherScoreUp );
-
 }
 
 
 
 HighScore::~HighScore()
 {
-
-
 }
 
 

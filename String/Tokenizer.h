@@ -91,7 +91,7 @@ namespace GR
     
 
 
-        explicit Token( const long lValue )           : m_Type( TokenType::INT ),    m_String( "" ),       m_Integer( lValue )   {}
+        explicit Token( const GR::i64 lValue )           : m_Type( TokenType::INT ),    m_String( "" ),       m_Integer( lValue )   {}
         explicit Token( const double& dValue )        : m_Type( TokenType::REAL ),   m_String( "" ),       m_dbReal( dValue ) {}
         explicit Token( const GR::String& strValue )  : m_Type( TokenType::STRING ), m_String( strValue ), m_Integer( 0 )        {}
     
@@ -144,13 +144,13 @@ namespace GR
 
 	      inline tTokenType     Type()    const { return m_Type;     }
         inline GR::String     String()  const { return m_String; }
-	      inline long           Int()     const { return m_Integer;      }
+	      inline GR::i64        Int()     const { return m_Integer;      }
 	      inline double         Real()    const { return m_dbReal;    }
 	  
         //- Nur mit Vorsicht verwenden! (Zur Nachbearbeitung von Tokensequenzen)
         inline void Type( const tTokenType& type )   { m_Type = type;  }
         inline void String( const GR::String& s  )  { m_String = s; }
-	      inline void Int( const long& i )            { m_Integer = i;      }
+	      inline void Int( const GR::i64& i )            { m_Integer = i;      }
 	      inline void Real( const double& d  )        { m_dbReal = d;    }
         inline int PosInLine() const { return m_PosInLine; }
 
@@ -166,8 +166,8 @@ namespace GR
         int           m_PosInLine;
         union 
         { 
-          long m_Integer; 
-          double m_dbReal; 
+          GR::i64 m_Integer; 
+          double  m_dbReal; 
         };
     };
 

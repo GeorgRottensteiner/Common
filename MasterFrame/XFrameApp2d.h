@@ -240,7 +240,6 @@ class XFrameApp2d : public Console,
 
 #if OPERATING_SYSTEM == OS_WEB
     void                  OneLoopIteration();
-    //static EM_BOOL        OneLoopIterationStub( double time, void* userData );
     static void           OneLoopIterationStub();
 #endif
 

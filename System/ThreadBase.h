@@ -48,6 +48,17 @@ namespace System
       {
         //std::thread thread( ThreadProc );
       }
+#elif ( OPERATING_SYSTEM == OS_WEB )
+
+    std::thread* m_pThread;
+
+
+    ThreadBase() :
+      m_bPaused( false ),
+      m_pThread( NULL )
+    {
+      //std::thread thread( ThreadProc );
+    }
 #endif
 
 

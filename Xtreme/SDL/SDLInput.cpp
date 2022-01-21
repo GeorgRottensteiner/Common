@@ -621,6 +621,20 @@ Xtreme::eInputDefaultButtons SDLInput::MapToKey( SDL_Scancode SDLKey )
       return Xtreme::KEY_F12;
     case SDL_SCANCODE_RETURN:
       return Xtreme::KEY_ENTER;
+    case SDL_SCANCODE_NONUSBACKSLASH:
+      return Xtreme::KEY_GREATER;
+    case SDL_SCANCODE_CLEAR:
+      return Xtreme::KEY_NUMPAD_5;
+    case SDL_SCANCODE_LSHIFT:
+      return Xtreme::KEY_LSHIFT;
+    case SDL_SCANCODE_RSHIFT:
+      return Xtreme::KEY_RSHIFT;
+    case SDL_SCANCODE_LALT:
+      return Xtreme::KEY_LALT;
+    case SDL_SCANCODE_RALT:
+      return Xtreme::KEY_RALT;
+    case SDL_SCANCODE_RCTRL:
+      return Xtreme::KEY_RCONTROL;
     default:
       break;
   }

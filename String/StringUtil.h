@@ -147,6 +147,25 @@ namespace GR
 
 
 
+    static GR::String Join( const std::vector<GR::String>& Parts, const GR::Char Separator )
+    {
+      GR::String    result;
+
+      std::vector<GR::String>::const_iterator   it( Parts.begin() );
+      while ( it != Parts.end() )
+      {
+        if ( it != Parts.begin() )
+        {
+          result += Separator;
+        }
+        result += *it;
+        ++it;
+      }
+      return result;
+    }
+
+
+
     static GR::String Fill( const GR::Char FillChar, GR::u32 FillCount )
     {
       GR::String   result;
@@ -776,6 +795,93 @@ namespace GR
         }
       }
       return true;
+    }
+
+
+
+    static bool IsValidHex( const char* pString, size_t NumChars )
+    {
+      for ( size_t i = 0; i < NumChars; ++i )
+      {
+        if ( !IsValidHex( pString[i] ) )
+        {
+          return false;
+        }
+      }
+      return true;
+    }
+
+
+
+    static bool MatchPattern( const char* pMask, const char* pToMatch )
+    {
+      // We have a special case where string is empty ("") and the mask is "*".
+      // We need to handle this too. So we can't test on !*pToMatch here.
+      // The loop breaks when the match string is exhausted.
+      while ( *pMask )
+      {
+        // Single wildcard character
+        if ( *pMask == '?' )
+        {
+          // Matches any character except empty string
+          if ( !*pToMatch )
+          {
+            return false;
+          }
+
+          // OK next
+          ++pToMatch;
+          ++pMask;
+        }
+        else if ( *pMask == '*' )
+        {
+          // Need to do some tricks.
+
+          // 1. The wildcard * is ignored.
+          //    So just an empty string matches. This is done by recursion.
+          //      Because we eat one character from the match string, the
+          //      recursion will stop.
+          if ( MatchPattern( pMask + 1, pToMatch ) )
+          {
+            // we have a match and the * replaces no other character
+            return true;
+          }
+
+          // 2. Chance we eat the next character and try it again, with a
+          //    wildcard * match. This is done by recursion. Because we eat
+          //      one character from the string, the recursion will stop.
+          if ( ( *pToMatch )
+          &&   ( MatchPattern( pMask, pToMatch + 1 ) ) )
+          {
+            return true;
+          }
+
+          // Nothing worked with this wildcard.
+          return false;
+        }
+        else
+        {
+          // Standard compare of 2 chars. Note that *pszSring might be 0
+          // here, but then we never get a match on *pszMask that has always
+          // a value while inside this loop.
+          if ( *pToMatch++ != *pMask++ )
+          {
+            return false;
+          }
+        }
+      }
+
+      // Have a match? Only if both are at the end...
+      return ( ( !*pToMatch )
+      &&       ( !*pMask ) );
+    }
+
+
+
+    // match string with file wildcards (* and ? are possible)
+    static bool MatchPattern( const GR::String& Mask, const GR::String& ToMatch )
+    {
+      return MatchPattern( Mask.c_str(), ToMatch.c_str() );
     }
 
 

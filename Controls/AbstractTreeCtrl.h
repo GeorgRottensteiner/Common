@@ -186,7 +186,7 @@ template <class BS_, class SB_> class AbstractTreeCtrl : public BS_
       m_ItemHeight        = 12;
       m_LevelIndent       = m_ItemHeight;
       m_SelectedItem      = -1;
-      m_itMouseOverItem   = -1;
+      m_itMouseOverItem   = TREEITEM();
       m_Offset            = 0;
       m_VisibleItemsInTree= 0;
 

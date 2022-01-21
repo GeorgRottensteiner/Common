@@ -140,11 +140,14 @@ namespace GR
         case GR::Graphic::IF_A4R4G4B4:
           return 2 * m_Width;
         case GR::Graphic::IF_R8G8B8:
+        case GR::Graphic::IF_B8G8R8:
           return 3 * m_Width;
         case GR::Graphic::IF_X8R8G8B8:
         case GR::Graphic::IF_A8R8G8B8:
         case GR::Graphic::IF_A2B10G10R10:
         case GR::Graphic::IF_A2R10G10B10:
+        case GR::Graphic::IF_X8B8G8R8:
+        case GR::Graphic::IF_A8B8G8R8:
           return 4 * m_Width;
         case GR::Graphic::IF_UNKNOWN:
         case GR::Graphic::IF_COMPLEX:
@@ -178,6 +181,8 @@ namespace GR
           return 24;
         case GR::Graphic::IF_X8R8G8B8:
         case GR::Graphic::IF_A8R8G8B8:
+        case GR::Graphic::IF_X8B8G8R8:
+        case GR::Graphic::IF_A8B8G8R8:
         case GR::Graphic::IF_A2B10G10R10:
         case GR::Graphic::IF_A2R10G10B10:
           return 32;
@@ -236,6 +241,8 @@ namespace GR
           break;
         case GR::Graphic::IF_X8R8G8B8:
         case GR::Graphic::IF_A8R8G8B8:
+        case GR::Graphic::IF_X8B8G8R8:
+        case GR::Graphic::IF_A8B8G8R8:
         case GR::Graphic::IF_A2B10G10R10:
         case GR::Graphic::IF_A2R10G10B10:
           return 4;
@@ -323,14 +330,12 @@ namespace GR
       }
 
       return true;
-
     }
 
 
 
     void ImageData::Attach( int iWidth, int iHeight, int iLineOffsetInBytes, GR::Graphic::eImageFormat imageFormat, void* pData )
     {
-
       if ( m_Owner )
       {
         if ( m_pData )
@@ -357,7 +362,6 @@ namespace GR
       }
 
       m_pData = pData;
-
     }
 
 
@@ -519,6 +523,58 @@ namespace GR
                 else
                 {
                   memcpy( pTarget, pSource, iWidth * 4 );
+                }
+              }
+              return true;
+            }
+            // GR::Graphic::IF_A8R8G8B8 nach GR::Graphic::IF_A8R8G8B8 ---------------------------------------
+            else if ( pTargetData->m_ImageFormat == GR::Graphic::IF_A8B8G8R8 )
+            {
+              GR::u32* pTarget;
+              for ( int i = 0; i < iHeight; i++ )
+              {
+                pTarget = ( (GR::u32*)pTargetData->m_pData ) + i * pTargetData->m_LineOffsetInBytes / 4;
+                pSource = (GR::u32*)m_pData + iX1 + ( i + iY1 ) * m_LineOffsetInBytes / 4;
+
+                if ( bColorKeying )
+                {
+                  for ( int j = 0; j < iWidth; j++ )
+                  {
+                    if ( ( *pSource & 0x00ffffff ) == TransparentColor )
+                    {
+                      // transparent, Alpha auf 0 setzen
+                      if ( ColorKeyReplacementColor != 0 )
+                      {
+                        *pTarget++ = replacementColor;
+                        ++pSource;
+                      }
+                      else
+                      {
+                        GR::u32   value = *pSource & 0x00ffffff;
+                        value = ( ( value & 0xff ) << 16 ) | ( value & 0xff00 ) | ( ( value & 0xff0000 ) >> 16 );
+                        *pTarget++ = value;
+                      }
+                    }
+                    else
+                    {
+                      GR::u32   value = *pSource & 0x00ffffff;
+                      value = ( ( value & 0xff ) << 16 ) | ( value & 0xff00 ) | ( ( value & 0xff0000 ) >> 16 ) | ( value & 0xff000000 );
+                      *pTarget++ = *pSource++;
+                    }
+                  }
+                }
+                else
+                {
+
+                  for ( int j = 0; j < iWidth; ++j )
+                  {
+                    GR::u32   value = *pSource & 0x00ffffff;
+                    value = ( ( value & 0xff ) << 16 ) | ( value & 0xff00 ) | ( ( value & 0xff0000 ) >> 16 ) | ( value & 0xff000000 );
+                    *pTarget = value;
+
+                    ++pSource;
+                    ++pTarget;
+                  }
                 }
               }
               return true;
@@ -1378,6 +1434,86 @@ namespace GR
               }
               return true;
             }
+            // GR::Graphic::IF_A1R5G5B5 to GR::Graphic::IF_A8B8G8R8 ---------------------------------------
+            else if ( pTargetData->m_ImageFormat == GR::Graphic::IF_A8B8G8R8 )
+            {
+              if ( bColorKeying )
+              {
+                GR::u8* pTarget = NULL;
+                GR::u16   wTransparentColor = (GR::u16)( ( ( TransparentColor & 0xf80000 ) >> 9 )
+                                                         | ( ( TransparentColor & 0x00f800 ) >> 6 )
+                                                         | ( ( TransparentColor & 0x0000f8 ) >> 3 ) );
+
+                for ( int i = 0; i < iHeight; i++ )
+                {
+                  pTarget = ( (GR::u8*)pTargetData->m_pData ) + i * pTargetData->m_LineOffsetInBytes;
+                  pSource = ( (GR::u16*)m_pData ) + iX1 + ( i + iY1 ) * m_LineOffsetInBytes / 2;
+
+                  for ( int j = 0; j < iWidth; j++ )
+                  {
+                    if ( ( *pSource & 0x8000 )
+                         && ( ( *pSource & 0x7fff ) == wTransparentColor ) )
+                    {
+                      if ( ColorKeyReplacementColor != 0 )
+                      {
+                        *pTarget++ = ( ( replacementColor & 0x7c00 ) >> 10 ) * 255 / 31;
+                        *pTarget++ = ( ( replacementColor & 0x03e0 ) >> 5 ) * 255 / 31;
+                        *pTarget++ = ( ( replacementColor & 0x001f ) * 255 / 31 );
+                      }
+                      else
+                      {
+                        *pTarget++ = ( ( *pSource & 0x7c00 ) >> 10 ) * 255 / 31;
+                        *pTarget++ = ( ( *pSource & 0x03e0 ) >> 5 ) * 255 / 31;
+                        *pTarget++ = ( ( *pSource & 0x001f ) * 255 / 31 ); 
+                      }
+                      *pTarget++ = 0;
+                    }
+                    else
+                    {
+                      *pTarget++ = ( ( *pSource & 0x7c00 ) >> 10 ) * 255 / 31;
+                      *pTarget++ = ( ( *pSource & 0x03e0 ) >> 5 ) * 255 / 31;
+                      *pTarget++ = ( ( *pSource & 0x001f ) * 255 / 31 ); 
+                      if ( *pSource & 0x8000 )
+                      {
+                        *pTarget++ = 0xff;
+                      }
+                      else
+                      {
+                        *pTarget++ = 0x00;
+                      }
+                    }
+                    pSource++;
+                  }
+                }
+              }
+              else
+              {
+                GR::u8* pTarget;
+
+                for ( int i = 0; i < iHeight; i++ )
+                {
+                  pTarget = ( (GR::u8*)pTargetData->m_pData ) + i * pTargetData->m_LineOffsetInBytes;
+                  pSource = ( (GR::u16*)m_pData ) + iX1 + ( i + iY1 ) * m_LineOffsetInBytes / 2;
+
+                  for ( int j = 0; j < iWidth; j++ )
+                  {
+                    *pTarget++ = ( ( *pSource & 0x7c00 ) >> 10 ) * 255 / 31;
+                    *pTarget++ = ( ( *pSource & 0x03e0 ) >> 5 ) * 255 / 31;
+                    *pTarget++ = ( ( *pSource & 0x001f ) * 255 / 31 ); 
+                    ++pSource;
+                    if ( *pSource & 0x8000 )
+                    {
+                      *pTarget++ = 0xff;
+                    }
+                    else
+                    {
+                      *pTarget++ = 0x00;
+                    }
+                  }
+                }
+              }
+              return true;
+            }
           }
           break;
         case GR::Graphic::IF_X1R5G5B5:
@@ -1443,6 +1579,26 @@ namespace GR
                   *pTarget++ = ( ( *pSource & 0x001f ) * 255 / 31 );
                   *pTarget++ = ( ( *pSource & 0x03e0 ) >> 5 ) * 255 / 31;
                   *pTarget++ = ( ( *pSource++ & 0x7c00 ) >> 10 ) * 255 / 31;
+                }
+              }
+              return true;
+            }
+            // GR::Graphic::IF_X1R5G5B5 nach GR::Graphic::IF_B8G8R8  --------------------------------------
+            else if ( pTargetData->m_ImageFormat == GR::Graphic::IF_B8G8R8 )
+            {
+              GR::u8* pTarget;
+
+              for ( int i = 0; i < iHeight; i++ )
+              {
+                pTarget = ( (GR::u8*)pTargetData->m_pData ) + i * pTargetData->m_LineOffsetInBytes;
+                pSource = ( (GR::u16*)m_pData ) + iX1 + ( i + iY1 ) * m_LineOffsetInBytes / 2;
+
+                for ( int j = 0; j < iWidth; j++ )
+                {
+                  *pTarget++ = ( ( *pSource & 0x7c00 ) >> 10 ) * 255 / 31;
+                  *pTarget++ = ( ( *pSource & 0x03e0 ) >> 5 ) * 255 / 31;
+                  *pTarget++ = ( ( *pSource & 0x001f ) * 255 / 31 ); 
+                  ++pSource;
                 }
               }
               return true;
@@ -2277,7 +2433,6 @@ namespace GR
                                     int iX1, int iY1, int iWidth, int iHeight,
                                     GR::u32 ColorKeyReplacementColor )
     {
-
       GR::Graphic::eImageFormat    fDummy = m_ImageFormat;
 
       if ( ( m_ImageFormat == imageFormat )
@@ -2400,7 +2555,6 @@ namespace GR
 
     GR::u32 ImageData::GetPixel( int iX, int iY ) const
     {
-
       GR::u8*   pData = ( GR::u8*)GetRowColumnData( iX, iY );
 
       switch ( m_ImageFormat )
@@ -2415,6 +2569,8 @@ namespace GR
           return *(GR::u16*)pData;
         case GR::Graphic::IF_A8R8G8B8:
         case GR::Graphic::IF_X8R8G8B8:
+        case GR::Graphic::IF_X8B8G8R8:
+        case GR::Graphic::IF_A8B8G8R8:
           return *(GR::u32*)pData;
         case GR::Graphic::IF_R8G8B8:
           {
@@ -2426,14 +2582,12 @@ namespace GR
           return 0;
       }
       return 0;
-
     }
 
 
 
     GR::u32 ImageData::GetPixelRGB( int iX, int iY ) const
     {
-
       GR::u8*   pData = ( GR::u8*)GetRowColumnData( iX, iY );
 
       switch ( m_ImageFormat )
@@ -2494,44 +2648,34 @@ namespace GR
           return 0;
       }
       return 0;
-
     }
 
 
 
     void ImageData::SetOwnership( bool bOwner )
     {
-
       m_Owner = bOwner;
-
     }
 
 
 
     eImageFormat ImageData::ImageFormat() const
     {
-
       return m_ImageFormat;
-
     }
 
 
 
-    void ImageData::TransparentColorUsed( bool bUsed )
+    void ImageData::TransparentColorUsed( bool Used )
     {
-
-      m_TransparentColorUsed = bUsed;
-
+      m_TransparentColorUsed = Used;
     }
 
 
 
     bool ImageData::TransparentColorUsed() const
     {
-
-
       return m_TransparentColorUsed;
-
     }
 
 
@@ -2580,7 +2724,6 @@ namespace GR
 
     eImageFormat ImageData::ImageFormatFromDepth( unsigned long dwDepth )
     {
-
       switch ( dwDepth )
       {
         case 1:
@@ -2601,14 +2744,12 @@ namespace GR
           return GR::Graphic::IF_X8R8G8B8;
       }
       return GR::Graphic::IF_UNKNOWN;
-
     }
 
 
 
     unsigned long ImageData::DepthFromImageFormat( GR::Graphic::eImageFormat eImgFormat )
     {
-
       switch ( eImgFormat )
       {
         case GR::Graphic::IF_INDEX1:
@@ -2629,6 +2770,8 @@ namespace GR
           return 24;
         case GR::Graphic::IF_A8R8G8B8:
         case GR::Graphic::IF_X8R8G8B8:
+        case GR::Graphic::IF_X8B8G8R8:
+        case GR::Graphic::IF_A8B8G8R8:
         case GR::Graphic::IF_A2B10G10R10:
         case GR::Graphic::IF_A2R10G10B10:
           return 32;
@@ -2647,6 +2790,7 @@ namespace GR
       return ( ( imgFormat == GR::Graphic::IF_A1R5G5B5 )
       ||       ( imgFormat == GR::Graphic::IF_A4R4G4B4 )
       ||       ( imgFormat == GR::Graphic::IF_A8 )
+      ||       ( imgFormat == GR::Graphic::IF_A8B8G8R8 )
       ||       ( imgFormat == GR::Graphic::IF_A8R8G8B8 ) );
     }
 

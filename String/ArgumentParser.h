@@ -85,16 +85,16 @@ namespace GR
       void                                  AddOptionalParameter( const GR::String& Param, bool CaseSensitive = false );
       
       bool                                  CheckParameters();
-      GR::String                        Parameter( const GR::String& Name );
+      GR::String                            Parameter( const GR::String& Name );
       bool                                  IsParameterSet( const GR::String& Name );
 
       void                                  SetCommandLine( int argc, const GR::Char* argv[] );
       
-      GR::String                        ErrorInfo();
-      GR::String                        CallInfo();
+      GR::String                            ErrorInfo();
+      GR::String                            CallInfo();
 
       int                                   NumArguments();
-      GR::String                        Argument( int Index );
+      GR::String                            Argument( int Index );
 
   };
       

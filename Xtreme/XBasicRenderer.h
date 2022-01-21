@@ -7,7 +7,7 @@
 
 #include <Interface/IAssetLoader.h>
 
-#include <math/matrix4.h>
+#include <Math/matrix4.h>
 
 #include "XRenderer.h"
 #include "XVertexBuffer.h"

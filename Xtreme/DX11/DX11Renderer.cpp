@@ -599,6 +599,7 @@ bool DX11Renderer::Initialize( GR::u32 Width,
   m_Matrices.TextureTransform.Identity();
   m_StoredTextureTransform.Identity();
 
+  //m_LightInfo.GlobalAmbient = ColorValue( 0x00000000 );
   m_LightInfo.Ambient = ColorValue( 0x00000000 );
 
   SetTransform( XRenderer::TT_WORLD, m_Matrices.Model );
@@ -643,7 +644,7 @@ bool DX11Renderer::Initialize( GR::u32 Width,
 
   // init material
   m_pDeviceContext->UpdateSubresource( m_pMaterialBuffer, 0, NULL, &m_Material, 0, 0 );
-  m_pDeviceContext->VSSetConstantBuffers( 2, 1, &m_pMaterialBuffer );
+  m_pDeviceContext->PSSetConstantBuffers( 2, 1, &m_pMaterialBuffer );
 
 
   m_Fog.FogType     = 0; // FOG_TYPE_NONE;
@@ -783,10 +784,15 @@ void DX11Renderer::SetTransform( eTransformType tType, const math::matrix4& matT
     case TT_WORLD:
       m_Matrices.Model = matTrix;
       m_Matrices.Model.Transpose();
+
+      //m_Matrices.InverseTransposeWorldMatrix = matTrix;
+      //m_Matrices.InverseTransposeWorldMatrix.Inverse();
+      //m_Matrices.InverseTransposeWorldMatrix.Transpose();
       break;
     case TT_VIEW:
       m_Matrices.View = matTrix;
       m_Matrices.View.Transpose();
+
       m_Matrices.ViewIT = matTrix;
       m_Matrices.ViewIT.Inverse();
       m_Matrices.ViewIT.Transpose();
@@ -826,8 +832,10 @@ void DX11Renderer::SetTransform( eTransformType tType, const math::matrix4& matT
   {
     if ( tType == TT_WORLD )
     {
+      //m_LightInfo.EyePosition.set( matTrix.ms._41, matTrix.ms._42, matTrix.ms._43 );
       m_LightInfo.EyePos.set( matTrix.ms._41, matTrix.ms._42, matTrix.ms._43 );
       m_pDeviceContext->UpdateSubresource( m_pLightBuffer, 0, NULL, &m_LightInfo, 0, 0 );
+      //m_pDeviceContext->PSSetConstantBuffers( 1, 1, &m_pLightBuffer );
       m_pDeviceContext->VSSetConstantBuffers( 1, 1, &m_pLightBuffer );
       m_LightsChanged = false;
     }
@@ -842,6 +850,7 @@ void DX11Renderer::FlushLightChanges()
   {
     m_LightsChanged = false;
     m_pDeviceContext->UpdateSubresource( m_pLightBuffer, 0, NULL, &m_LightInfo, 0, 0 );
+    //m_pDeviceContext->PSSetConstantBuffers( 1, 1, &m_pLightBuffer );
     m_pDeviceContext->VSSetConstantBuffers( 1, 1, &m_pLightBuffer );
   }
 }
@@ -1187,6 +1196,11 @@ bool DX11Renderer::IsReady() const
 
 bool DX11Renderer::BeginScene()
 {
+  if ( !m_Ready )
+  {
+    return false;
+  }
+
   BOOL    fullScreen = FALSE;
 
   if ( ( m_pSwapChain != NULL )
@@ -2028,6 +2042,7 @@ bool DX11Renderer::SetState( eRenderState rState, GR::u32 rValue, GR::u32 Stage 
   switch ( rState )
   {
     case RS_AMBIENT:
+      //m_LightInfo.GlobalAmbient = ColorValue( rValue );
       m_LightInfo.Ambient = ColorValue( rValue );
       m_LightsChanged = true;
       if ( m_LightingEnabled )
@@ -2067,6 +2082,7 @@ bool DX11Renderer::SetState( eRenderState rState, GR::u32 rValue, GR::u32 Stage 
           if ( !m_LightEnabled[Stage] )
           {
             FlushAllCaches();
+            //m_LightInfo.Lights[Stage].Enabled = true;
             m_LightEnabled[Stage] = true;
             ++m_NumActiveLights;
           }
@@ -2077,6 +2093,7 @@ bool DX11Renderer::SetState( eRenderState rState, GR::u32 rValue, GR::u32 Stage 
           {
             FlushAllCaches();
             m_LightEnabled[Stage] = false;
+            //m_LightInfo.Lights[Stage].Enabled = false;
             --m_NumActiveLights;
           }
         }
@@ -2856,10 +2873,12 @@ bool DX11Renderer::SetLight( GR::u32 LightIndex, XLight& Light )
 
   if ( Light.m_Type == XLight::LT_DIRECTIONAL )
   {
-    m_LightInfo.Light[LightIndex].Diffuse   = ColorValue( Light.m_Diffuse );
-    m_LightInfo.Light[LightIndex].Ambient   = ColorValue( Light.m_Ambient );
-    m_LightInfo.Light[LightIndex].Direction = Light.m_Direction;
-    m_LightInfo.Light[LightIndex].Specular  = ColorValue( Light.m_Specular );
+    //m_LightInfo.Lights[LightIndex].Color     = ColorValue( Light.m_Diffuse );
+    m_LightInfo.Lights[LightIndex].Diffuse    = ColorValue( Light.m_Diffuse );
+    m_LightInfo.Lights[LightIndex].Ambient    = ColorValue( Light.m_Ambient );
+    m_LightInfo.Lights[LightIndex].Direction  = Light.m_Direction.normalized();
+    m_LightInfo.Lights[LightIndex].Specular   = ColorValue( Light.m_Specular );
+    //m_LightInfo.Lights[LightIndex].LightType  = Light.m_Type;
   }
    
   if ( m_SetLights[LightIndex].m_Type != XLight::LT_INVALID )
@@ -2873,6 +2892,7 @@ bool DX11Renderer::SetLight( GR::u32 LightIndex, XLight& Light )
   if ( hadChange )
   {
     m_pDeviceContext->UpdateSubresource( m_pLightBuffer, 0, NULL, &m_LightInfo, 0, 0 );
+    //m_pDeviceContext->PSSetConstantBuffers( 1, 1, &m_pLightBuffer );
     m_pDeviceContext->VSSetConstantBuffers( 1, 1, &m_pLightBuffer );
     m_LightsChanged = false;
   }
@@ -2895,12 +2915,18 @@ bool DX11Renderer::SetMaterial( const XMaterial& Material )
   m_Material.Specular       = ColorValue( Material.Specular );
   m_Material.SpecularPower  = Material.Power;
 
+  m_Material.Ambient.A  = 1.0f;
+  m_Material.Emissive.A = 1.0f;
+  m_Material.Diffuse.A  = 1.0f;
+  m_Material.Specular.A = 1.0f;
+
   if ( m_Material.Diffuse == ColorValue( 0 ) )
   {
     m_Material.Diffuse = ColorValue( 0xffffffff );
   }
 
   m_pDeviceContext->UpdateSubresource( m_pMaterialBuffer, 0, NULL, &m_Material, 0, 0 );
+  //m_pDeviceContext->PSSetConstantBuffers( 2, 1, &m_pMaterialBuffer );
   m_pDeviceContext->VSSetConstantBuffers( 2, 1, &m_pMaterialBuffer );
   return true;
 }
@@ -3609,6 +3635,7 @@ void DX11Renderer::ChooseShaders( GR::u32 VertexFormat )
         else if ( numLights == 1 )
         {
           SetVertexShader( "position_texture_color_normal_light1" );
+          //SetPixelShader( "position_texture_color_normal_light1" );
           SetPixelShader( "position_texture_color" );
           return;
         }

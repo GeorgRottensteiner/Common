@@ -1,4 +1,4 @@
-#include <Debug\debugclient.h>
+#include <debug/debugclient.h>
 
 #include "GUIComponentDisplayer.h"
 #include "GUIScrollBar.h"

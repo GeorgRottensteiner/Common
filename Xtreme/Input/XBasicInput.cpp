@@ -27,7 +27,7 @@ XBasicInput::XBasicInput() :
 #if OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP
   m_lpfnInputOldWndProc( NULL ),
 #endif
-#if ( OPERATING_SYSTEM == OS_WINDOWS ) && ( OPERATING_SUB_SYSTEM != OS_SUB_WINDOWS_PHONE ) && ( OPERATING_SUB_SYSTEM != OS_SUB_SDL )
+#if ( OPERATING_SYSTEM == OS_WINDOWS ) && ( OPERATING_SUB_SYSTEM != OS_SUB_WINDOWS_PHONE ) && ( OPERATING_SUB_SYSTEM != OS_SUB_SDL ) && ( OPERATING_SUB_SYSTEM != OS_SUB_UNIVERSAL_APP )
   m_hwndInput( NULL ),
 #endif
   m_Initialized( false ),
@@ -188,7 +188,7 @@ bool XBasicInput::Initialize( GR::IEnvironment& Environment )
   m_InputMButtonsSwapped = !!GetSystemMetrics( SM_SWAPBUTTON );
 #endif
 
-#if ( OPERATING_SYSTEM == OS_WINDOWS ) && ( OPERATING_SUB_SYSTEM != OS_SUB_WINDOWS_PHONE ) && ( OPERATING_SUB_SYSTEM != OS_SUB_SDL )
+#if ( OPERATING_SYSTEM == OS_WINDOWS ) && ( OPERATING_SUB_SYSTEM != OS_SUB_WINDOWS_PHONE ) && ( OPERATING_SUB_SYSTEM != OS_SUB_SDL ) && ( OPERATING_SUB_SYSTEM != OS_SUB_UNIVERSAL_APP )
   m_hwndInput             = hWnd;
   m_hwndRelativeMouseTo   = hWnd;
 #endif

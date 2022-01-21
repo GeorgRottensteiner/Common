@@ -8,7 +8,7 @@
 #include <Xtreme/XTextureSection.h>
 
 #include "GUIComponent.h"
-#include "GUIScrollbar.h"
+#include "GUIScrollBar.h"
 
 
 

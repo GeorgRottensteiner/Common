@@ -32,7 +32,10 @@ namespace GR
       IF_MONOCHROME = IF_INDEX1,
       IF_INDEX2,
       IF_A2B10G10R10,
-      IF_A2R10G10B10
+      IF_A2R10G10B10,
+      IF_X8B8G8R8,      // that weird OpenGL format
+      IF_A8B8G8R8,      // that weird OpenGL format
+      IF_B8G8R8         // that other weird OpenGL format
     };
 
     class ImageData

@@ -69,20 +69,24 @@ void DebugService::LogDirect( const GR::String& System, const GR::String& Text )
 
 
 
-void DebugService::Log( const GR::String& System, const GR::String& Format, ... )
+void DebugService::Log( const GR::String& System, const char* Format, ... )
 {
   if ( LogEnabled( System ) )
   {
     static GR::Char    szMiscBuffer[5000];
-#if ( OPERATING_SYSTEM == OS_TANDEM )
-    vsprintf( szMiscBuffer, Format.c_str(), (char *)( &szFormat + 1 ) );
-#elif ( ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB ) )
+#if ( ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_WEB ) )
+    vsprintf( szMiscBuffer, Format.c_str(), (char *)( &Format + 1 ) );
+#elif ( OPERATING_SYSTEM == OS_ANDROID )
     va_list args;
     va_start( args, Format.c_str() );
     vsprintf( szMiscBuffer, Format.c_str(), args );
     va_end( args );
 #else
-    vsprintf_s( szMiscBuffer, 5000, Format.c_str(), (char *)( Format.c_str() + 1 ) );
+    va_list args;
+
+    va_start( args, Format );
+    vsprintf_s( szMiscBuffer, 5000, Format, args );
+    va_end( args );
 #endif
     LogDirect( System, szMiscBuffer );
   }

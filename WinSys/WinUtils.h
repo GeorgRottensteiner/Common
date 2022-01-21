@@ -33,6 +33,7 @@ namespace Win
       WV_WINSERVER2003,
       WV_VISTA,
       WV_WIN7,
+      WV_WIN10,
       WV_HIGHER_THAN_KNOWN
     };
 

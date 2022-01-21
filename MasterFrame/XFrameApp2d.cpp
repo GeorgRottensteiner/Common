@@ -298,7 +298,9 @@ bool XFrameApp2d::SwitchRenderer( const char* szFileName )
     return SwitchRenderer();
   }
   m_RenderFrame.SetSize( m_UsedWidth, m_UsedHeight );
-  m_GUI.SetScreenSizes( GR::tPoint( m_pRenderClass->Width(), m_pRenderClass->Height() ), GR::tPoint( 640, 480 ) );
+
+  // 2d - no scaling, always full screen 1:1
+  m_GUI.SetScreenSizes( GR::tPoint( m_pRenderClass->Width(), m_pRenderClass->Height() ), GR::tPoint( m_pRenderClass->Width(), m_pRenderClass->Height() ) );
   m_GUI.SetRenderer( m_pRenderClass );
 
   EventProducer<GR::Gamebase::tXFrameEvent>::SendEvent( GR::Gamebase::tXFrameEvent( GR::Gamebase::tXFrameEvent::ET_RENDERER_SWITCHED ) );

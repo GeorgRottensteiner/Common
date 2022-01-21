@@ -71,7 +71,9 @@ namespace GR
         ++itP;
         continue;
       }
-      if ( IsSwitchCharacter( param[0] ) )
+      if ( ( IsSwitchCharacter( param[0] ) )
+      &&   ( ( pCurrentInfo == NULL )
+      ||     ( pCurrentInfo->Type != PT_SINGLE_VALUE ) ) )
       {
         // a switch
         if ( pCurrentInfo )

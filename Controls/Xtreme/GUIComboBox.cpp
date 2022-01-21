@@ -49,7 +49,7 @@ void GUIComboBox::SetFont( XFont* pFont )
   int   iNewHeight = 20;
   if ( pFont )
   {
-    pFont->TextHeight( "ÄÖÜAOyg," );
+    pFont->TextHeight( "AOyg,\xC4\xD6\xDC\xDF" );
   }
   if ( iNewHeight < 20 )
   {

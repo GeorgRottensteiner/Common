@@ -19,7 +19,7 @@ enum OutputEventType
   OET_MOUSE_UPDATE          = 0x00001004,
   OET_MOUSE_RUP             = 0x00001005,
   OET_MOUSE_RDOWN           = 0x00001006,
-  OET_MOUSE_WHEEL           = 0x00001007,
+  OET_MOUSE_WHEEL           = 0x00001007,   // Param1 = x, Param2 = y, Param3 = buttons, Param4 = 1/-1
 
   OET_KEY_DOWN              = 0x00001100,
   OET_KEY_UP                = 0x00001101,

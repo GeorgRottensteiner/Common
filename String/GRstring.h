@@ -97,6 +97,10 @@ namespace GR
         {
           assign( rhs, strlen( rhs ) );
         }
+        else
+        {
+          clear();
+        }
       }
 
 

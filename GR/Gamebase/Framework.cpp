@@ -229,6 +229,11 @@ namespace GR
       Chunk.AppendString( m_CurrentSoundModule );
       Chunk.AppendString( m_CurrentMusicModule );
       Chunk.AppendString( m_CurrentRenderModule );
+#else
+      Chunk.AppendString( "" );
+      Chunk.AppendString( "" );
+      Chunk.AppendString( "" );
+      Chunk.AppendString( "" );
 #endif
       Chunk.AppendU32( m_RenderFrame.m_DisplayMode.Width );
       Chunk.AppendU32( m_RenderFrame.m_DisplayMode.Height );
@@ -282,6 +287,11 @@ namespace GR
       m_CurrentSoundModule  = MemIn.ReadString();
       m_CurrentMusicModule  = MemIn.ReadString();
       m_CurrentRenderModule = MemIn.ReadString();
+#else
+      MemIn.ReadString();
+      MemIn.ReadString();
+      MemIn.ReadString();
+      MemIn.ReadString();
 #endif
       m_RenderFrame.m_DisplayMode.Width       = MemIn.ReadU32();
       m_RenderFrame.m_DisplayMode.Height      = MemIn.ReadU32();

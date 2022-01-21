@@ -1,5 +1,3 @@
-#pragma once
-
 #include "XBasicVertexBuffer.h"
 #include "XRenderer.h"
 
@@ -60,7 +58,7 @@ bool XBasicVertexBuffer::Create( GR::u32 PrimitiveCount, GR::u32 VertexFormat, P
   }
 
   m_PrimitiveSize       = VertexSize( VertexFormat );
-  m_VertexCount         = PrimitiveCount * 3;
+  m_VertexCount         = PrimitiveCount * m_NumVerticesPerPrimitive;
   m_PrimitiveCount      = PrimitiveCount;
   m_CompleteBufferSize  = m_VertexCount * m_PrimitiveSize;
   m_VertexFormat        = VertexFormat;
