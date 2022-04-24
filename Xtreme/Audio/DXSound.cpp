@@ -1666,7 +1666,10 @@ bool DXSound::SetFrequency( GR::u32 ID, GR::u32 Frequency )
   {
     if ( m_Channels[i].SoundID == ID )
     {
-      m_Channels[i].dsWaveBuffer->SetFrequency( Frequency );
+      if ( FAILED( m_Channels[i].dsWaveBuffer->SetFrequency( Frequency ) ) )
+      {
+        dh::Log( "DXSound::SetFrequency failed!" );
+      }
       m_Channels[i].Frequency = Frequency;
     }
   }
