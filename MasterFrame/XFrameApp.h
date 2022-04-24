@@ -40,6 +40,8 @@ class XFrameApp : public Console,
 
     GUIGameStateManager<XRenderer,GUIComponent>      m_StateManager;
 
+    DebugService              m_DebugService;
+
     bool                      m_ForceFixedSize;
 
 
@@ -57,8 +59,6 @@ class XFrameApp : public Console,
                           m_ETShuttingDown,
                           m_ETRendererInitialised,
                           m_ETRendererReleased;
-
-    DebugService          m_DebugService;
 
     GR::f64               m_LastFrameTime,
                           m_LastFixedFrameTime,
