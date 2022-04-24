@@ -20,7 +20,8 @@
 
 
 
-CDXInput::CDXInput()
+CDXInput::CDXInput() :
+  m_CurrentMouseButtonsEnumerated( 0 )
 {
   m_DeleteThisTask        = false;
   m_Initialized           = false;
@@ -50,7 +51,7 @@ BOOL CALLBACK CDXInput::EnumObjects( LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pv
   if ( !( lpddoi->dwType & DIDFT_NODATA ) )
   {
     // da kommt was raus
-    pInput->m_pDebugger->Log( "Input.Full", "Enum Object %s", lpddoi->tszName );
+    pInput->m_pDebugger->Log( "Input.Full", "Enum Object %s, API Type %d, API Data Offset %d", lpddoi->tszName, lpddoi->dwType, lpddoi->dwOfs );
 
     tInputDevice&   Device = pInput->m_Devices[pInput->m_CurrentEnumDevice];
 
@@ -179,6 +180,16 @@ BOOL CALLBACK CDXInput::EnumObjects( LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pv
     }
     else if ( lpddoi->dwType & DIDFT_PSHBUTTON )
     {
+      if ( devType == Xtreme::VKT_DEFAULT_MOUSE )
+      {
+        // only 3 buttons per mouse, otherwise we overshoot!
+        // man staune, das DataOffset ist der tatsächliche Tastatur-Index!!
+        if ( pInput->m_CurrentMouseButtonsEnumerated >= 3 )
+        {
+          return TRUE;
+        }
+        ++pInput->m_CurrentMouseButtonsEnumerated;
+      }
       NewCtrl.m_Type = Xtreme::CT_BUTTON;
       pInput->m_pDebugger->Log( "Input.Full", "Pushbutton found" );
       ++pInput->m_VirtualKeys;
@@ -242,8 +253,9 @@ bool CDXInput::Initialize( GR::IEnvironment& Environment )
   // Vector-Speicher reservieren
   m_Devices.reserve( 5 );         // Maus, Tastatur, 3 Gamepads sollte reichen
 
-  m_CurrentEnumDevice = 0;
-  m_CurrentEnumJoystickDevice = 0;
+  m_CurrentEnumDevice             = 0;
+  m_CurrentEnumJoystickDevice     = 0;
+  m_CurrentMouseButtonsEnumerated = 0;
 
   m_pDebugger->Log( "Input.Full", "DXInput Enumerating Devices" );
 
@@ -629,6 +641,10 @@ void CDXInput::ParseDeviceData( tInputDevice& Device )
 
     if ( Ctrl.m_APIType & DIDFT_BUTTON )
     {
+      if ( ( value & 0x080 ) != 0 )
+      {
+        m_pDebugger->Log( "Input.Full", "Button pushed (VKey %d, APIDataOffset %d, Name %s)", Ctrl.m_VirtualIndex, Ctrl.m_APIDataOffset, Ctrl.m_Name.c_str() );
+      }
       SetButtonPressed( Ctrl.m_VirtualIndex, ( value & 0x080 ) != 0 );
     }
     else if ( Ctrl.m_APIType & DIDFT_ABSAXIS )
@@ -732,6 +748,8 @@ bool CDXInput::SaveBindings( IIOStream& Stream )
       Stream.WriteU32( (GR::u32)deviceName.length() );
       Stream.WriteBlock( deviceName.c_str(), deviceName.length() );
       Stream.WriteU32( m_pVirtualKey[dwVKey].m_DeviceControlIndex );
+
+      m_pDebugger->Log( "Input.Full", "Saving Binding for Key %d, Device %s, Device Control Index %d", it->first, deviceName.c_str(), m_pVirtualKey[dwVKey].m_DeviceControlIndex );
     }
 
     ++it;
@@ -771,6 +789,7 @@ bool CDXInput::LoadBindings( IIOStream& Stream )
     GR::u32         controlIndex = Stream.ReadU32();
     bool            bindingPossible = false;
 
+    m_pDebugger->Log( "Input.Full", "Loading Binding for Key %d, Device %s, Device Control Index %d", bindHandle, deviceName.c_str(), controlIndex );
 
     tVectDevices::iterator    it( m_Devices.begin() );
     while ( it != m_Devices.end() )
@@ -780,6 +799,8 @@ bool CDXInput::LoadBindings( IIOStream& Stream )
       if ( ( Device.m_Device == deviceName )
       &&   ( controlIndex < Device.m_Controls.size() ) )
       {
+        m_pDebugger->Log( "Input.Full", "Re-bound key to %s (%d)", Device.m_Controls[controlIndex].m_Name.c_str(), Device.m_Controls[controlIndex].m_VirtualIndex );
+
         bindingPossible = true;
 
         m_Binding2VKey[bindHandle] = Device.m_Controls[controlIndex].m_VirtualIndex;
@@ -790,6 +811,7 @@ bool CDXInput::LoadBindings( IIOStream& Stream )
     }
     if ( !bindingPossible )
     {
+      m_pDebugger->Log( "Input.Full", "Re-bind key failed" );
       restoreBindingFailed = true;
     }
   }
@@ -842,15 +864,37 @@ void CDXInput::CreateVirtualKeys()
   {
     tInputCtrl&   Ctrl = m_Controls[i];
 
-    m_pDebugger->Log( "Input.Full", "Virtual Key %d", curVKey );
+    if ( Ctrl.m_Device != -1 )
+    {
+      m_pDebugger->Log( "Input.Full", "Virtual Key %d/%s for device (%d/%s), device control index %d, API Data offset %d, VK %d", 
+                        curVKey, Ctrl.m_Name.c_str(), Ctrl.m_Device, m_Devices[Ctrl.m_Device].m_Device.c_str(), 
+                        Ctrl.m_DeviceControlIndex, Ctrl.m_APIDataOffset, Ctrl.m_VirtualKeyCode );
+    }
+    else
+    {
+      m_pDebugger->Log( "Input.Full", "Virtual Key %d/%s for non device, VK %d", curVKey, Ctrl.m_Name.c_str(), Ctrl.m_VirtualKeyCode );
+    }
     m_pDebugger->Log( "Input.Full", "Create Virtual Key Type %d, Device Type %d", Ctrl.m_Type, Ctrl.m_DeviceType );
-    m_pDebugger->Log( "Input.Full", "Key Name %s", Ctrl.m_Name.c_str() );
     if ( curVKey >= (int)m_VirtualKeys )
     {
       m_pDebugger->Log( "Input.General", "Error, Virtual Key out of bounds" );
       continue;
     }
 
+
+    if ( Ctrl.m_VirtualIndex != curVKey )
+    {
+      m_pDebugger->Log( "Input.Full", "VKey was mismatching! (VKey set was %d, real value was %d)", Ctrl.m_VirtualIndex, curVKey );
+    }
+
+    Ctrl.m_VirtualIndex         = curVKey;
+
+    if ( ( Ctrl.m_Device != -1 )
+    &&   ( Ctrl.m_DeviceControlIndex < m_Devices[Ctrl.m_Device].m_Controls.size() ) )
+    {
+      tInputCtrl& CtrlInDevice = m_Devices[Ctrl.m_Device].m_Controls[Ctrl.m_DeviceControlIndex];
+      CtrlInDevice.m_VirtualIndex = curVKey;
+    }
 
     if ( Ctrl.m_APIType & DIDFT_BUTTON )
     {

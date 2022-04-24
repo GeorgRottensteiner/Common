@@ -62,6 +62,8 @@ class CDXInput : public XBasicInput
 
     GR::u32                       m_CurrentEnumDeviceType;
 
+    int                           m_CurrentMouseButtonsEnumerated;
+
     LPDIRECTINPUT8                m_lpDirectInput;
 
     bool                          m_Exclusive;
