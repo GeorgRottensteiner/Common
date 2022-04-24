@@ -885,6 +885,7 @@ void XFrameApp::RunLoop()
     {
       GLOBAL_QUEUE.SendEvent( "App.Info.ShuttingDown" );
 
+      ExitInstance();
       m_StateManager.PopAllStates();
       EventProducer<GR::Gamebase::tXFrameEvent>::SendEvent( GR::Gamebase::tXFrameEvent( GR::Gamebase::tXFrameEvent::ET_SHUTDOWN ) );
 
@@ -1225,7 +1226,7 @@ LRESULT XFrameApp::WindowProc( UINT message, WPARAM wParam, LPARAM lParam )
       ShutDown();
       return 0;
     case WM_DESTROY:
-      ExitInstance();
+      //ExitInstance();
       EventProducer<GR::Gamebase::tXFrameEvent>::RemoveListener( this );
 
       PostQuitMessage( 0 );
