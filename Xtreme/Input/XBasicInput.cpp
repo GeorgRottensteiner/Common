@@ -4,7 +4,11 @@
 
 #if ( OPERATING_SYSTEM == OS_WINDOWS )
 #include <WinSys/SubclassManager.h>
+#ifndef WM_MOUSEWHEEL
+#define WM_MOUSEWHEEL                   0x020A
 #endif
+#endif
+
 #include <Xtreme/Environment/XWindow.h>
 
 #include <debug/debugclient.h>
@@ -13,9 +17,6 @@
 #include <Misc/Misc.h>
 
 
-#ifndef WM_MOUSEWHEEL
-#define WM_MOUSEWHEEL                   0x020A
-#endif
 
 
 
@@ -867,6 +868,9 @@ GR::u32 XBasicInput::MapKeyToVKey( Xtreme::eInputDefaultButtons Key ) const
 void XBasicInput::AddBinding( const GR::u32 Handle, const GR::u32 Key )
 {
   m_Binding2VKey[Handle] = Key;
+
+  m_pDebugger->Log( "Input.Full", "AddBinding for control %d, vkey %d, device %d, device control index %d, Enum Index %d, %s", Handle, Key,
+                    GetControlDevice( Key ), m_pVirtualKey[Key].m_DeviceControlIndex, m_pVirtualKey[Key].m_EnumIndex, m_pVirtualKey[Key].m_Name.c_str() );
 }
 
 
@@ -1223,7 +1227,7 @@ GR::u32 XBasicInput::AddDevice( const tInputDevice& Device )
 
 GR::u32 XBasicInput::AddDeviceControl( const GR::u32 DeviceIndex, const tInputCtrl& Control )
 {
-  Log( "Input.Full", "AddDeviceControl %d", DeviceIndex );
+  //Log( "Input.Full", "AddDeviceControl %d", DeviceIndex );
   if ( DeviceIndex >= (GR::u32)m_Devices.size() )
   {
     Log( "Input.General", "AddDeviceControl invalid device index %d", DeviceIndex );
@@ -1241,7 +1245,7 @@ GR::u32 XBasicInput::AddDeviceControl( const GR::u32 DeviceIndex, const tInputCt
 
   m_Controls.back().m_DeviceControlIndex = (GR::u32)( m_Devices[DeviceIndex].m_Controls.size() - 1 );
 
-  Log( "Input.Full", "AddDeviceControl done" );
+  //Log( "Input.Full", "AddDeviceControl done" );
 
   return m_Controls.back().m_DeviceControlIndex;
 }
