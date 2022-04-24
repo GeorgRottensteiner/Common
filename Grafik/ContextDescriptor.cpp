@@ -4463,9 +4463,9 @@ namespace GR
               dummy = *pP1;
               dummy2 = *pDest;
 
-              dummy = ( dummy * Alpha ) + dummy2 * ( 32 - Alpha );
+              dummy = ( dummy * Alpha ) + dummy2 * ( 255 - Alpha );
 
-              *pDest = (GR::u8)( dummy >> 5 );
+              *pDest = (GR::u8)( dummy >> 8 );
 
               ++pDest;
               ++pP1;
