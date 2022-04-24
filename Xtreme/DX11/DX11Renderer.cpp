@@ -2521,8 +2521,7 @@ XTexture* DX11Renderer::CreateTexture( const GR::u32 Width, const GR::u32 Height
     {
       imgFormat = GR::Graphic::IF_X8R8G8B8;
     }
-
-    if ( imgFormat == GR::Graphic::IF_R8G8B8 )
+    else if ( imgFormat == GR::Graphic::IF_R8G8B8 )
     {
       imgFormat = GR::Graphic::IF_X8R8G8B8;
       if ( !IsTextureFormatOK( imgFormat, AllowUsageAsRenderTarget ) )
@@ -2735,6 +2734,7 @@ XTexture* DX11Renderer::LoadTexture( const char* FileName, GR::Graphic::eImageFo
   if ( pTexture == NULL )
   {
     delete pData;
+    dh::Log( "Failed to create texture for %s", FileName );
     return NULL;
   }
   pTexture->m_ColorKey        = ColorKey;

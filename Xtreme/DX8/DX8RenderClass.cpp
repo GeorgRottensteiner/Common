@@ -1986,6 +1986,16 @@ XTexture* CDX8RenderClass::CreateTexture( GR::u32 Width, GR::u32 Height, GR::Gra
         return NULL;
       }
     }
+    else if ( imgFormat == GR::Graphic::IF_PALETTED )
+    {
+      // let it convert
+      imgFormat = GR::Graphic::IF_X8R8G8B8;
+      if ( !IsTextureFormatOK( imgFormat, AllowUsageAsRenderTarget ) )
+      {
+        Log( "Renderer.General", "CDX8RenderClass::CreateTexture Format IF_X1R5G5B5 or IF_R5G6B5 not supported" );
+        return NULL;
+      }
+    }
     else
     {
       Log( "Renderer.General", CMisc::printf( "CDX8RenderClass::CreateTexture Format %d not supported3", imgFormat ) );
