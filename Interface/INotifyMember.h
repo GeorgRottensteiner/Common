@@ -27,6 +27,15 @@ template <typename T> class INotifyMember
     virtual ~INotifyMember() 
     {};
 
+
+
+    virtual void RemoveAllNotifyMembers()
+    {
+      m_NotifyMembers.clear();
+    }
+
+
+
     virtual void Notify( const T& NotifyMessage )
     {
       tNotifyMemberList::iterator   it( m_NotifyMembers.begin() );
