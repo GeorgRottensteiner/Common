@@ -75,11 +75,11 @@ void DebugService::Log( const GR::String& System, const char* Format, ... )
   {
     static GR::Char    szMiscBuffer[5000];
 #if ( ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_WEB ) )
-    vsprintf( szMiscBuffer, Format.c_str(), (char *)( &Format + 1 ) );
+    vsprintf( szMiscBuffer, Format, (char *)( &Format + 1 ) );
 #elif ( OPERATING_SYSTEM == OS_ANDROID )
     va_list args;
-    va_start( args, Format.c_str() );
-    vsprintf( szMiscBuffer, Format.c_str(), args );
+    va_start( args, Format );
+    vsprintf( szMiscBuffer, Format, args );
     va_end( args );
 #else
     va_list args;

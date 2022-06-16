@@ -122,6 +122,13 @@ namespace GR
 
 
 
+    int DateTime::DifferenceInDays( const DateTime& ReferenceDate ) const
+    {
+      return (int)( DifferenceInSeconds( ReferenceDate ) / ( 60 * 60 * 24 ) );
+    }
+
+
+
     GR::i64 DateTime::InSeconds() const
     {
       return (GR::i64)ToTime();
@@ -132,6 +139,17 @@ namespace GR
     GR::i64 DateTime::DifferenceInMilliSeconds( const DateTime& OtherTime ) const
     {
       return InMilliSeconds() - OtherTime.InMilliSeconds();
+    }
+
+
+
+    GR::u64 DateTime::InMicroSecondsSince01011970() const
+    {
+      DateTime    temp( *this );
+
+      temp.ConvertToUTC();
+
+      return temp.ToTime() * 1000000 + m_MicroSeconds;
     }
 
 
@@ -615,6 +633,18 @@ namespace GR
 #endif      
       m_MicroSeconds = 0;
       m_IsUTC = true;
+      return true;
+    }
+
+
+
+    bool DateTime::FromMicrosecondsSince01011970( GR::u64 UTCMicrosecondsSince01011970 )
+    {
+      if ( !FromTime( UTCMicrosecondsSince01011970 / 1000000 ) )
+      {
+        return false;
+      }
+      m_MicroSeconds = UTCMicrosecondsSince01011970 % 1000000;
       return true;
     }
 

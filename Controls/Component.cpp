@@ -326,7 +326,8 @@ namespace GUI
         break;
       case CET_MOUSE_UPDATE:
         {
-          if ( !( m_ComponentFlags & GUI::COMPFT_DRAGGED ) )
+          if ( ( !( m_ComponentFlags & GUI::COMPFT_DRAGGED ) )
+          &&   ( !( m_ComponentFlags & GUI::COMPFT_DONT_CATCH_MOUSE ) ) )
           {
             if ( ( !IsMouseInside() )
             &&   ( IsMouseInsideNonClientArea( Event.Position ) ) )
@@ -359,7 +360,7 @@ namespace GUI
                     dragEvent.Value = ( GR::ip )&dragInfo;
 
                     if ( ( ProcessEvent( dragEvent ) )
-                      && ( dragInfo.pComponentDragContent ) )
+                    &&   ( dragInfo.pComponentDragContent ) )
                     {
                       dragInfo.pComponentDragContent->StartDragging();
                       // to not check ourselves as drag drop target
@@ -379,7 +380,7 @@ namespace GUI
                     else
                     {
                       dragInfo.DragOffset = Event.Position;
-                      GenerateEventForParent( OET_DRAG_CONTENT_QUERY, ( GR::up )&dragInfo );
+                      GenerateEventForParent( OET_DRAG_CONTENT_QUERY, (GR::up)&dragInfo );
                       dragInfo.DragOffset.clear();
                       if ( dragInfo.pComponentDragContent )
                       {
@@ -760,6 +761,11 @@ namespace GUI
 
   bool Component::IsMouseInside( const GR::tPoint& MousePos )
   {
+    if ( m_ComponentFlags & GUI::COMPFT_DONT_CATCH_MOUSE )
+    {
+      return false;
+    }
+
     if ( ( MousePos.x >= 0 )
     &&   ( MousePos.y >= 0 )
     &&   ( MousePos.x < m_ClientRect.size().x )
@@ -774,6 +780,11 @@ namespace GUI
 
   bool Component::IsMouseInsideNonClientArea( const GR::tPoint& MousePos )
   {
+    if ( m_ComponentFlags & GUI::COMPFT_DONT_CATCH_MOUSE )
+    {
+      return false;
+    }
+
     if ( ( MousePos.x >= 0 )
     &&   ( MousePos.y >= 0 )
     &&   ( MousePos.x < m_Width )
@@ -1164,6 +1175,9 @@ namespace GUI
     SetCaption( pElement->Attribute( "Caption" ) );
     Id( GR::Convert::ToI32( pElement->Attribute( "ID" ) ) );
     HottipId( GR::Convert::ToI32( pElement->Attribute( "HottipID" ) ) );
+
+    m_UserData = GR::Convert::ToIP( pElement->Attribute( "UserData" ) );
+    m_UserText = pElement->Attribute( "UserText" );
 
     ModifyVisualStyle( GR::Convert::ToU32( pElement->Attribute( "Edge" ) ), 0xffffffff  );
     ModifyFlags( GR::Convert::ToU32( pElement->Attribute( "Flags" ) ), 0xffffffff );

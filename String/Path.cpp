@@ -74,6 +74,13 @@ bool Path::IsRelative( const GR::String& Path, const GR::String& Separator )
       return false;
     }
   }
+#if OPERATING_SYSTEM != OS_WINDOWS
+  if ( ( Path.length() > 0 )
+  &&   ( IsSeparator( Path[0], Separator ) ) )
+  {
+    return false;
+  }
+#endif
   return true;
 }
 

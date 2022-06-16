@@ -123,7 +123,7 @@ namespace GR
         {
           char      temp[500];
           
-          sprintf( temp, "called %lld times, avg. %.6f sec, min. %.6f sec, max. %.6f sec", timeInfo.NumTimed, timeInfo.SumTimes / (GR::f32)timeInfo.NumTimed, timeInfo.Minimum, timeInfo.Maximum );
+          sprintf_s( temp, "called %lld times, avg. %.6f sec, min. %.6f sec, max. %.6f sec", timeInfo.NumTimed, timeInfo.SumTimes / (GR::f32)timeInfo.NumTimed, timeInfo.Minimum, timeInfo.Maximum );
           timerInfo += temp;
         }
         result += timerInfo + "\n";

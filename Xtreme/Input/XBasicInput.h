@@ -197,7 +197,8 @@ class XBasicInput : public EventProducerImpl<Xtreme::tInputEvent,GR::Service::Se
                                   m_InputWMMouseX,
                                   m_InputWMMouseY,
                                   m_InputMouseSensitivity,
-                                  m_InputMouseTreshold;
+                                  m_InputMouseTreshold,
+                                  m_InputMouseWheelAccumulatedDelta;
 
     unsigned char                 m_VirtualCode[240];
 

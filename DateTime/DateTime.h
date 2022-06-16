@@ -71,10 +71,12 @@ namespace GR
 
         GR::i64                     DifferenceInSeconds( const DateTime& OtherTime ) const;
         GR::i64                     DifferenceInMilliSeconds( const DateTime& OtherTime ) const;
+        int                         DifferenceInDays( const DateTime& ReferenceDate ) const;
 
         GR::i64                     InSeconds() const;
-
         GR::i64                     InMilliSeconds() const;
+        GR::u64                     InMicroSecondsSince01011970() const;
+
 
         void                        AddDays( GR::i32 Days );
 
@@ -106,6 +108,7 @@ namespace GR
         bool                        FromString( const GR::String& DateString, bool IsUTC = false );
 
         bool                        FromTime( time_t UTCTime );
+        bool                        FromMicrosecondsSince01011970( GR::u64 UTCMicrosecondsSince01011970 );
 
         bool                        ConvertToLocalTime();
         bool                        ConvertToUTC();

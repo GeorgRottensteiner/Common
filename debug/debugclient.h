@@ -91,8 +91,11 @@ namespace dh
 }
 #else
 
+#if OPERATING_SYSTEM == OS_WINDOWS
 #include <windows.h>
 #include <tchar.h>
+#endif
+
 
 
 #define DH_DEF_NAME     "DebugHost V2"

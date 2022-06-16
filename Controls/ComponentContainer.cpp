@@ -239,6 +239,22 @@ namespace GUI
     }
     ComponentContainer*    pTopLevel = GetTopLevelParent();
 
+    if ( pTopLevel->m_pDraggingComponent == pComponent )
+    {
+      pTopLevel->m_pDraggingComponent->StopDragging();
+      pTopLevel->m_pDraggingComponent = NULL;
+    }
+    if ( pTopLevel->m_pDraggingComponentContent == pComponent )
+    {
+      pTopLevel->m_pDraggingComponentContent->StopDragging();
+      pTopLevel->m_pDraggingComponentContent = NULL;
+    }
+    if ( pTopLevel->m_pCapturingComponent == pComponent )
+    {
+      ReleaseCapture();
+      pTopLevel->m_pCapturingComponent = NULL;
+    }
+
     tListComponents::iterator   it( m_Components.begin() );
 
     while ( it != m_Components.end() )
@@ -418,10 +434,12 @@ namespace GUI
           &&   ( pCompUnderMouse->Flags() & GUI::COMPFT_DRAG_CONTENT_TARGET ) )
           {
             pCompUnderMouse->GenerateEvent( OET_DRAG_CONTENT_DROP, (GR::up)&dragInfo );
+            pCompUnderMouse->GenerateEventForParent( OET_DRAG_CONTENT_DROP, (GR::up)&dragInfo );
           }
           else
           {
             m_pDraggingComponentSource->GenerateEvent( OET_DRAG_CONTENT_CANCEL, ( GR::up )&dragInfo );
+            m_pDraggingComponentSource->GenerateEventForParent( OET_DRAG_CONTENT_CANCEL, (GR::up)&dragInfo );
           }
           Delete( m_pDraggingComponentContent );
           m_pDraggingComponentContent = NULL;

@@ -84,6 +84,7 @@ namespace GR
 
 }    // namespace GR
 
+
 #endif // ABSTRACTEDIT_H
 
 

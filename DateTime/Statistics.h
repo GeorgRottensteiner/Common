@@ -7,6 +7,9 @@
 #include <limits>
 #include <map>
 
+#undef min
+#undef max
+
 
 namespace GR
 {

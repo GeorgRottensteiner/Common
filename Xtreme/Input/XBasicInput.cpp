@@ -44,6 +44,7 @@ XBasicInput::XBasicInput() :
   m_InputMButtonsSwapped( false ),
   m_InputWMMouseX( 0 ),
   m_InputWMMouseY( 0 ),
+  m_InputMouseWheelAccumulatedDelta( 0 ),
   m_pDebugger( NULL )
 {
   m_pGlobalInputInstance = this;
@@ -272,10 +273,11 @@ BOOL XBasicInput::WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
     case WM_MOUSEWHEEL:
       if ( m_InputActive )
       {
-        int   mouseZ = (short)HIWORD( wParam );
+        int mouseZ = GET_WHEEL_DELTA_WPARAM( wParam );
 
-        mouseZ /= 120;
-        while ( mouseZ < 0 )
+        m_InputMouseWheelAccumulatedDelta += mouseZ;
+
+        while ( m_InputMouseWheelAccumulatedDelta <= -WHEEL_DELTA )
         {
           SendEvent( Xtreme::tInputEvent( Xtreme::tInputEvent::IE_MOUSEWHEEL_DOWN, ( m_InputWMMouseX << 16 ) + m_InputWMMouseY, MouseButton() ) );
 
@@ -286,9 +288,9 @@ BOOL XBasicInput::WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             itKeyHandler->second();
           }
 
-          mouseZ++;
+          m_InputMouseWheelAccumulatedDelta += WHEEL_DELTA;
         }
-        while ( mouseZ > 0 )
+        while ( m_InputMouseWheelAccumulatedDelta >= WHEEL_DELTA )
         {
           SendEvent( Xtreme::tInputEvent( Xtreme::tInputEvent::IE_MOUSEWHEEL_UP, ( m_InputWMMouseX << 16 ) + m_InputWMMouseY, MouseButton() ) );
 
@@ -299,7 +301,7 @@ BOOL XBasicInput::WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             itKeyHandler->second();
           }
 
-          mouseZ--;
+          m_InputMouseWheelAccumulatedDelta -= WHEEL_DELTA;
         }
       }
       break;

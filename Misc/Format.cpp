@@ -200,19 +200,22 @@ namespace Misc
                   if ( iParamNachkommaStellen != 0 )
                   {
                     strParamContent += ".";
-
                     if ( dblValue < 0.0 )
                     {
                       dblValue = -dblValue;
                     }
-
+                    dblValue = remainder( dblValue, 1. );
                     while ( iParamNachkommaStellen )
                     {
                       dblValue *= 10;
-                      strParamContent += (char)( (int)fmod( dblValue, 10 ) + '0' );
-                      //strParamContent += (char)( ( ( (int)dblValue ) % 10 ) + '0' );
+                      //strParamContent += (char)( (int)fmod( dblValue, 10 ) + '0' );
                       --iParamNachkommaStellen;
                     }
+                    if ( (char)( (int)fmod( dblValue * 10, 10 ) + '0' ) >= '5' )
+                    {
+                      dblValue += 1;
+                    }
+                    strParamContent += GR::Convert::ToString( (GR::u64)dblValue );
                   }
                 }
                 else

@@ -9,6 +9,7 @@
 
 
 
+#if ( OPERATING_SYSTEM != OS_WEB )
 extern PFNGLATTACHSHADERPROC         glAttachShader;
 extern PFNGLCOMPILESHADERPROC        glCompileShader;
 extern PFNGLCREATEPROGRAMPROC        glCreateProgram;
@@ -19,7 +20,7 @@ extern PFNGLDETACHSHADERPROC         glDetachShader;
 extern PFNGLSHADERSOURCEPROC         glShaderSource;
 extern PFNGLGETSHADERIVPROC          glGetShaderiv;
 extern PFNGLGETSHADERINFOLOGPROC     glGetShaderInfoLog;
-
+#endif
 
 
 PixelShader::PixelShader( OpenGLShaderRenderClass* pRenderer ) :

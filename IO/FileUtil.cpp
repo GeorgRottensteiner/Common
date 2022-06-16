@@ -57,7 +57,12 @@ namespace
 
   GR::WString MakeSafeWinFilename( const GR::String& UTF8Filename )
   {
-    GR::WString     result = GR::WString( L"\\\\?\\" ) + GR::Convert::ToUTF16( GR::Strings::Replace( GR::Strings::Replace( UTF8Filename, "\\.\\", "\\" ), "/", "\\" ) );
+    GR::String    checkFilename = UTF8Filename;
+    if ( Path::IsRelative( checkFilename ) )
+    {
+      checkFilename = Path::Append( GR::IO::FileUtil::CurrentWorkingDirectory(), checkFilename );
+    }
+    GR::WString     result = GR::WString( L"\\\\?\\" ) + GR::Convert::ToUTF16( GR::Strings::Replace( GR::Strings::Replace( checkFilename, "\\.\\", "\\" ), "/", "\\" ) );
 
     MakeBackSlashes( result );
     return result;
@@ -123,7 +128,7 @@ namespace GR
 #if OPERATING_SYSTEM == OS_WINDOWS
       bool FileExists( const GR::String& Filename )
       {
-        GR::WString     utf16Filename = GR::WString( L"\\\\?\\" ) + GR::Convert::ToUTF16( Filename );
+        GR::WString     utf16Filename = MakeSafeWinFilename( Filename );
 
         WIN32_FILE_ATTRIBUTE_DATA   attributes;
         if ( !GetFileAttributesExW( utf16Filename.c_str(), GetFileExInfoStandard, &attributes ) )
@@ -160,7 +165,7 @@ namespace GR
 
       bool DirectoryExists( const GR::String& Dirname )
       {
-        GR::WString     utf16Filename = GR::WString( L"\\\\?\\" ) + GR::Convert::ToUTF16( Dirname );
+        GR::WString     utf16Filename = MakeSafeWinFilename( Dirname );
 
         WIN32_FILE_ATTRIBUTE_DATA   attributes;
         if ( !GetFileAttributesExW( utf16Filename.c_str(), GetFileExInfoStandard, &attributes ) )

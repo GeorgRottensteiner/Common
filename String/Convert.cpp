@@ -4,11 +4,6 @@
 #pragma nowarn (262)
 #endif
 
-#if OPERATING_SYSTEM == OS_WINDOWS
-#include <Windows.h>
-#endif
-
-
 #include <String/StringUtil.h>
 
 
@@ -1450,7 +1445,7 @@ namespace GR
       for ( size_t i = 0; i < Length; ++i )
       {
         if ( ( i == 0 )
-             && ( ( pData[0] & 0xf0 ) == 0xD0 ) )
+        &&   ( ( pData[0] & 0xf0 ) == 0xD0 ) )
         {
           // allow negative sign
         }

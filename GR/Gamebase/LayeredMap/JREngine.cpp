@@ -24,14 +24,14 @@ namespace GR
 {
   namespace Gamebase
   {
-    Dir::Value DirFromDelta( const GR::tPoint& Delta )
+    Dir DirFromDelta( const GR::tPoint& Delta )
     {
       return DirFromDelta( Delta.x, Delta.y );
     }
 
 
 
-    GR::f32 AngleFromDir( Dir::Value Dir )
+    GR::f32 AngleFromDir( Dir Dir )
     {
       switch ( Dir )
       {
@@ -83,48 +83,48 @@ namespace GR
 
 
 
-    Dir::Value DirFromDelta( int DX, int DY )
+    Dir DirFromDelta( int DX, int DY )
     {
-      Dir::Value   resultDir = Dir::NONE;
+      Dir   resultDir = Dir::NONE;
       if ( DX < 0 )
       {
-        resultDir = (Dir::Value)( resultDir | Dir::W );
+        resultDir = (Dir)( resultDir | Dir::W );
       }
       if ( DX > 0 )
       {
-        resultDir = (Dir::Value)( resultDir | Dir::E );
+        resultDir = (Dir)( resultDir | Dir::E );
       }
       if ( DY < 0 )
       {
-        resultDir = (Dir::Value)( resultDir | Dir::N );
+        resultDir = (Dir)( resultDir | Dir::N );
       }
       if ( DY > 0 )
       {
-        resultDir = (Dir::Value)( resultDir | Dir::S );
+        resultDir = (Dir)( resultDir | Dir::S );
       }
       return resultDir;
     }
 
 
 
-    Dir::Value DirFromDelta( GR::f32 DX, GR::f32 DY )
+    Dir DirFromDelta( GR::f32 DX, GR::f32 DY )
     {
-      Dir::Value   resultDir = Dir::NONE;
+      Dir resultDir = Dir::NONE;
       if ( DX < 0 )
       {
-        resultDir = (Dir::Value)( resultDir | Dir::W );
+        resultDir = (Dir)( resultDir | Dir::W );
       }
       if ( DX > 0 )
       {
-        resultDir = (Dir::Value)( resultDir | Dir::E );
+        resultDir = (Dir)( resultDir | Dir::E );
       }
       if ( DY < 0 )
       {
-        resultDir = (Dir::Value)( resultDir | Dir::N );
+        resultDir = (Dir)( resultDir | Dir::N );
       }
       if ( DY > 0 )
       {
-        resultDir = (Dir::Value)( resultDir | Dir::S );
+        resultDir = (Dir)( resultDir | Dir::S );
       }
       return resultDir;
     }
@@ -1184,7 +1184,7 @@ namespace GR
 
 
 
-    bool JREngine::Collide( GameObject* pObj1, GameObject* pObj2, GR::Gamebase::Dir::Value Dir )
+    bool JREngine::Collide( GameObject* pObj1, GameObject* pObj2, GR::Gamebase::Dir Dir )
     {
       // call handler?
       // TODO - Can collide?
@@ -1198,7 +1198,7 @@ namespace GR
 
 
 
-    bool JREngine::IsTileBlocking( GameObject* pObj, int TileX, int TileY, Dir::Value MoveDir, GR::Gamebase::TileLayer* pLayer )
+    bool JREngine::IsTileBlocking( GameObject* pObj, int TileX, int TileY, Dir MoveDir, GR::Gamebase::TileLayer* pLayer )
     {
       if ( pLayer == NULL )
       {
@@ -1326,7 +1326,7 @@ namespace GR
 
 
 
-    bool JREngine::IsAreaBlocked( GameObject* pObj, int DX, int DY, Dir::Value Dir, GameObject* pMovingParent )
+    bool JREngine::IsAreaBlocked( GameObject* pObj, int DX, int DY, Dir Dir, GameObject* pMovingParent )
     {
       GR::tRect   bounds( pObj->Bounds() );
 
@@ -1337,7 +1337,7 @@ namespace GR
 
 
 
-    bool JREngine::IsAreaBlocked( GameObject* pObj, int DX, int DY, Dir::Value Dir, const GR::String& Layer, GameObject* pMovingParent )
+    bool JREngine::IsAreaBlocked( GameObject* pObj, int DX, int DY, Dir Dir, const GR::String& Layer, GameObject* pMovingParent )
     {
       GR::tRect   bounds( pObj->Bounds() );
 
@@ -1363,14 +1363,14 @@ namespace GR
 
 
 
-    bool JREngine::IsAreaBlocked( GameObject* pObj, const GR::tRect& Bounds, Dir::Value Dir, GameObject* pMovingParent )
+    bool JREngine::IsAreaBlocked( GameObject* pObj, const GR::tRect& Bounds, Dir Dir, GameObject* pMovingParent )
     {
       return IsAreaBlocked( pObj, Bounds, Dir, m_pGameLayer, pMovingParent );
     }
 
 
 
-    bool JREngine::IsAreaBlocked( GameObject* pObj, const GR::tRect& Bounds, Dir::Value Dir, const GR::String& Layer, GameObject* pMovingParent )
+    bool JREngine::IsAreaBlocked( GameObject* pObj, const GR::tRect& Bounds, Dir Dir, const GR::String& Layer, GameObject* pMovingParent )
     {
       if ( Layer == "All" )
       {
@@ -1420,7 +1420,7 @@ namespace GR
 
 
 
-    bool JREngine::IsAreaBlocked( GameObject* pObj, const GR::tRect& Bounds, Dir::Value Dir, GR::Gamebase::Layer* pLayerBase, GameObject* pMovingParent )
+    bool JREngine::IsAreaBlocked( GameObject* pObj, const GR::tRect& Bounds, Dir Dir, GR::Gamebase::Layer* pLayerBase, GameObject* pMovingParent )
     {
       if ( pLayerBase == NULL )
       {
@@ -1993,7 +1993,7 @@ namespace GR
 
 
 
-    GR::Gamebase::Dir::Value JREngine::OppositeDir( GR::Gamebase::Dir::Value Dir )
+    GR::Gamebase::Dir JREngine::OppositeDir( GR::Gamebase::Dir Dir )
     {
       switch ( Dir )
       {
@@ -2011,7 +2011,7 @@ namespace GR
 
 
 
-    void JREngine::OnCollide( GameObject* pObj1, GameObject* pObj2, GR::Gamebase::Dir::Value Dir, GR::u32& CollisionReaction )
+    void JREngine::OnCollide( GameObject* pObj1, GameObject* pObj2, GR::Gamebase::Dir Dir, GR::u32& CollisionReaction )
     {
       RaiseObjectEvent( pObj1, GR::Gamebase::ObjectEvent( GR::Gamebase::ObjectEventType::COLLIDE, pObj2 ) );
       RaiseObjectEvent( pObj2, GR::Gamebase::ObjectEvent( GR::Gamebase::ObjectEventType::COLLIDE, pObj1 ) );
@@ -2048,7 +2048,7 @@ namespace GR
 
 
 
-    bool JREngine::CanCollide( GameObject* pObj1, GameObject* pObj2, GR::Gamebase::Dir::Value Dir )
+    bool JREngine::CanCollide( GameObject* pObj1, GameObject* pObj2, GR::Gamebase::Dir Dir )
     {
       if ( m_CanCollideHandler )
       {
@@ -2060,7 +2060,7 @@ namespace GR
 
 
 
-    bool JREngine::DoesObjectBlockObject( GameObject* pMover, GameObject* pObstacle, GR::Gamebase::Dir::Value Dir )
+    bool JREngine::DoesObjectBlockObject( GameObject* pMover, GameObject* pObstacle, GR::Gamebase::Dir Dir )
     {
       if ( m_ObjectBlocksObjectHandler )
       {
@@ -2071,7 +2071,7 @@ namespace GR
 
 
 
-    bool JREngine::DoesObjectBlock( GameObject* pObstacle, GR::Gamebase::Dir::Value Dir )
+    bool JREngine::DoesObjectBlock( GameObject* pObstacle, GR::Gamebase::Dir Dir )
     {
       if ( m_ObjectBlockHandler )
       {
@@ -2082,7 +2082,7 @@ namespace GR
 
 
 
-    bool JREngine::CheckCollisions( GameObject* pObj, const GR::tRect& Bounds, GR::Gamebase::Dir::Value Dir )
+    bool JREngine::CheckCollisions( GameObject* pObj, const GR::tRect& Bounds, GR::Gamebase::Dir Dir )
     {
       // only check awakeobjects
       bool    blocked = false;
@@ -2121,7 +2121,7 @@ namespace GR
 
 
 
-    bool JREngine::IsObjectBlockedByOtherObjects( GameObject* pObj, const GR::tRect& Bounds, GR::Gamebase::Dir::Value Dir, GameObject* pMovingParent )
+    bool JREngine::IsObjectBlockedByOtherObjects( GameObject* pObj, const GR::tRect& Bounds, GR::Gamebase::Dir Dir, GameObject* pMovingParent )
     {
       GR::tPoint      GridPos = m_pGameLayer->GridPos( pObj );
       GameObject*     pCarryingObject = NULL;
@@ -2198,7 +2198,7 @@ namespace GR
 
 
 
-    bool JREngine::IsBlockedByObjects( const GR::tRect& Bounds, GR::Gamebase::Dir::Value Dir )
+    bool JREngine::IsBlockedByObjects( const GR::tRect& Bounds, GR::Gamebase::Dir Dir )
     {
       GR::tPoint      GridPos = m_pGameLayer->GridPos( Bounds.position() );
       GameObject*     pCarryingObject = NULL;

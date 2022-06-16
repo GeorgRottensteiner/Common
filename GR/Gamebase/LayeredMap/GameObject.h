@@ -119,6 +119,8 @@ namespace GR
         // uses ProcessingFlags::Value
         GR::u32                     m_ProcessingFlags;
 
+        bool                        m_CustomRender;
+
         GR::tFPoint                 FractPos;
         GR::tPoint                  DisplayOffset;
         int                         ZOrder;

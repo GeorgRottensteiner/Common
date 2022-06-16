@@ -42,7 +42,7 @@ using namespace Windows::UI::Core;
 //#include "OggXAudio2.h"
 #elif OPERATING_SYSTEM == OS_WEB
 #include <Xtreme/SDL/SDLInput.h>
-#include <Xtreme/OpenGL/OpenGLRenderClass.h>
+#include <Xtreme/OpenGLShader/OpenGLShaderRenderClass.h>
 #include <Xtreme/NullSound/XNullMusic.h>
 #include <Xtreme/NullSound/XNullSound.h>
 #elif OPERATING_SUB_SYSTEM == OS_SUB_SDL
@@ -393,7 +393,7 @@ bool XFrameApp::RunDefaultModules()
 #elif OPERATING_SYSTEM == OS_WEB
   if ( m_pRenderClass == NULL )
   {
-    m_pRenderClass = new OpenGLRenderClass();
+    m_pRenderClass = new OpenGLShaderRenderClass();
     GR::Service::Environment::Instance().SetService( "Renderer", m_pRenderClass );
   }
   if ( m_pSoundClass == NULL )

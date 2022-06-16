@@ -9,6 +9,7 @@
 
 #if ( OPERATING_SYSTEM == OS_WEB )
 #include <emscripten.h>
+#include <GLES3/gl3.h>
 #else
 #include <windows.h>
 #include <gl\gl.h>
@@ -17,6 +18,7 @@
 #endif
 
 
+#if ( OPERATING_SYSTEM != OS_WEB )
 typedef void ( APIENTRY* PFNGLBINDBUFFERPROC ) ( GLenum target, GLuint buffer );
 typedef void ( APIENTRY* PFNGLDELETEBUFFERSPROC ) ( GLsizei n, const GLuint* buffers );
 typedef void ( APIENTRY* PFNGLGENBUFFERSPROC ) ( GLsizei n, GLuint* buffers );
@@ -27,9 +29,13 @@ typedef void ( APIENTRYP PFNGLGENVERTEXARRAYSPROC ) ( GLsizei n, GLuint* arrays 
 typedef void ( APIENTRYP PFNGLBINDVERTEXARRAYPROC ) ( GLuint array );
 typedef void ( APIENTRYP PFNGLDELETEVERTEXARRAYSPROC ) ( GLsizei n, const GLuint* arrays );
 
+#endif
+
 #if ( OPERATING_SYSTEM != OS_WEB )
 typedef void ( APIENTRY* PFNGLBUFFERDATAPROC ) ( GLenum target, int size, const GLvoid* data, GLenum usage );
 #endif
+
+#if ( OPERATING_SYSTEM != OS_WEB )
 extern PFNGLBUFFERDATAPROC    glBufferData;					// VBO Data Loading Procedure
 
 // VBO Extension Function Pointers
@@ -42,7 +48,7 @@ extern PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
 extern PFNGLGENVERTEXARRAYSPROC      glGenVertexArrays;
 extern PFNGLBINDVERTEXARRAYPROC      glBindVertexArray;
 extern PFNGLDELETEVERTEXARRAYSPROC   glDeleteVertexArrays;
-
+#endif
 
 
 

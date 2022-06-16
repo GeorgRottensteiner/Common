@@ -27,8 +27,8 @@ enum OutputEventType
 
   OET_ITEM_HOVER            = 0x00001200,   // user moved mouse over an item
 
-  OET_OWNER_DRAW            = 0x00001300,   // GUI::OwnerDrawInfo in Event.m_Param2
-  OET_OWNER_DRAW_ITEM       = 0x00001301,   // GUI::OwnerDrawInfo in Event.m_Param2
+  OET_OWNER_DRAW            = 0x00001300,   // GUI::OwnerDrawInfo* in Event.m_Param2
+  OET_OWNER_DRAW_ITEM       = 0x00001301,   // GUI::OwnerDrawInfo* in Event.m_Param2
 
   OET_FOCUS_LOOSE           = 0x00002000,
   OET_FOCUS_GET             = 0x00002001,
@@ -41,10 +41,10 @@ enum OutputEventType
   OET_ADDED_CHILD           = 0x00002022,
   OET_REMOVED_CHILD         = 0x00002033,
 
-  OET_DRAG_CONTENT_START    = 0x00002030,
-  OET_DRAG_CONTENT_CANCEL   = 0x00002031,
-  OET_DRAG_CONTENT_DROP     = 0x00002032,
-  OET_DRAG_CONTENT_QUERY    = 0x00002033,
+  OET_DRAG_CONTENT_START    = 0x00002030,   // GUI::DragContentInfo* in Event.m_Param1
+  OET_DRAG_CONTENT_CANCEL   = 0x00002031,   // GUI::DragContentInfo* in Event.m_Param1
+  OET_DRAG_CONTENT_DROP     = 0x00002032,   // GUI::DragContentInfo* in Event.m_Param1
+  OET_DRAG_CONTENT_QUERY    = 0x00002033,   // GUI::DragContentInfo* in Event.m_Param1
 
   OET_BUTTON_PUSHED         = 0x00003000,
   OET_BUTTON_DOWN           = 0x00003001,

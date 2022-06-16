@@ -123,7 +123,7 @@ PFNGLDELETEVERTEXARRAYSPROC   glDeleteVertexArrays = NULL;
 PFNGLACTIVETEXTUREPROC        glActiveTexture = NULL;
 #endif
 
-
+#if ( OPERATING_SYSTEM != OS_WEB )
 // hacky crap for double GL context hop
 HGLRC WINAPI wglarb_CreateContextAttribsARB(
   HDC hDC,
@@ -149,11 +149,11 @@ static DWORD wglarb_intermediary_lock( void )
 
   if ( !wglarb_intermediary_mutex )
   {
-    /* Between testing for the validity of the mutex handle,
-     * creating a new mutex handle and using the interlocked
-     * exchange there is a race... */
+    // Between testing for the validity of the mutex handle,
+    // creating a new mutex handle and using the interlocked
+    // exchange there is a race...
 
-     /* //// START \\\\ */
+    // //// START
 
     HANDLE const new_mutex =
       CreateMutex( NULL, TRUE, NULL );
@@ -164,17 +164,16 @@ static DWORD wglarb_intermediary_lock( void )
         new_mutex,
         NULL );
 
-    /* //// FINISH \\\\ */
+    // //// FINISH \\\\ 
 
     if ( !dst_mutex )
     {
-      /* mutex created in one time initialization and held
-       * by calling thread. Return signaled status. */
+      // mutex created in one time initialization and held by calling thread. Return signaled status.
       return WAIT_OBJECT_0;
     }
-    /* In this case we lost the race and another thread
-     * beat this thread in creating a mutex object.
-     * Clean up and wait for the proper mutex. */
+    // In this case we lost the race and another thread
+    // beat this thread in creating a mutex object.
+    // Clean up and wait for the proper mutex.
     ReleaseMutex( new_mutex );
     CloseHandle( new_mutex );
   }
@@ -346,8 +345,7 @@ BOOL WINAPI wglarb_ChoosePixelFormatARB(
     wglGetProcAddress( "wglChoosePixelFormatARB" );
   if ( !impl )
   {
-    /* WGL_EXT_pixel_format uses the same function prototypes
-     * as the WGL_ARB_pixel_format extension */
+    // WGL_EXT_pixel_format uses the same function prototypes as the WGL_ARB_pixel_format extension
     impl = (PFNWGLCHOOSEPIXELFORMATARBPROC)
       wglGetProcAddress( "wglChoosePixelFormatEXT" );
   }
@@ -368,6 +366,8 @@ BOOL WINAPI wglarb_ChoosePixelFormatARB(
   wglarb_intermediary_unlock();
   return ret;
 }
+#endif
+
 
 
 OpenGLShaderRenderClass::OpenGLShaderRenderClass() :
@@ -417,7 +417,9 @@ OpenGLShaderRenderClass::OpenGLShaderRenderClass() :
     m_SetLights[i].m_Type = XLight::LT_INVALID;
     m_LightEnabled[i] = false;
   }
+#if ( OPERATING_SYSTEM != OS_WEB )
   ZeroMemory( &m_pfd, sizeof( m_pfd ) );
+#endif
 }
 
 
@@ -739,7 +741,11 @@ bool OpenGLShaderRenderClass::Initialize( GR::u32 Width, GR::u32 Height, GR::u32
   //   "  float fFogDensity = .02f; \n"
   //   "  vec4 vFogColor  = vec4(0.0f, 0.0f, 0.0f, 0.0f); \n"
 
+#if OPERATING_SYSTEM == OS_WEB 
+#include "shadercodees.inl" 
+#else
 #include "shadercode.inl" 
+#endif
 
   /*
   GR::String    vertexShader = "#version 330 core\n"
@@ -1073,12 +1079,16 @@ bool OpenGLShaderRenderClass::InitShader( InternalShader::Value Program, const G
   if ( !pVertexShader->CreateFromString( VertexShaderContent ) )
   {
     delete pVertexShader;
+    dh::Log( "OpenGLShaderRenderClass::InitShader failed at vertex shader for program %d", Program );
+    //dh::Log( "OpenGLShaderRenderClass::InitShader failed at vertex shader for program %s", VertexShaderContent.c_str() );
     return false;
   }
 
   PixelShader* pPixelShader = new PixelShader( this );
   if ( !pPixelShader->CreateFromString( PixelShaderContent ) )
   {
+    dh::Log( "OpenGLShaderRenderClass::InitShader failed at pixel shader for program %d", Program );
+    //dh::Log( "OpenGLShaderRenderClass::InitShader failed at pixel shader for program %s", PixelShaderContent.c_str() );
     delete pPixelShader;
     delete pVertexShader;
     return false;
@@ -1101,8 +1111,11 @@ bool OpenGLShaderRenderClass::InitShader( InternalShader::Value Program, const G
     std::vector<char> ProgramErrorMessage( InfoLogLength + 1 );
     glGetProgramInfoLog( programID, InfoLogLength, NULL, &ProgramErrorMessage[0] );
     dh::Log( "Link Shader Program Error for program %d: %s", Program, &ProgramErrorMessage[0] );
-  }
 
+    //dh::Log( "OpenGLShaderRenderClass::InitShader failed at linking for vertex shader %s", VertexShaderContent.c_str() );
+    //dh::Log( "OpenGLShaderRenderClass::InitShader failed at linking for pixel shader %s", PixelShaderContent.c_str() );
+  }
+  
   glDetachShader( programID, pVertexShader->m_ShaderID );
   glDetachShader( programID, pPixelShader->m_ShaderID );
 

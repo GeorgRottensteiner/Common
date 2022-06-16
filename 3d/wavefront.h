@@ -25,11 +25,11 @@
 class CWF
 {
 public:
-  typedef math::vector3t<float> vertex_t;
+  typedef GR::tVector vertex_t;
   typedef std::vector< vertex_t >  vertex_collection_t;
 
   //- vertices
-  vertex_collection_t v_;   //- x,y,z used
+  vertex_collection_t _v;   //- x,y,z used
   //- texture vertices
   vertex_collection_t vt_;  //- x,y used, z meist nicht
   //- normal vertices
@@ -38,9 +38,15 @@ public:
   typedef int ref_t;
   struct facenode_t
   {
-    ref_t v_, vt_, vn_;
-    facenode_t() : v_( ref_t() ), vt_( ref_t() ), vn_( ref_t() ) {}
-    facenode_t( ref_t v, ref_t vt, ref_t vn ) : v_( v ), vt_( vt ), vn_( vn ) {}
+    ref_t _v, vt_, vn_;
+    facenode_t() : 
+      _v( ref_t() ), 
+      vt_( ref_t() ), 
+      vn_( ref_t() ) 
+    {
+    }
+    
+    facenode_t( ref_t v, ref_t vt, ref_t vn ) : _v( v ), vt_( vt ), vn_( vn ) {}
   };
   typedef std::vector< facenode_t > face_t;
   typedef std::vector< face_t >     face_collection_t;
@@ -54,12 +60,12 @@ public:
   //- fab four
   CWF() {}
   ~CWF() {}
-  CWF( const CWF& rhs ) : v_( rhs.v_ ), vt_( rhs.vt_ ), vn_( rhs.vn_ ), f_( rhs.f_ ) {}
+  CWF( const CWF& rhs ) : _v( rhs._v ), vt_( rhs.vt_ ), vn_( rhs.vn_ ), f_( rhs.f_ ) {}
   CWF& operator=( const CWF& rhs )
   {
     if ( this == &rhs ) return *this;
     clear();
-    v_  = rhs.v_;
+    _v  = rhs._v;
     vt_ = rhs.vt_;
     vn_ = rhs.vn_;
     f_  = rhs.f_;
@@ -68,7 +74,7 @@ public:
 
   void clear()
   {
-    v_.clear();
+    _v.clear();
     vt_.clear();
     vn_.clear();
     f_.clear();
@@ -79,29 +85,29 @@ public:
     //profile p( "CWF::save( std::ostream& os ) const" );
 
     {
-      for ( int i = 1; i < v_.size(); ++i )
-        os << "v " << v_[i].x << " " << v_[i].y << " " << v_[i].z << "\n";
+      for ( size_t i = 1; i < _v.size(); ++i )
+        os << "v " << _v[i].x << " " << _v[i].y << " " << _v[i].z << "\n";
     }
 
     {
-      for ( int i = 1; i < vt_.size(); ++i )
+      for ( size_t i = 1; i < vt_.size(); ++i )
         os << "vt " << vt_[i].x << " " << vt_[i].y /* << " " << vt_[i].z */ << "\n";
     }
 
     {
-      for ( int i = 1; i < vn_.size(); ++i )
+      for ( size_t i = 1; i < vn_.size(); ++i )
         os << "vn " << vn_[i].x << " " << vn_[i].y << " " << vn_[i].z << "\n";
     }
 
     {
-      for ( int i = 0; i < f_.size(); ++i )
+      for ( size_t i = 0; i < f_.size(); ++i )
       {
         const face_t& face = f_[i];
         os << "f";
-        for ( int j = 0; j < face.size(); ++j )
+        for ( size_t j = 0; j < face.size(); ++j )
         {
           os << " ";
-          os << face[j].v_;
+          os << face[j]._v;
           os << "/";
           if ( face[j].vt_ != 0 ) os << face[j].vt_;
           os << "/";
@@ -121,20 +127,20 @@ public:
 
     //- damit es schneller geht (ruhig klotzen! wird nachher alles überflüssige abgesägt)
     {
-      v_.reserve(  WF_LOADBUFFERSIZE );
+      _v.reserve(  WF_LOADBUFFERSIZE );
       vt_.reserve( WF_LOADBUFFERSIZE );
       vn_.reserve( WF_LOADBUFFERSIZE );
       f_.reserve(  WF_LOADBUFFERSIZE );
     }
 
     //- index 0 initialisieren (wavefront zählt ab 1)
-    v_.push_back( vertex_t() );
+    _v.push_back( vertex_t() );
     vt_.push_back( vertex_t() );
     vn_.push_back( vertex_t() );
 
     char  buf[WF_LINEBUFFERSIZE];
     char* p = 0;
-    string str;
+    std::string str;
 
 
     char delimiter = '\n';
@@ -159,18 +165,18 @@ public:
           switch( *p )
           {
           case ' ': //- normaler vertex
-            vc = &v_;
-            sscanf( p, " %e %e %e", &vertex.x, &vertex.y, &vertex.z );
+            vc = &_v;
+            sscanf_s( p, " %e %e %e", &vertex.x, &vertex.y, &vertex.z );
             break;
 
           case 't': //- texturvertex
             vc = &vt_;
-            sscanf( p, "t %e %e", &vertex.x, &vertex.y );
+            sscanf_s( p, "t %e %e", &vertex.x, &vertex.y );
             break;
 
           case 'n': //- normalenvertex
             vc = &vn_;
-            sscanf( p, "n %e %e %e", &vertex.x, &vertex.y, &vertex.z );
+            sscanf_s( p, "n %e %e %e", &vertex.x, &vertex.y, &vertex.z );
             break;
 
           default: goto nextline;
@@ -189,18 +195,18 @@ public:
 
           str.assign( p );
 
-          StringTok<string> tok( str ); //- könnte langsam sein (wenn alles klappt, optimieren!)
+          StringTok<std::string> tok( str ); //- könnte langsam sein (wenn alles klappt, optimieren!)
           face_t face;
 
           //- folgende verweise auf vertices muessen bemängelt werden:
           //- indizes < 1 und indizes > anzahl (je nach typ - v, vt oder vn)
           //- ausserdem muessen Faces mindestens drei punkte haben
-          string strPoint;
+          std::string strPoint;
 
           while(  ( strPoint = tok( " \t\0" ) ) != "" )
           {
             facenode_t fn;
-            sscanf( strPoint.c_str(), "%d/%d/%d", &fn.v_, &fn.vt_, &fn.vn_ );
+            sscanf_s( strPoint.c_str(), "%d/%d/%d", &fn._v, &fn.vt_, &fn.vn_ );
             face.push_back( fn );
           }
 
@@ -218,7 +224,7 @@ public:
 
     //- dies kopiert einmal alle vektoren, danach
     //- sind jedoch unnötig reservierte plätze freigegeben
-    v_.swap(  vertex_collection_t( v_.begin(),  v_.end()  ) );
+    _v.swap(  vertex_collection_t( _v.begin(),  _v.end()  ) );
     vt_.swap( vertex_collection_t( vt_.begin(), vt_.end() ) );
     vn_.swap( vertex_collection_t( vn_.begin(), vn_.end() ) );
     f_.swap(  face_collection_t(   f_.begin(),  f_.end()  ) );
@@ -227,7 +233,7 @@ public:
   void interpolate( const CWF& a, const CWF& b, float morph )
   {
     //- dies verwendet nicht die effizienteste version von interpolate, ist aber sicherer
-    anim::interpolate( v_.begin(),  v_.end(),  a.v_.begin(),  a.v_.end(),  b.v_.begin(),  b.v_.end(),  morph );
+    anim::interpolate( _v.begin(),  _v.end(),  a._v.begin(),  a._v.end(),  b._v.begin(),  b._v.end(),  morph );
     anim::interpolate( vn_.begin(), vn_.end(), a.vn_.begin(), a.vn_.end(), b.vn_.begin(), b.vn_.end(), morph );
   }
 
@@ -252,7 +258,7 @@ public:
     /*
     dh() << "vor optimize: \n"
       << dh::notify
-      << " v: "  << v_.size()  - 1 << "\n"
+      << " v: "  << _v.size()  - 1 << "\n"
       << " vt: " << vt_.size() - 1 << "\n"
       << " vn: " << vn_.size() - 1 << "\n"
       << " f: "  << f_.size()      << "\n";
@@ -260,38 +266,38 @@ public:
 
     typedef std::map < vertex_t, ref_t, vertex_sort > vertex_ref_collection_t;
 
-    vertex_ref_collection_t v_map, vt_map, vn_map;
+    vertex_ref_collection_t _vmap, vt_map, vn_map;
 
-    vertex_collection_t v_new;
+    vertex_collection_t _vnew;
     vertex_collection_t vt_new;
     vertex_collection_t vn_new;
-    v_new .reserve( v_.size()  );
+    _vnew .reserve( _v.size()  );
     vt_new.reserve( vt_.size() );
     vn_new.reserve( vn_.size() );
-    v_new .push_back( vertex_t() );
+    _vnew .push_back( vertex_t() );
     vt_new.push_back( vertex_t() );
     vn_new.push_back( vertex_t() );
 
     {
-      for ( int i = 0; i < f_.size(); ++i )
+      for ( size_t i = 0; i < f_.size(); ++i )
       {
         face_t& face = f_[i];
-        for ( int j = 0; j < face.size(); ++j )
+        for ( size_t j = 0; j < face.size(); ++j )
         {
           facenode_t& fn = face[j];
 
-          if ( fn.v_ )
+          if ( fn._v )
           {
-            vertex_t& v = v_[ fn.v_ ];
-            vertex_ref_collection_t::iterator it = v_map.find( v );
-            if ( it == v_map.end() )
+            vertex_t& v = _v[ fn._v ];
+            vertex_ref_collection_t::iterator it = _vmap.find( v );
+            if ( it == _vmap.end() )
             {
-              fn.v_ = v_map[v] = v_new.size();
-              v_new.push_back( v );
+              fn._v = _vmap[v] = _vnew.size();
+              _vnew.push_back( v );
             }
             else
             {
-              fn.v_ = it->second;
+              fn._v = it->second;
             }
           }
 
@@ -329,13 +335,13 @@ public:
     }
 
     //- man könnte auch noch freigewordenen speicher freigeben
-    v_.swap(  v_new  );
+    _v.swap(  _vnew  );
     vt_.swap( vt_new );
     vn_.swap( vn_new );
 
     // dh() << "nach optimize: \n"
       // << dh::notify
-      // << " v: "  << v_.size()  - 1 << "\n"
+      // << " v: "  << _v.size()  - 1 << "\n"
       // << " vt: " << vt_.size() - 1 << "\n"
       // << " vn: " << vn_.size() - 1 << "\n"
       // << " f: "  << f_.size()      << "\n";
@@ -356,7 +362,7 @@ public:
     vn_.push_back( vertex_t() );
 
     //- alle faces durchgehen
-    int p = 0;
+    size_t p = 0;
     face_collection_t::iterator itf( f_.begin() ), itfend( f_.end() );
     for ( ; itf != itfend; ++itf )
     {
@@ -368,11 +374,11 @@ public:
 
       for ( p = 0; p < f.size() - 2; ++p )
       {
-        normal += xxnormal( (math::vector3)v_[ f[0  ].v_ ],
-                              (math::vector3)v_[ f[p+1].v_ ],
-                              (math::vector3)v_[ f[p+2].v_ ] );
+        normal += xxnormal( (GR::tVector)_v[ f[0  ]._v ],
+                              (GR::tVector)_v[ f[p+1]._v ],
+                              (GR::tVector)_v[ f[p+2]._v ] );
       }
-      normal /= ( f.size() - 2 );
+      normal /= (float)( f.size() - 2 );
 
       //- normale in normalenvector aufnehmen
       vn_.push_back( normal );

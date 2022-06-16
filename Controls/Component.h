@@ -79,7 +79,7 @@ namespace GUI
 
       GR::u32                 m_Style;
 
-      GR::up                  m_UserData;
+      GR::ip                  m_UserData;
       GR::String              m_UserText;
 
       GR::tPoint              m_Position,

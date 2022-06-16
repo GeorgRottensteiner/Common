@@ -25,7 +25,8 @@ namespace GR
       JumpArcHeight( 0 ),
       JumpDuration( 0.5f ),
       JumpStartPos( 0 ),
-      LifeTime( 0.0f )
+      LifeTime( 0.0f ),
+      m_CustomRender( false )
     {
     }
 

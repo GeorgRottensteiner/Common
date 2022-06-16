@@ -28,7 +28,7 @@
 
 #include <GR/GameState/IGameState.h>
 
-#include <MasterFrame/XWindowWin32.h>
+#include <Xtreme/Environment/XWindowWin32.h>
 
 
 
@@ -118,11 +118,11 @@ class CDeskGame : public EventListener<tEvent>,
     // Registry-Funktionen
     void                SetBaseKey( const char* BaseKey );
     void                SetSetting( const char* Key, const char* Value );
-    GR::String         GetSetting( const char* Key );
+    GR::String          GetSetting( const char* Key );
     void                SetSettingI( const char* Key, int Value );
     int                 GetSettingI( const char* Key, int Default = 0 );
 
-    GR::String         AppPath( const char* Path );
+    GR::String          AppPath( const char* Path );
 
     void                SetWindowValues( const char* Caption, DWORD Icon, DWORD MenuId, DWORD ExtendedClientStyles = WS_EX_CLIENTEDGE );
     void                SetSize( int Width, int Height, DWORD Depth, bool FixedSize = false );

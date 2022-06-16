@@ -270,6 +270,9 @@ BOOL CDeskGame::DeskGameWndProc( HWND HwndDlg, UINT Msg, WPARAM WParam, LPARAM L
 
         GR::Service::Environment::Instance().SetService( "Logger", &m_Debugger );
 
+        Xtreme::Win32Window* pWindowService = (Xtreme::Win32Window*)GR::Service::Environment::Instance().Service( "Window" );
+        pWindowService->Hwnd = m_HwndMain;
+
         m_Window.SubclassManager.AddHandler( "DeskGame", fastdelegate::MakeDelegate( this, &CDeskGame::DeskGameWndProc ) );
 
         m_Input.Initialize( GR::Service::Environment::Instance() );

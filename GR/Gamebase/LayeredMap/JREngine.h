@@ -35,22 +35,19 @@ namespace GR
     class GameObject;
     class ObjectEvent;
 
-    namespace Dir
+    enum Dir : GR::u32
     {
-      enum Value
-      {
-        NONE  = 0,
-        U     = 0x00000001,
-        N     = U,
-        D     = 0x00000002,
-        S     = D,
-        L     = 0x00000004,
-        W     = L,
-        R     = 0x00000008,
-        E     = R,
-        ALL   = 0x0000000f
-      };
-    }
+      NONE  = 0,
+      U     = 0x00000001,
+      N     = U,
+      D     = 0x00000002,
+      S     = D,
+      L     = 0x00000004,
+      W     = L,
+      R     = 0x00000008,
+      E     = R,
+      ALL   = 0x0000000f
+    };
 
     namespace TileType
     {
@@ -126,10 +123,10 @@ namespace GR
 
 
 
-    Dir::Value  DirFromDelta( const GR::tPoint& Delta );
-    Dir::Value  DirFromDelta( int DX, int DY );
-    Dir::Value  DirFromDelta( GR::f32 DX, GR::f32 DY );
-    GR::f32     AngleFromDir( Dir::Value Dir );
+    Dir         DirFromDelta( const GR::tPoint& Delta );
+    Dir         DirFromDelta( int DX, int DY );
+    Dir         DirFromDelta( GR::f32 DX, GR::f32 DY );
+    GR::f32     AngleFromDir( Dir Dir );
     GR::tPoint  DeltaFromDir( GR::u32 Dir );
 
     class JREvent
@@ -225,13 +222,13 @@ namespace GR
           }
         };
 
-        typedef fastdelegate::FastDelegate3<GameObject*,GameObject*,GR::Gamebase::Dir::Value,bool>      tCanCollideEventFunction;
-        typedef fastdelegate::FastDelegate3<GameObject*,GameObject*,GR::Gamebase::Dir::Value,bool>      tObjectBlocksObjectEventFunction;
-        typedef fastdelegate::FastDelegate2<GameObject*,GR::Gamebase::Dir::Value,bool>                  tObjectBlocksFunction;
-        typedef fastdelegate::FastDelegate3<GameObject*,GameObject*,GR::Gamebase::Dir::Value,GR::u32>   tCollisionHandlerEventFunction;
-        typedef fastdelegate::FastDelegate1<TileBlockEvent&,bool>                                       tTileBlockHandlerEventFunction;
-        typedef fastdelegate::FastDelegate2<GameObject*,const GR::Gamebase::ObjectEvent&>               tObjectEventHandlerFunction;
-        typedef fastdelegate::FastDelegate1<const GR::Gamebase::JREvent&>                               tJREventHandlerFunction;
+        typedef fastdelegate::FastDelegate3<GameObject*,GameObject*,GR::Gamebase::Dir,bool>      tCanCollideEventFunction;
+        typedef fastdelegate::FastDelegate3<GameObject*,GameObject*,GR::Gamebase::Dir,bool>      tObjectBlocksObjectEventFunction;
+        typedef fastdelegate::FastDelegate2<GameObject*,GR::Gamebase::Dir,bool>                  tObjectBlocksFunction;
+        typedef fastdelegate::FastDelegate3<GameObject*,GameObject*,GR::Gamebase::Dir,GR::u32>   tCollisionHandlerEventFunction;
+        typedef fastdelegate::FastDelegate1<TileBlockEvent&,bool>                                tTileBlockHandlerEventFunction;
+        typedef fastdelegate::FastDelegate2<GameObject*,const GR::Gamebase::ObjectEvent&>        tObjectEventHandlerFunction;
+        typedef fastdelegate::FastDelegate1<const GR::Gamebase::JREvent&>                        tJREventHandlerFunction;
 
         typedef std::map<std::pair<GR::Gamebase::ObjectEventType::Value,GR::Gamebase::GameObject*>,tObjectEventHandlerFunction>    tObjectEventHandler;
 
@@ -352,17 +349,17 @@ namespace GR
         GameObject*             FindCollidingObject( GameObject* pCollider, int Type );
         int                     GetObjectCountByType( const GR::String& ObjType );
 
-        bool                    CheckCollisions( GameObject* pObj, const GR::tRect& Bounds, Dir::Value Dir );
-        bool                    IsObjectBlockedByOtherObjects( GameObject* pObj, const GR::tRect& Bounds, GR::Gamebase::Dir::Value Dir, GameObject* pMovingParent = NULL );
-        bool                    IsBlockedByObjects( const GR::tRect& Bounds, GR::Gamebase::Dir::Value Dir );
+        bool                    CheckCollisions( GameObject* pObj, const GR::tRect& Bounds, Dir Dir );
+        bool                    IsObjectBlockedByOtherObjects( GameObject* pObj, const GR::tRect& Bounds, GR::Gamebase::Dir Dir, GameObject* pMovingParent = NULL );
+        bool                    IsBlockedByObjects( const GR::tRect& Bounds, GR::Gamebase::Dir Dir );
 
-        bool                    IsAreaBlocked( GameObject* pObj, int DX, int DY, Dir::Value Dir, GameObject* pMovingParent = NULL );
-        bool                    IsAreaBlocked( GameObject* pObj, const GR::tRect& Bounds, Dir::Value Dir, GameObject* pMovingParent = NULL );
-        bool                    IsAreaBlocked( GameObject* pObj, int DX, int DY, Dir::Value Dir, const GR::String& Layer, GameObject* pMovingParent = NULL );
-        bool                    IsAreaBlocked( GameObject* pObj, const GR::tRect& Bounds, Dir::Value Dir, const GR::String& Layer, GameObject* pMovingParent = NULL );
-        bool                    IsAreaBlocked( GameObject* pObj, const GR::tRect& Bounds, Dir::Value Dir, GR::Gamebase::Layer* pLayer, GameObject* pMovingParent = NULL );
+        bool                    IsAreaBlocked( GameObject* pObj, int DX, int DY, Dir Dir, GameObject* pMovingParent = NULL );
+        bool                    IsAreaBlocked( GameObject* pObj, const GR::tRect& Bounds, Dir Dir, GameObject* pMovingParent = NULL );
+        bool                    IsAreaBlocked( GameObject* pObj, int DX, int DY, Dir Dir, const GR::String& Layer, GameObject* pMovingParent = NULL );
+        bool                    IsAreaBlocked( GameObject* pObj, const GR::tRect& Bounds, Dir Dir, const GR::String& Layer, GameObject* pMovingParent = NULL );
+        bool                    IsAreaBlocked( GameObject* pObj, const GR::tRect& Bounds, Dir Dir, GR::Gamebase::Layer* pLayer, GameObject* pMovingParent = NULL );
 
-        bool                    IsTileBlocking( GameObject* pObj, int TileX, int TileY, Dir::Value DIR, GR::Gamebase::TileLayer* pLayer = NULL );
+        bool                    IsTileBlocking( GameObject* pObj, int TileX, int TileY, Dir DIR, GR::Gamebase::TileLayer* pLayer = NULL );
 
         void                    CenterCameraOnObject( GameObject* pObj );
         void                    CenterCameraOnPosition( const GR::tPoint& Pos );
@@ -399,7 +396,7 @@ namespace GR
 
         bool                    IsOutsideAwakeArea( GR::Gamebase::GameObject* pObj );
 
-        static GR::Gamebase::Dir::Value   OppositeDir( GR::Gamebase::Dir::Value Dir );
+        static GR::Gamebase::Dir  OppositeDir( GR::Gamebase::Dir Dir );
 
 
         void                    FireTrigger( const GR::Gamebase::LayeredMap::Trigger& Trigger, GameObject* pObj );
@@ -422,12 +419,12 @@ namespace GR
 
         void                    ClipToRect( GR::tPoint& Pos, const GR::tRect& ClipRect );
 
-        void                    OnCollide( GameObject* pObj1, GameObject* pObj2, GR::Gamebase::Dir::Value Dir, GR::u32& CollisionReaction );
-        bool                    CanCollide( GameObject* pObj1, GameObject* pObj2, GR::Gamebase::Dir::Value Dir );
-        bool                    DoesObjectBlockObject( GR::Gamebase::GameObject* pMover, GR::Gamebase::GameObject* pObstacle, GR::Gamebase::Dir::Value Dir );
-        bool                    DoesObjectBlock( GameObject* pObstacle, GR::Gamebase::Dir::Value Dir );
+        void                    OnCollide( GameObject* pObj1, GameObject* pObj2, GR::Gamebase::Dir Dir, GR::u32& CollisionReaction );
+        bool                    CanCollide( GameObject* pObj1, GameObject* pObj2, GR::Gamebase::Dir Dir );
+        bool                    DoesObjectBlockObject( GR::Gamebase::GameObject* pMover, GR::Gamebase::GameObject* pObstacle, GR::Gamebase::Dir Dir );
+        bool                    DoesObjectBlock( GameObject* pObstacle, GR::Gamebase::Dir Dir );
 
-        bool                    Collide( GameObject* pObj1, GameObject* pObj2, GR::Gamebase::Dir::Value Dir );
+        bool                    Collide( GameObject* pObj1, GameObject* pObj2, GR::Gamebase::Dir Dir );
 
         void                    PerformMove( GameObject* pObj, int DX, int DY );
         void                    ReseatMovedObjectsInSector();

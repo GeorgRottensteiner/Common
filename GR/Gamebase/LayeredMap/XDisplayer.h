@@ -322,7 +322,7 @@ namespace GR
                   if ( pObj->m_CustomRender )
                   {
                     JREngine.RaiseObjectEvent( pObj,
-                                               GR::Gamebase::ObjectEvent( GR::Gamebase::OE_CUSTOM_DRAW,
+                                               GR::Gamebase::ObjectEvent( GR::Gamebase::ObjectEventType::CUSTOM_DRAW,
                                                                           GR::tPoint( DisplayRect.Left + pObj->Position.x + pObj->DisplayOffset.x - ( X1 + 1 ) * pTileLayer->TileSpacingX - displayOffsetX % pTileLayer->TileSpacingX,
                                                                                       DisplayRect.Top + pObj->Position.y + pObj->DisplayOffset.y - ( Y1 + 1 ) * pTileLayer->TileSpacingY - displayOffsetY % pTileLayer->TileSpacingY ) ) );
                   }
