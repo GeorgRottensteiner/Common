@@ -426,13 +426,13 @@ namespace GR
         {
           Lines.push_back( workText.substr( 0, pos ) );
           workText = workText.substr( pos + 2 );
-          pos = (size_t)-1;
+          pos = GR::String::npos;
         }
         else if ( workText[pos] == '\n' )   // erzwungener Umbruch
         {
           Lines.push_back( workText.substr( 0, pos ) );
           workText = workText.substr( pos + 1 );
-          pos = (size_t)-1;
+          pos = GR::String::npos;
         }
         else if ( pFont->TextLength( workText.substr( 0, pos ) ) >= Area.width() )
         {
@@ -459,7 +459,7 @@ namespace GR
           }
           Lines.push_back( workText.substr( 0, pos ) );
           workText = workText.substr( pos + 1 );
-          pos = (size_t)-1;
+          pos = GR::String::npos;
         }
       }
       while ( !workText.empty() );
@@ -484,6 +484,88 @@ namespace GR
       {
         Area.height( AlternativeTextHeight * (int)Lines.size() );
       }
+    }
+
+
+
+    static void WrapText( int WidthInChars, const GR::String& Text, GR::tRect& Area, std::vector<GR::String>& Lines )
+    {
+      Lines.clear();
+
+      // jetzt Text schnippeln
+      GR::String      workText = Text;
+
+      GR::String      newLine;
+
+      size_t          pos = (size_t)-1;
+
+      do
+      {
+        newLine.erase();
+
+        ++pos;
+        if ( pos >= workText.length() )
+        {
+          Lines.push_back( workText );
+          break;
+        }
+        if ( ( workText[pos] == '\\' )   // erzwungener Umbruch
+          && ( pos < workText.length() )
+          && ( workText[pos + 1] == 'n' ) )
+        {
+          Lines.push_back( workText.substr( 0, pos ) );
+          workText = workText.substr( pos + 2 );
+          pos = GR::String::npos;
+        }
+        else if ( workText[pos] == '\n' )   // erzwungener Umbruch
+        {
+          Lines.push_back( workText.substr( 0, pos ) );
+          workText = workText.substr( pos + 1 );
+          pos = GR::String::npos;
+        }
+        else if ( (int)pos >= WidthInChars )
+        {
+          if ( workText[pos] != '\n' )
+          {
+            // hier muﬂ noch eine passende Stelle (Leerzeichen) gefunden werden
+            size_t   newPos = pos;
+            do
+            {
+              if ( newPos == 0 )
+              {
+                newPos = pos;
+                break;
+              }
+              newPos--;
+              if ( newPos <= 0 )
+              {
+                newPos = pos;
+                break;
+              }
+            }
+            while ( workText[newPos] != ' ' );
+            pos = newPos;
+          }
+          Lines.push_back( workText.substr( 0, pos ) );
+          workText = workText.substr( pos + 1 );
+          pos = GR::String::npos;
+        }
+      }
+      while ( !workText.empty() );
+
+      GR::i32   maxWidth = 0;
+
+      for ( size_t i = 0; i < Lines.size(); ++i )
+      {
+        int     textLength = (int)Lines[i].length();
+        if ( textLength > maxWidth )
+        {
+          maxWidth = textLength;
+        }
+      }
+
+      Area.width( maxWidth );
+      Area.height( (int)Lines.size() );
     }
 
 
@@ -652,6 +734,49 @@ namespace GR
         }
       }
       return false;
+    }
+
+
+
+    static bool IsRealNumeric( const GR::String& Text, size_t Offset = 0, size_t Length = (size_t)-1 )
+    {
+      if ( Offset >= Text.length() )
+      {
+        return false;
+      }
+      if ( Length == (size_t)-1 )
+      {
+        Length = Text.length() - Offset;
+      }
+      if ( Offset + Length > Text.length() )
+      {
+        return false;
+      }
+      bool hadDot = false;
+      for ( size_t i = Offset; i < Length; ++i )
+      {
+        char    digit( Text[i] );
+
+        if ( ( digit == '-' )
+        &&   ( i > 0 ) )
+        {
+          return false;
+        }
+        else if ( digit == '.' )
+        {
+          if ( hadDot )
+          {
+            return false;
+          }
+          hadDot = true;
+        }
+        else if ( ( digit < '0' )
+        ||        ( digit > '9' ) )
+        {
+          return false;
+        }
+      }
+      return true;
     }
 
 

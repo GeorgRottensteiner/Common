@@ -16,7 +16,7 @@ class GR::Graphic::GFXPage;
 
 
 
-class CGUITreeCtrl : public CAbstractTreeCtrl<CGUIComponent,CGUIScrollbar>
+class GUITreeCtrl : public AbstractTreeCtrl<GUIComponent,GUIScrollbar>
 {
 
   protected:
@@ -26,10 +26,10 @@ class CGUITreeCtrl : public CAbstractTreeCtrl<CGUIComponent,CGUIScrollbar>
 
   public:
 
-    DECLARE_CLONEABLE( CGUITreeCtrl, "TreeCtrl" )
+    DECLARE_CLONEABLE( GUITreeCtrl, "TreeCtrl" )
 
 
-    CGUITreeCtrl( int iNewX = 0, int iNewY = 0, int iNewWidth = 0, int iNewHeight = 0, GR::u32 lbType = TCFT_SINGLE_SELECT | TCFT_SHOW_BUTTONS, GR::u32 dwId = 0 );
+    GUITreeCtrl( int iNewX = 0, int iNewY = 0, int iNewWidth = 0, int iNewHeight = 0, GR::u32 lbType = TCFT_SINGLE_SELECT | TCFT_SHOW_BUTTONS, GR::u32 dwId = 0 );
 
 
     virtual void          DisplayOnPage( GR::Graphic::GFXPage* pPage );

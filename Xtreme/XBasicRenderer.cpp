@@ -5,6 +5,7 @@
 #if OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP
 #include <Grafik/GDIPage.h>
 #endif
+
 #include <Grafik/ImageFormate/ImageFormatManager.h>
 
 #include <Interface/IValueStorage.h>
@@ -1261,9 +1262,14 @@ XFont* XBasicRenderer::CreateFontSquare()
 
   HDC       hdcTemp = pageTemp.GetDC();
 
-  SelectObject( hdcTemp, GetStockObject( DEFAULT_GUI_FONT ) );
-  SetTextColor( hdcTemp, RGB( 255, 255, 255 ) );//0xffffffff );
-  SetBkMode( hdcTemp, TRANSPARENT );
+  HFONT     tempFont = CreateFontA( 0, 0, 0, 0, 300, 0, 0, 0, 0, 0, 0, NONANTIALIASED_QUALITY, DEFAULT_PITCH, "Tahoma" );
+
+  HFONT oldFont = (HFONT)SelectObject( hdcTemp, tempFont );
+  SetTextColor( hdcTemp, RGB( 255, 255, 255 ) );
+  SetBkColor( hdcTemp, RGB( 0, 0, 0 ) );
+  SetBkMode( hdcTemp, OPAQUE );
+  SelectObject( hdcTemp, oldFont );
+  DeleteObject( oldFont );
 
   for ( int i = 0; i < 256; ++i )
   {
@@ -1282,7 +1288,7 @@ XFont* XBasicRenderer::CreateFontSquare()
   GR::Graphic::ImageData    imageData;
 
   imageData.Attach( 256, 256, 512, GR::Graphic::IF_X1R5G5B5, pageTemp.GetData() );
-  imageData.ConvertSelfTo( GR::Graphic::IF_A1R5G5B5, 0, true, 0xff000000 );
+  imageData.ConvertSelfTo( GR::Graphic::IF_A1R5G5B5, 0, true, 0x00000000 );
 
   ( (XBasicFont*)pFont )->m_TransparentColor = 0x00000000;
   CopyDataToTexture( pTexFont, imageData );

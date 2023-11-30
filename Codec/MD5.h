@@ -42,88 +42,91 @@ documentation and/or software.
 #include <stdio.h>
 #include <GR/GRTypes.h>
 
+#include <Interface/IHash.h>
+
+
 
 class ByteBuffer;
 
-namespace Codec
+namespace GR
 {
+  namespace Codec
+  {
 
-
-class MD5
-{
-
-  public:
-
-    // methods for controlled operation:
-
-    MD5();
-
-
-    void                  update( unsigned char* input, unsigned int input_length );
-    void                  update( FILE* file );
-    void                  finalize();
-
-    // constructors for special circumstances.  All these constructors finalize
-    // the MD5 context.
-    MD5( unsigned char* string ); // digest string, finalize
-    MD5( FILE* file );            // digest file, close, finalize
-
-    // methods to acquire finalized result
-    ByteBuffer            raw_digest();  // digest as a 16-byte binary array
-    GR::String           hex_digest();  // digest as a 33-byte ascii-hex string
-
-    unsigned long         State( int iIndex )
+    class MD5 : public GR::Codec::IHash
     {
-      return state[iIndex];
-    }
+
+      public:
 
 
-    static bool           CalcHash( const ByteBuffer& Data, ByteBuffer& Hash );
-    static bool           CalcKeyedHash( const ByteBuffer& Data,
-                                         const ByteBuffer& Key,
-                                         ByteBuffer& Hash );
+        MD5();
+
+        virtual ByteBuffer    Hash() const;
+
+        static bool           Calculate( const ByteBuffer& Data, ByteBuffer& Hash );
+        static bool           CalcKeyedHash( const ByteBuffer& Data,
+                                              const ByteBuffer& Key,
+                                              ByteBuffer& Hash );
+
+        virtual ByteBuffer    Calculate( const ByteBuffer& Data );
+
+        virtual void          Initialise();
+        virtual bool          Update( const ByteBuffer& Data, GR::u32 NumOfBytes = 0 );
+        virtual ByteBuffer    Finalize();
+
+        virtual int           HashSize() const;
 
 
-  private:
+      private:
 
-    // first, some types:
-    typedef unsigned int  uint4; // assumes integer is 4 words long
-    typedef unsigned short int uint2; // assumes short integer is 2 words long
-    typedef unsigned char uint1; // assumes char is 1 word long
-
-    // next, the private data:
-    uint4 state[4];
-    uint4 count[2];     // number of *bits*, mod 2^64
-    uint1 buffer[64];   // input buffer
-    uint1 digest[16];
-    uint1 finalized;
-
-    // last, the private methods, mostly static:
-    void                  init();               // called by all constructors
-    void                  transform( uint1* buffer );  // does the real update work.  Note
-                                            // that length is implied to be 64.
-
-    static void encode    (uint1 *dest, uint4 *src, uint4 length);
-    static void decode    (uint4 *dest, uint1 *src, uint4 length);
-    static void memcpy    (uint1 *dest, uint1 *src, uint4 length);
-    static void memset    (uint1 *start, uint1 val, uint4 length);
+        const GR::u32         S11 = 7;
+        const GR::u32         S12 = 12;
+        const GR::u32         S13 = 17;
+        const GR::u32         S14 = 22;
+        const GR::u32         S21 = 5;
+        const GR::u32         S22 = 9;
+        const GR::u32         S23 = 14;
+        const GR::u32         S24 = 20;
+        const GR::u32         S31 = 4;
+        const GR::u32         S32 = 11;
+        const GR::u32         S33 = 16;
+        const GR::u32         S34 = 23;
+        const GR::u32         S41 = 6;
+        const GR::u32         S42 = 10;
+        const GR::u32         S43 = 15;
+        const GR::u32         S44 = 21;
 
 
 
-    static inline uint4  rotate_left (uint4 x, uint4 n);
-    static inline uint4  F           (uint4 x, uint4 y, uint4 z);
-    static inline uint4  G           (uint4 x, uint4 y, uint4 z);
-    static inline uint4  H           (uint4 x, uint4 y, uint4 z);
-    static inline uint4  I           (uint4 x, uint4 y, uint4 z);
-    static inline void   FF  (uint4& a, uint4 b, uint4 c, uint4 d, uint4 x,
-			      uint4 s, uint4 ac);
-    static inline void   GG  (uint4& a, uint4 b, uint4 c, uint4 d, uint4 x,
-			      uint4 s, uint4 ac);
-    static inline void   HH  (uint4& a, uint4 b, uint4 c, uint4 d, uint4 x,
-			      uint4 s, uint4 ac);
-    static inline void   II  (uint4& a, uint4 b, uint4 c, uint4 d, uint4 x,
-			      uint4 s, uint4 ac);
+        GR::u32               m_State[4];
+        GR::u32               m_CountOfBits[2];   // mod 2^64
+        GR::u8                m_InputBuffer[64];
+        GR::u8                m_Digest[16];
+        bool                  m_Finalized;
 
-};
+
+
+        void                  TransformBlock( GR::u8 buffer[64] );
+
+        static void           encode( GR::u8* dest, GR::u32* src, GR::u32 length );
+        static void           decode( GR::u32* dest, GR::u8* src, GR::u32 length );
+        static void           memcpy( GR::u8* dest, const GR::u8* src, GR::u32 length );
+        static void           memset( GR::u8* start, GR::u8 val, GR::u32 length );
+
+
+
+        static inline GR::u32 RotateLeft( GR::u32 x, GR::u32 n );
+        static inline GR::u32 F( GR::u32 x, GR::u32 y, GR::u32 z );
+        static inline GR::u32 G( GR::u32 x, GR::u32 y, GR::u32 z );
+        static inline GR::u32 H( GR::u32 x, GR::u32 y, GR::u32 z );
+        static inline GR::u32 I( GR::u32 x, GR::u32 y, GR::u32 z );
+        static inline void    FF( GR::u32& a, GR::u32 b, GR::u32 c, GR::u32 d, GR::u32 x, GR::u32 s, GR::u32 ac );
+        static inline void    GG( GR::u32& a, GR::u32 b, GR::u32 c, GR::u32 d, GR::u32 x, GR::u32 s, GR::u32 ac );
+        static inline void    HH( GR::u32& a, GR::u32 b, GR::u32 c, GR::u32 d, GR::u32 x, GR::u32 s, GR::u32 ac );
+        static inline void    II( GR::u32& a, GR::u32 b, GR::u32 c, GR::u32 d, GR::u32 x, GR::u32 s, GR::u32 ac );
+
+    };
+
+  }
 
 }

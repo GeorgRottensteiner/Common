@@ -9,10 +9,9 @@
 #include <debug/debugclient.h>
 
 
+
 namespace GR
 {
-
-
   Animation::Animation( GR::u32 NewType )
   {
     Reset();
@@ -21,60 +20,51 @@ namespace GR
 
 
 
-  Animation::Animation( const GR::Char* lpszFileName )
+  Animation::Animation( const GR::Char* pFileName )
   {
     Reset();
-    Load( lpszFileName );
+    Load( pFileName );
   }
 
 
 
   Animation::Animation( IIOStream& Stream )
   {
-
     Reset();
 
     Load( Stream );
-
   }
 
 
 
   Animation::~Animation()
   {
-
     Reset();
-
   }
 
 
 
   void Animation::Set( GR::u32 NewType )
   {
-
     Reset();
     m_Type          = NewType;
     Position      = 0;
-
   }
 
 
 
   void Animation::Reset()
   {
+    auto itImages( m_Images.begin() );
 
-    std::vector<tAnimFrame>::iterator    itImages( m_Images.begin() );
-
-    // Images freigeben
     while ( itImages != m_Images.end() )
     {
-      delete itImages->m_pImage;
+      delete itImages->pImage;
       itImages = m_Images.erase( itImages );
     }
 
     m_Type          = AT_INVALID;
     Position      = 0;
-
   }
 
 
@@ -91,7 +81,7 @@ namespace GR
 
 
 
-  bool Animation::InsertFrame( GR::u32 Index, GR::Graphic::Image* pImage, GR::f32 fLength )
+  bool Animation::InsertFrame( GR::u32 Index, GR::Graphic::Image* pImage, GR::f32 Length )
   {
     if ( pImage == NULL )
     {
@@ -108,23 +98,22 @@ namespace GR
     }
     if ( itImages != m_Images.end() )
     {
-      m_Images.insert( itImages, tAnimFrame( pImage, fLength ) );
+      m_Images.insert( itImages, tAnimFrame( pImage, Length ) );
     }
     return true;
   }
 
 
 
-  bool Animation::InsertFrameBehind( GR::u32 Index, GR::Graphic::Image* pImage, GR::f32 fLength )
+  bool Animation::InsertFrameBehind( GR::u32 Index, GR::Graphic::Image* pImage, GR::f32 Length )
   {
     if ( pImage == NULL )
     {
       return false;
     }
 
-    std::vector<tAnimFrame>::iterator    itImages = m_Images.begin();
+    auto itImages = m_Images.begin();
 
-    // Images freigeben
     itImages++;
     while ( ( itImages != m_Images.end() )
     &&      ( Index ) )
@@ -134,14 +123,14 @@ namespace GR
     }
     if ( Index == 0 )
     {
-      m_Images.insert( itImages, tAnimFrame( pImage, fLength ) );
+      m_Images.insert( itImages, tAnimFrame( pImage, Length ) );
     }
     return true;
   }
 
 
 
-  bool Animation::RemoveFrame( GR::Graphic::Image *pImage )
+  bool Animation::RemoveFrame( GR::Graphic::Image* pImage )
   {
     if ( pImage == NULL )
     {
@@ -149,12 +138,10 @@ namespace GR
       return true;
     }
 
-    tVectImages::iterator   itImages( m_Images.begin() );
-
-    // Images freigeben
+    auto itImages( m_Images.begin() );
     while ( itImages != m_Images.end() )
     {
-      if ( itImages->m_pImage == pImage )
+      if ( itImages->pImage == pImage )
       {
         m_Images.erase( itImages );
         return true;
@@ -162,7 +149,6 @@ namespace GR
       itImages++;
     }
 
-    // das Bild war gar nicht drin
     return true;
   }
 
@@ -172,17 +158,13 @@ namespace GR
   {
     if ( pImage == NULL )
     {
-      // das Image kann nicht drin sein
       return true;
     }
 
-    tVectImages::iterator    itImages( m_Images.begin() );
-
-
-    // Images freigeben
+    auto itImages( m_Images.begin() );
     while ( itImages != m_Images.end() )
     {
-      if ( itImages->m_pImage == pImage )
+      if ( itImages->pImage == pImage )
       {
         delete pImage;
         m_Images.erase( itImages );
@@ -190,8 +172,6 @@ namespace GR
       }
       itImages++;
     }
-
-    // das Bild war gar nicht drin
     return true;
   }
 
@@ -199,12 +179,11 @@ namespace GR
 
   bool Animation::Load( const GR::String& FileName )
   {
-    unsigned char   ucFileType,
-                    ucBpp;
+    unsigned char   fileType,
+                    bpp;
 
-    unsigned long   ulCounter,
-                    ulBytesRead = 0,
-                    i;
+    unsigned long   counter,
+                    bytesRead = 0;
 
     GR::Graphic::Image*       pImage     = NULL;
 
@@ -212,11 +191,11 @@ namespace GR
 
     if ( ioIn.Open( FileName ) )
     {
-      ucFileType  = ioIn.ReadU8();
-      ucBpp       = ioIn.ReadU8();
-      ulCounter   = ioIn.ReadU32();
+      fileType  = ioIn.ReadU8();
+      bpp       = ioIn.ReadU8();
+      counter   = ioIn.ReadU32();
 
-      if ( ucFileType == GR::Graphic::IGFType::ANIMATION_EXTENDED )
+      if ( fileType == GR::Graphic::IGFType::ANIMATION_EXTENDED )
       {
         m_Type = ioIn.ReadU32();
         Set( m_Type );
@@ -227,26 +206,26 @@ namespace GR
       }
 
       // kleiner Hack, sollten wir wirklich 16 haben, oder 15 drin?
-      if ( ucBpp == 16 )
+      if ( bpp == 16 )
       {
-        ucBpp = 15;
+        bpp = 15;
       }
 
-      float   fFrameLength = 1.0f;
+      float   frameLength = 1.0f;
 
-      for ( i = 0; i < ulCounter; i++ )
+      for ( unsigned int i = 0; i < counter; i++ )
       {
-        if ( ucFileType == GR::Graphic::IGFType::ANIMATION_EXTENDED )
+        if ( fileType == GR::Graphic::IGFType::ANIMATION_EXTENDED )
         {
           // Frame-Länge
-          fFrameLength = ioIn.ReadF32();
+          frameLength = ioIn.ReadF32();
           // Reserve-GR::u32
           ioIn.ReadU32();
         }
 
         pImage = new GR::Graphic::Image();
-        pImage->LoadAt( ioIn, ucBpp );
-        AddFrame( pImage, fFrameLength );
+        pImage->LoadAt( ioIn, bpp );
+        AddFrame( pImage, frameLength );
       }
       ioIn.Close();
       return true;
@@ -361,11 +340,11 @@ namespace GR
       while ( itImages != m_Images.end() )
       {
         // Frame-Länge
-        ioOut.WriteF32( itImages->m_fLength );
+        ioOut.WriteF32( itImages->Length );
         // Reserve-GR::u32
         ioOut.WriteU32( 0 );
         // Image
-        itImages->m_pImage->SaveAt( ioOut );
+        itImages->pImage->SaveAt( ioOut );
         itImages++;
         ulImagesSaved++;
       }
@@ -495,7 +474,7 @@ namespace GR
   {
     if ( !m_Images.empty() )
     {
-      return m_Images.front().m_pImage;
+      return m_Images.front().pImage;
     }
     return NULL;
   }
@@ -510,9 +489,9 @@ namespace GR
 
     if ( itImages != m_Images.end() )
     {
-      delete itImages->m_pImage;
+      delete itImages->pImage;
 
-      itImages->m_pImage = pImage;
+      itImages->pImage = pImage;
     }
   }
 
@@ -527,7 +506,7 @@ namespace GR
     tVectImages::iterator    itImages( m_Images.begin() );
 
     std::advance( itImages, Number );
-    return itImages->m_pImage;
+    return itImages->pImage;
   }
 
 
@@ -555,7 +534,6 @@ namespace GR
 
   void Animation::Next()
   {
-
     if ( m_Type & AT_FORWARD )
     {
       Position++;
@@ -601,19 +579,18 @@ namespace GR
         }
       }
     }
-
   }
 
 
 
-  bool Animation::PutAnimation( GR::Graphic::GFXPage *pActualPage, signed long slXPos, signed long slYPos, GR::u32 ulFlags, GR::Graphic::Image *pMaskImage )
+  bool Animation::PutAnimation( GR::Graphic::GFXPage* pActualPage, signed long X, signed long Y, GR::u32 Flags, GR::Graphic::Image* pMaskImage )
   {
     GR::Graphic::Image       *pNextImage = GetImage( Position );
 
 
     if ( pNextImage != NULL )
     {
-      pNextImage->PutImage( pActualPage, slXPos, slYPos, ulFlags, pMaskImage );
+      pNextImage->PutImage( pActualPage, X, Y, Flags, pMaskImage );
       return true;
     }
     else
@@ -632,11 +609,11 @@ namespace GR
     {
       tAnimFrame&   Anim = *it;
 
-      Anim.m_pImage->SetTransparentColorRGB( TransparentColor );
-      Anim.m_pImage->Compress();
+      Anim.pImage->SetTransparentColorRGB( TransparentColor );
+      Anim.pImage->Compress();
 
       ++it;
     }
   }
 
-};    // namespace GR
+}

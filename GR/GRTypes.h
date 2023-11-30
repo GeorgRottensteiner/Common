@@ -4,13 +4,16 @@
 //#include <string>
 #include <String/GRstring.h>
 
-#include <Math\vector2.h>
-#include <Math\vector3.h>
-#include <Math\tRect.h>
-#include <Math\3dRect.h>
+#include <Math/vector2.h>
+#include <Math/vector3.h>
+#include <Math/tRect.h>
+#include <Math/3dRect.h>
 
 #include <OS/OS.h>
 
+#if OPERATING_SYSTEM == OS_LINUX
+#include <stdint.h>
+#endif
 
 #ifndef NULL
 #define NULL 0L
@@ -25,7 +28,7 @@ namespace GR
   #if OPERATING_SYSTEM == OS_WINDOWS
   typedef unsigned __int64                                u64;
   #else
-  typedef unsigned long long                              u64;
+  typedef uint64_t                                        u64;
   #endif
 
   typedef signed char                                     i8;
@@ -41,21 +44,21 @@ namespace GR
 
   #if OS_ENVIRONMENT == OS_ENVIRONMENT_64
   #if _MSC_VER > 1200
-  typedef unsigned __int64                                up;       // Größe eines Pointers
-  typedef signed __int64                                  ip;       // Größe eines Pointers
+  typedef unsigned __int64                                up;       // Gr??e eines Pointers
+  typedef signed __int64                                  ip;       // Gr??e eines Pointers
   #else
-  //typedef unsigned int                                    up;       // Größe eines Pointers
-  //typedef int                                             ip;       // Größe eines Pointers
-  typedef unsigned long long                              up;       // Größe eines Pointers
-  typedef long long                                       ip;       // Größe eines Pointers
+  //typedef unsigned int                                    up;       // Gr??e eines Pointers
+  //typedef int                                             ip;       // Gr??e eines Pointers
+  typedef u64                                             up;       // Gr??e eines Pointers
+  typedef i64                                             ip;       // Gr??e eines Pointers
   #endif
   #else
   #if _MSC_VER > 1200
-  typedef __w64 unsigned int                              up;       // Größe eines Pointers
-  typedef __w64 int                                       ip;       // Größe eines Pointers
+  typedef __w64 unsigned int                              up;       // Gr??e eines Pointers
+  typedef __w64 int                                       ip;       // Gr??e eines Pointers
   #else
-  typedef unsigned int                                    up;       // Größe eines Pointers
-  typedef int                                             ip;       // Größe eines Pointers
+  typedef unsigned int                                    up;       // Gr??e eines Pointers
+  typedef int                                             ip;       // Gr??e eines Pointers
   #endif
   #endif
 
@@ -84,8 +87,7 @@ namespace GR
 
 }    // namespace GR
 
-
-#endif // ABSTRACTEDIT_H
+#endif 
 
 
 

@@ -310,6 +310,7 @@ namespace GR
 
 
         void                    InitMap( const GR::String& MapName, const GR::String& MainLayerName = "Main", const GR::String& PlayerObject = "Player" );
+        void                    InitMapFromFile( const GR::String& MapFilename, const GR::String& MapName, const GR::String& MainLayerName = "Main", const GR::String& PlayerObject = "Player" );
         void                    WarpToMap( const GR::String& MapName, int X, int Y );
 
         void                    SetRenderSize( const GR::tPoint& Size );

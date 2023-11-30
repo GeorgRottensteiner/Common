@@ -87,7 +87,7 @@ namespace GR
 
 
 
-    void GameObject::UpdateFixed( GR::Gamebase::JREngine& JREngine, GR::up UserData )
+    void GameObject::UpdateFixed( GR::Gamebase::JREngine& JREngine, const GR::f32 ElapsedTime, GR::up UserData )
     {
       HandleGravity( JREngine );
     }

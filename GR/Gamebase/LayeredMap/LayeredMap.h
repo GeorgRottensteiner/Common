@@ -112,7 +112,7 @@ namespace GR
         typedef std::map<GR::u32,Trigger>                       tTrigger;
         typedef std::map<GR::u32,GR::Game::ExtraData>           tExtraData;
 
-        // const GR::String& Template, int X, int Y, bool& AddInBack
+        // const GR::String& Template, int X, int Y, GR::u32, bool& AddInBack
         typedef fastdelegate::FastDelegate5<const GR::String&,int,int,GR::u32,bool&,LayerObject*> tAddObjectHandlerFunction;
         typedef fastdelegate::FastDelegate1<const LayeredMapEvent&,bool>             tLayeredMapEventFunction;
 

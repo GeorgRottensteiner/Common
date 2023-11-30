@@ -1,5 +1,5 @@
-#ifndef IABSTRACT_GAME_STATE_H
-#define IABSTRACT_GAME_STATE_H
+#pragma once
+
 
 
 #include <list>
@@ -113,7 +113,7 @@ template <typename T> class IGameState : public ICloneAble
       {
         return false;
       }
-      return ( m_pStateManager->m_listGameStateStack.back() != this );
+      return ( m_pStateManager->m_GameStateStack.back() != this );
     }
 
 
@@ -130,8 +130,8 @@ template <typename T> class IGameState : public ICloneAble
       }
 
       // the last state that's not a deco state
-      typename std::list<IGameState<T>*>::reverse_iterator   it( m_pStateManager->m_listGameStateStack.rbegin() );
-      while ( it != m_pStateManager->m_listGameStateStack.rend() )
+      auto it( m_pStateManager->m_GameStateStack.rbegin() );
+      while ( it != m_pStateManager->m_GameStateStack.rend() )
       {
         IGameState<T>*    pState( *it );
 
@@ -157,8 +157,8 @@ template <typename T> class IGameState : public ICloneAble
       {
         return false;
       }
-      typename std::list<IGameState<T>*>::iterator   it( m_pStateManager->m_listGameStateStack.begin() );
-      while ( it != m_pStateManager->m_listGameStateStack.end() )
+      auto it( m_pStateManager->m_GameStateStack.begin() );
+      while ( it != m_pStateManager->m_GameStateStack.end() )
       {
         IGameState<T>*    pState = *it;
         
@@ -317,12 +317,13 @@ template <typename T> class IGameState : public ICloneAble
 };
 
 
+
 template <typename T> class IGameStateManager : public EventListener<GUI::OutputEvent>
 {
 
   public:
 
-    enum GameStateEventType
+    enum class GameStateEventType
     {
       GSE_NONE = 0,
       GSE_PRE_PUSH,
@@ -336,25 +337,25 @@ template <typename T> class IGameStateManager : public EventListener<GUI::Output
       GameStateEventType      Type;
       IGameState<T>*          pState;
 
-      GameStateEvent( GameStateEventType Type = GSE_NONE, IGameState<T>* pState = NULL ) :
+      GameStateEvent( GameStateEventType Type = GameStateEventType::GSE_NONE, IGameState<T>* pState = NULL ) :
         Type( Type ),
         pState( pState )
       {
       }
     };
 
-    typedef fastdelegate::FastDelegate1<const GameStateEvent&>     tGameStateEventHandler;
-    typedef std::list<tGameStateEventHandler>               tGameStateEventHandlers;
+    typedef fastdelegate::FastDelegate1<const GameStateEvent&>    tGameStateEventHandler;
+    typedef std::list<tGameStateEventHandler>                     tGameStateEventHandlers;
 
 
 
-    GR::u32                       m_dwETStateInitialized,
-                                  m_dwETStateExited,
-                                  m_dwETStatePushedOnStack,
-                                  m_dwETStateRemovedFromStack,
-                                  m_dwETSendStateParam;
+    GR::u32                       m_ETStateInitialized,
+                                  m_ETStateExited,
+                                  m_ETStatePushedOnStack,
+                                  m_ETStateRemovedFromStack,
+                                  m_ETSendStateParam;
 
-    std::list<IGameState<T>*>     m_listGameStateStack;
+    std::list<IGameState<T>*>     m_GameStateStack;
 
     GR::u32                       m_ChangingState;
 
@@ -364,27 +365,27 @@ template <typename T> class IGameStateManager : public EventListener<GUI::Output
 
     IGameStateManager()
     {
-      m_ChangingState             = 0;
-      m_dwETStateInitialized      = GLOBAL_QUEUE.RegisterEvent( "App.StateInitialized" );
-      m_dwETStateExited           = GLOBAL_QUEUE.RegisterEvent( "App.StateExited" );
-      m_dwETStatePushedOnStack    = GLOBAL_QUEUE.RegisterEvent( "App.StatePushedOnStack" );
-      m_dwETStateRemovedFromStack = GLOBAL_QUEUE.RegisterEvent( "App.StateRemovedFromStack" );
-      m_dwETSendStateParam        = GLOBAL_QUEUE.RegisterEvent( "App.SendStateParam" );
+      m_ChangingState           = 0;
+      m_ETStateInitialized      = GLOBAL_QUEUE.RegisterEvent( "App.StateInitialized" );
+      m_ETStateExited           = GLOBAL_QUEUE.RegisterEvent( "App.StateExited" );
+      m_ETStatePushedOnStack    = GLOBAL_QUEUE.RegisterEvent( "App.StatePushedOnStack" );
+      m_ETStateRemovedFromStack = GLOBAL_QUEUE.RegisterEvent( "App.StateRemovedFromStack" );
+      m_ETSendStateParam        = GLOBAL_QUEUE.RegisterEvent( "App.SendStateParam" );
     }
 
 
 
     virtual ~IGameStateManager()
     {
-      while ( !m_listGameStateStack.empty() )
+      while ( !m_GameStateStack.empty() )
       {
         PopAnyState();
       }
-      GLOBAL_QUEUE.UnregisterEvent( m_dwETStateInitialized );
-      GLOBAL_QUEUE.UnregisterEvent( m_dwETStateExited );
-      GLOBAL_QUEUE.UnregisterEvent( m_dwETStatePushedOnStack );
-      GLOBAL_QUEUE.UnregisterEvent( m_dwETStateRemovedFromStack );
-      GLOBAL_QUEUE.UnregisterEvent( m_dwETSendStateParam );
+      GLOBAL_QUEUE.UnregisterEvent( m_ETStateInitialized );
+      GLOBAL_QUEUE.UnregisterEvent( m_ETStateExited );
+      GLOBAL_QUEUE.UnregisterEvent( m_ETStatePushedOnStack );
+      GLOBAL_QUEUE.UnregisterEvent( m_ETStateRemovedFromStack );
+      GLOBAL_QUEUE.UnregisterEvent( m_ETSendStateParam );
     }
 
 
@@ -392,7 +393,7 @@ template <typename T> class IGameStateManager : public EventListener<GUI::Output
     virtual bool ProcessEvent( const GUI::OutputEvent& Event )
     {
       IGameState<T>*  pState = LastNotDecoState();
-      if ( pState )
+      if ( pState )      
       {
         pState->ProcessEvent( Event );
       }
@@ -403,8 +404,8 @@ template <typename T> class IGameStateManager : public EventListener<GUI::Output
 
     bool IsStateOnStack( IGameState<T>* pState )
     {
-      typename std::list<IGameState<T>*>::iterator    it( m_listGameStateStack.begin() );
-      while ( it != m_listGameStateStack.end() )
+      auto it( m_GameStateStack.begin() );
+      while ( it != m_GameStateStack.end() )
       {
         if ( *it == pState )
         {
@@ -421,8 +422,8 @@ template <typename T> class IGameStateManager : public EventListener<GUI::Output
     {
       int   iIndex = 0;
       bool  noUpdatesForStates = false;
-      typename std::list<IGameState<T>*>::reverse_iterator    it( m_listGameStateStack.rbegin() );
-      while ( it != m_listGameStateStack.rend() )
+      typename std::list<IGameState<T>*>::reverse_iterator    it( m_GameStateStack.rbegin() );
+      while ( it != m_GameStateStack.rend() )
       {
         IGameState<T>*    pGameState = *it;
 
@@ -453,8 +454,8 @@ template <typename T> class IGameStateManager : public EventListener<GUI::Output
 
     void DisplayStates( T& Viewer )
     {
-      typename std::list<IGameState<T>*>::iterator    it( m_listGameStateStack.begin() );
-      while ( it != m_listGameStateStack.end() )
+      typename std::list<IGameState<T>*>::iterator    it( m_GameStateStack.begin() );
+      while ( it != m_GameStateStack.end() )
       {
         IGameState<T>*    pGameState = *it;
 
@@ -479,8 +480,8 @@ template <typename T> class IGameStateManager : public EventListener<GUI::Output
 
     IGameState<T>* LastNotDecoState()
     {
-      typename std::list<IGameState<T>*>::reverse_iterator    it( m_listGameStateStack.rbegin() );
-      while ( it != m_listGameStateStack.rend() )
+      typename std::list<IGameState<T>*>::reverse_iterator    it( m_GameStateStack.rbegin() );
+      while ( it != m_GameStateStack.rend() )
       {
         IGameState<T>*    pGameState = *it;
 
@@ -499,21 +500,18 @@ template <typename T> class IGameStateManager : public EventListener<GUI::Output
     {
       if ( pNewState )
       {
-        HandleEvent( GameStateEvent( GSE_PRE_PUSH, pNewState ) );
+        HandleEvent( GameStateEvent( GameStateEventType::GSE_PRE_PUSH, pNewState ) );
 
         IGameState<T>*  pState = LastNotDecoState();
         if ( pState )
         {
           pState->OnSuspend();
         }
-        m_listGameStateStack.push_back( pNewState );
-
-        //dh::Log( "State Init %s", pNewState->m_ClassName.c_str() );
+        m_GameStateStack.push_back( pNewState );
 
         pNewState->m_pStateManager = this;
         pNewState->Init();
-        HandleEvent( GameStateEvent( GSE_PUSHED, pNewState ) );
-        //GLOBAL_QUEUE.PostEvent( "App.StateInitialized", pNewState->m_ClassName.c_str() );
+        HandleEvent( GameStateEvent( GameStateEventType::GSE_PUSHED, pNewState ) );
         GLOBAL_QUEUE.PostEvent( "App.StateInitialized" );
       }
     }
@@ -528,22 +526,20 @@ template <typename T> class IGameStateManager : public EventListener<GUI::Output
       }
       if ( pState == NULL )
       {
-        if ( !m_listGameStateStack.empty() )
+        if ( !m_GameStateStack.empty() )
         {
-          pState = m_listGameStateStack.back();
+          pState = m_GameStateStack.back();
         }
       }
       if ( pState )
       {
-        HandleEvent( GameStateEvent( GSE_PRE_POP, pState ) );
+        HandleEvent( GameStateEvent( GameStateEventType::GSE_PRE_POP, pState ) );
 
-        m_listGameStateStack.remove( pState );
-
-        //dh::Log( "State Exit %s", pState->m_ClassName.c_str() );
+        m_GameStateStack.remove( pState );
 
         pState->Exit();
         GLOBAL_QUEUE.PostEvent( "App.StateExited", pState->m_ClassName.c_str() );
-        HandleEvent( GameStateEvent( GSE_POPPED, pState ) );
+        HandleEvent( GameStateEvent( GameStateEventType::GSE_POPPED, pState ) );
         delete pState;
       }
       pState = LastNotDecoState();
@@ -561,7 +557,7 @@ template <typename T> class IGameStateManager : public EventListener<GUI::Output
 
     void PopAnyState( const GR::Strings::ParameterList& Params = GR::Strings::ParameterList() )
     {
-      if ( m_listGameStateStack.empty() )
+      if ( m_GameStateStack.empty() )
       {
         return;
       }
@@ -573,17 +569,17 @@ template <typename T> class IGameStateManager : public EventListener<GUI::Output
       }
       if ( pState == NULL )
       {
-        pState = m_listGameStateStack.back();
+        pState = m_GameStateStack.back();
       }
       if ( pState )
       {
-        HandleEvent( GameStateEvent( GSE_PRE_POP, pState ) );
+        HandleEvent( GameStateEvent( GameStateEventType::GSE_PRE_POP, pState ) );
 
-        m_listGameStateStack.remove( pState );
+        m_GameStateStack.remove( pState );
 
         pState->Exit();
         GLOBAL_QUEUE.PostEvent( "App.StateExited", pState->m_ClassName.c_str() );
-        HandleEvent( GameStateEvent( GSE_POPPED, pState ) );
+        HandleEvent( GameStateEvent( GameStateEventType::GSE_POPPED, pState ) );
         delete pState;
       }
       pState = LastNotDecoState();
@@ -613,21 +609,21 @@ template <typename T> class IGameStateManager : public EventListener<GUI::Output
       }
       if ( pState == NULL )
       {
-        if ( !m_listGameStateStack.empty() )
+        if ( !m_GameStateStack.empty() )
         {
-          pState = m_listGameStateStack.back();
+          pState = m_GameStateStack.back();
         }
       }
       if ( pState )
       {
-        HandleEvent( GameStateEvent( GSE_PRE_POP, pState ) );
+        HandleEvent( GameStateEvent( GameStateEventType::GSE_PRE_POP, pState ) );
 
-        m_listGameStateStack.remove( pState );
+        m_GameStateStack.remove( pState );
 
         //dh::Log( "State Exit %s", pState->m_ClassName.c_str() );
         pState->Exit();
         GLOBAL_QUEUE.PostEvent( "App.StateExited", pState->m_ClassName.c_str() );
-        HandleEvent( GameStateEvent( GSE_POPPED, pState ) );
+        HandleEvent( GameStateEvent( GameStateEventType::GSE_POPPED, pState ) );
         delete pState;
       }
       pState = LastNotDecoState();
@@ -657,10 +653,9 @@ template <typename T> class IGameStateManager : public EventListener<GUI::Output
     {
       pState->m_pStateManager = this;
 
-      HandleEvent( GameStateEvent( GSE_PRE_PUSH, pState ) );
-
-      m_listGameStateStack.push_back( pState );
-      HandleEvent( GameStateEvent( GSE_PUSHED, pState ) );
+      HandleEvent( GameStateEvent( GameStateEventType::GSE_PRE_PUSH, pState ) );
+      m_GameStateStack.push_back( pState );
+      HandleEvent( GameStateEvent( GameStateEventType::GSE_PUSHED, pState ) );
 
       GLOBAL_QUEUE.PostEvent( "App.StatePushedOnStack", pState->m_ClassName.c_str() );
     }
@@ -669,7 +664,7 @@ template <typename T> class IGameStateManager : public EventListener<GUI::Output
 
     void RemoveStateFromStack( IGameState<T>* pState )
     {
-      m_listGameStateStack.remove( pState );
+      m_GameStateStack.remove( pState );
       pState->m_pStateManager = NULL;
       GLOBAL_QUEUE.PostEvent( "App.StateRemovedFromStack", pState->m_ClassName.c_str() );
     }
@@ -678,7 +673,7 @@ template <typename T> class IGameStateManager : public EventListener<GUI::Output
 
     void PopAllStates()
     {
-      while ( !m_listGameStateStack.empty() )
+      while ( !m_GameStateStack.empty() )
       {
         PopState();
       }
@@ -716,8 +711,8 @@ template <typename T> class IGameStateManager : public EventListener<GUI::Output
 
     void OnPauseApplication()
     {
-      typename std::list<IGameState<T>*>::reverse_iterator    it( m_listGameStateStack.rbegin() );
-      while ( it != m_listGameStateStack.rend() )
+      auto it( m_GameStateStack.rbegin() );
+      while ( it != m_GameStateStack.rend() )
       {
         IGameState<T>*    pGameState = *it;
 
@@ -730,8 +725,8 @@ template <typename T> class IGameStateManager : public EventListener<GUI::Output
 
     void OnResumeApplication()
     {
-      typename std::list<IGameState<T>*>::reverse_iterator    it( m_listGameStateStack.rbegin() );
-      while ( it != m_listGameStateStack.rend() )
+      auto it( m_GameStateStack.rbegin() );
+      while ( it != m_GameStateStack.rend() )
       {
         IGameState<T>*    pGameState = *it;
 
@@ -743,5 +738,4 @@ template <typename T> class IGameStateManager : public EventListener<GUI::Output
 };
 
 
-#endif// _IABSTRACT_GAME_STATE_H
 

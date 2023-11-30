@@ -11,6 +11,10 @@
 #include <cextdecs.h>
 #endif
 
+#if OPERATING_SYSTEM == OS_LINUX
+#include <sys/time.h>
+#endif
+
 
 namespace GR
 {
@@ -37,6 +41,15 @@ namespace GR
       m_Date.tm_min   = Minute;
       m_Date.tm_sec   = Seconds;
       m_MicroSeconds  = MicroSeconds;
+      
+      if ( IsUTC )
+      {
+        m_Date.tm_isdst = 0;
+      }
+      else
+      {
+        mktime( &m_Date );
+      }
 
       Normalize();
     }
@@ -107,6 +120,16 @@ namespace GR
       NowDateTime.m_Date.tm_min   = sysTime.wMinute;
       NowDateTime.m_Date.tm_sec   = sysTime.wSecond;
       NowDateTime.m_MicroSeconds  = sysTime.wMilliseconds * 1000;
+#elif OPERATING_SYSTEM == OS_LINUX
+      timeval curTime;
+      
+      gettimeofday( &curTime, NULL );
+      
+      NowDateTime.m_IsUTC         = false;
+      NowDateTime.m_Date          = *std::localtime( &curTime.tv_sec );
+      NowDateTime.m_MicroSeconds  = curTime.tv_usec;
+
+      NowDateTime.ConvertToLocalTime();
 #else   
       localtime_s( &NowDateTime.m_Date, &CurrentTime );
 #endif      
@@ -149,11 +172,23 @@ namespace GR
 
       temp.ConvertToUTC();
 
-      return temp.ToTime() * 1000000 + m_MicroSeconds;
+      return ( (GR::u64)temp.ToTime() ) * 1000000 + m_MicroSeconds;
     }
+    
+    
+    
+    GR::u64 DateTime::InMicroSecondsSince01014713BC() const
+    {
+      DateTime    temp( *this );
 
+      temp.ConvertToUTC();
 
-
+      // 210866760000000000 is the offset of microseconds for the 1.1.1970 (Tandem counts from 1.1.4713BC, 12:00)
+      return ( (GR::u64)temp.ToTime() ) * 1000000 + m_MicroSeconds + (GR::u64)210866760000000000;
+    }
+    
+    
+    
     GR::i64 DateTime::InMilliSeconds() const
     {
       std::tm     TempTime( m_Date );
@@ -170,7 +205,7 @@ namespace GR
 
       TimeInS += Days * 60 * 60 * 24;
 
-#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB )
+#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB ) || ( OPERATING_SYSTEM == OS_LINUX )
       m_Date = *std::localtime( &TimeInS );      
 #else      
       localtime_s( &m_Date, &TimeInS );
@@ -335,7 +370,7 @@ namespace GR
 
 	    for ( ; ; ) 
       {
-#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB )
+#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB ) || ( OPERATING_SYSTEM == OS_LINUX )
         std::tm* pTM = gmtime( &t );
         if ( !pTM )
         {
@@ -616,9 +651,40 @@ namespace GR
 
 
 
+    bool DateTime::FromMicrosecondsSince01011970( GR::u64 UTCMicrosecondsSince01011970 )
+    {
+      if ( !FromTime( UTCMicrosecondsSince01011970 / 1000000 ) )
+      {
+        return false;
+      }
+      m_MicroSeconds = UTCMicrosecondsSince01011970 % 1000000;
+      return true;
+    }
+
+
+
+    bool DateTime::FromMicrosecondsSince01014713BC( GR::u64 UTCMicrosecondsSince01014713BC )
+    {
+      // TODO - this means, we CAN NOT have a proper DateTime for dates older than 1.1.1970!
+      if ( UTCMicrosecondsSince01014713BC < 210866760000000000 )
+      {
+        return false;
+      }
+
+      // 210866760000000000 is the offset of microseconds for the 1.1.1970 (Tandem counts from 1.1.4713BC, 12:00)
+      if ( !FromTime( ( UTCMicrosecondsSince01014713BC - 210866760000000000 ) / 1000000 ) )
+      {
+        return false;
+      }
+      m_MicroSeconds = UTCMicrosecondsSince01014713BC % 1000000;
+      return true;
+    }
+
+
+
     bool DateTime::FromTime( time_t UTCTime )
     {
-#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB )
+#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB ) || ( OPERATING_SYSTEM == OS_LINUX )
       std::tm* pTM = gmtime( &UTCTime );
       if ( !pTM )
       {
@@ -638,18 +704,6 @@ namespace GR
 
 
 
-    bool DateTime::FromMicrosecondsSince01011970( GR::u64 UTCMicrosecondsSince01011970 )
-    {
-      if ( !FromTime( UTCMicrosecondsSince01011970 / 1000000 ) )
-      {
-        return false;
-      }
-      m_MicroSeconds = UTCMicrosecondsSince01011970 % 1000000;
-      return true;
-    }
-
-
-
     bool DateTime::ConvertToUTC()
     {
       if ( m_IsUTC )
@@ -658,7 +712,7 @@ namespace GR
       }
       time_t    utcTime = ToTime();
 
-#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB )
+#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB ) || ( OPERATING_SYSTEM == OS_LINUX )
       std::tm*  pUTCStamp = gmtime( &utcTime );
       if ( pUTCStamp == NULL )
       {
@@ -685,7 +739,7 @@ namespace GR
       }
       time_t  utcTime = ToTime();
       
-#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB )
+#if ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB ) || ( OPERATING_SYSTEM == OS_LINUX )
       std::tm*  pLocalStamp = localtime( &utcTime );
       if ( pLocalStamp == NULL )
       {
@@ -745,6 +799,31 @@ namespace GR
 
 
 
+    bool DateTime::operator<= ( const DateTime& RHS ) const
+    {
+      if ( operator==( RHS ) )
+      {
+        return true;
+      }
+      return operator<( RHS );
+    }
+
+
+
+    bool DateTime::operator>= ( const DateTime& RHS ) const
+    {
+      return RHS.operator<=( *this );
+    }
+
+
+
+    bool DateTime::operator> ( const DateTime& RHS ) const
+    {
+      return RHS.operator<=( *this );
+    }
+    
+      
+      
     bool DateTime::operator< ( const DateTime& RHS ) const
     {
       DateTime    otherDate( RHS );

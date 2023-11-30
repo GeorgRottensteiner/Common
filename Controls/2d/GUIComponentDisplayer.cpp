@@ -64,8 +64,8 @@ void GUIComponentDisplayer::PushClipValues()
   // hier das Offset abziehen war neu
   StoreClipValues( m_pPage->GetLeftBorder(), 
                    m_pPage->GetTopBorder(),
-                   m_pPage->GetRightBorder() - m_pPage->GetLeftBorder() + 1 - m_pPage->GetOffsetX(),
-                   m_pPage->GetBottomBorder() - m_pPage->GetTopBorder() + 1 - m_pPage->GetOffsetY(),
+                   m_pPage->GetRightBorder() - m_pPage->GetLeftBorder(),// + 1 - m_pPage->GetOffsetX(),
+                   m_pPage->GetBottomBorder() - m_pPage->GetTopBorder(),// + 1 - m_pPage->GetOffsetY(),
                    m_pPage->GetOffsetX(),
                    m_pPage->GetOffsetY() );
 }

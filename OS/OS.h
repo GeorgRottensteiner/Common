@@ -7,6 +7,7 @@
 #define OS_TANDEM                 2
 #define OS_ANDROID                3
 #define OS_WEB                    4
+#define OS_LINUX                  5
 
 #undef OPERATING_SUB_SYSTEM
 #define OS_SUB_DESKTOP            0
@@ -19,8 +20,8 @@
 
 // Endianness
 #undef OS_ENDIAN
-#define OS_ENDIAN_BIG             1
-#define OS_ENDIAN_LITTLE          2
+#define OS_ENDIAN_BIG             1       // the weird other one
+#define OS_ENDIAN_LITTLE          2       // x86/x64 (Windows)
 
 // Environment (16/32/64)
 #undef OS_ENVIRONMENT
@@ -68,7 +69,7 @@
 #define OS_ENDIAN         OS_ENDIAN_LITTLE
 #define OS_ENVIRONMENT    OS_ENVIRONMENT_32
 
-#elif defined _XOPEN_SOURCE
+#elif defined ( _XOPEN_SOURCE ) && ( defined __TANDEM )
 
 #define OPERATING_SYSTEM  OS_TANDEM
 #define OS_ENDIAN         OS_ENDIAN_BIG
@@ -94,9 +95,19 @@
 #define OS_ENVIRONMENT    OS_ENVIRONMENT_32
 #define OPERATING_SUB_SYSTEM    OS_SUB_ANDROID
 
+#elif defined(__LP64__) || defined(_LP64)
+
+#define OPERATING_SYSTEM  OS_LINUX
+#define OS_ENDIAN         OS_ENDIAN_BIG
+#define OS_ENVIRONMENT    OS_ENVIRONMENT_64
+#define OPERATING_SUB_SYSTEM    OS_SUB_DESKTOP
+
 #else
 
-unsupported os!
+#define OPERATING_SYSTEM  OS_LINUX
+#define OS_ENDIAN         OS_ENDIAN_BIG
+#define OS_ENVIRONMENT    OS_ENVIRONMENT_32
+#define OPERATING_SUB_SYSTEM    OS_SUB_DESKTOP
 
 #endif
 

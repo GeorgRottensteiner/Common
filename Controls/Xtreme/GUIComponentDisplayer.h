@@ -36,6 +36,7 @@ class GUIComponentDisplayer : public GUI::ComponentDisplayerBase
 
 
     GR::tRect                       m_Clipping;
+    GR::tPoint                      m_CurrentOffset;
 
     XViewport                       m_DisplayViewport;
 

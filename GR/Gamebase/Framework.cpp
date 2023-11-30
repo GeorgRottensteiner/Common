@@ -5,6 +5,8 @@
 #include <Grafik/ImageFormate/ImageFormatManager.h>
 #include <Grafik\Image.h>
 
+#include <GR/Gamebase/FileChunks.h>
+
 #include <String/Convert.h>
 #include <Xtreme/XAsset/XAssetLoader.h>
 #include <Misc/Misc.h>
@@ -43,8 +45,6 @@ namespace GR
 
   namespace Gamebase
   {
-
-    GR::u16 Framework::s_FrameworkSettingsChunk = 0xF100;
 
 #if OPERATING_SYSTEM == OS_WEB
     bool    Framework::s_CheckPersistanceFileSystemComplete = false;
@@ -210,7 +210,7 @@ namespace GR
 
     bool Framework::Save( IIOStream& ioOut )
     {
-      GR::IO::FileChunk   Chunk( s_FrameworkSettingsChunk );
+      GR::IO::FileChunk   Chunk( GR::Gamebase::FileChunks::FRAMEWORK_SETTINGS );
 
       Chunk.AppendU32( (GR::u32)m_BoundKeys.size() );
       tBoundsKeys::iterator   it( m_BoundKeys.begin() );
@@ -264,7 +264,7 @@ namespace GR
       {
         return false;
       }
-      if ( Chunk.Type() != s_FrameworkSettingsChunk )
+      if ( Chunk.Type() != GR::Gamebase::FileChunks::FRAMEWORK_SETTINGS )
       {
         return false;
       }
@@ -329,6 +329,7 @@ namespace GR
       m_AssetProjectToLoad = AssetFile;
 
       GR::String    userAppData = GR::IO::FileUtil::UserAppDataPath();
+      GR::String    allUsersAppData = GR::IO::FileUtil::AppDataPath();
       GR::String    appPath = GR::IO::FileUtil::AppPath();
       if ( !Argument( "startuppath" ).empty() )
       {
@@ -336,6 +337,7 @@ namespace GR
       }
 
       userAppData = Path::Append( userAppData, GR::Convert::ToStringA( AppPath ) );
+      allUsersAppData = Path::Append( allUsersAppData, GR::Convert::ToStringA( AppPath ) );
 
 #if OPERATING_SYSTEM == OS_WEB
       userAppData = "/app";
@@ -343,15 +345,23 @@ namespace GR
 #endif
 
       m_ValueStorage.SetUserAppPath( userAppData );
+      m_ValueStorage.SetAllUsersAppPath( allUsersAppData );
       m_ValueStorage.SetAppPath( appPath );
 
       GR::IO::FileLocator::Instance().AddSource( userAppData.c_str() );
+      GR::IO::FileLocator::Instance().AddSource( allUsersAppData.c_str() );
       GR::IO::FileLocator::Instance().AddSource( appPath.c_str() );
 
       if ( ( !userAppData.empty() )
       &&   ( !GR::IO::FileUtil::CreateSubDir( UserAppDataPath() ) ) )
       {
         dh::Log( "CreateSubDir userAppData failed" );
+        return false;
+      }
+      if ( ( !allUsersAppData.empty() )
+      &&   ( !GR::IO::FileUtil::CreateSubDir( AllUsersAppDataPath() ) ) )
+      {
+        dh::Log( "CreateSubDir AllUsersAppData failed" );
         return false;
       }
       return true;

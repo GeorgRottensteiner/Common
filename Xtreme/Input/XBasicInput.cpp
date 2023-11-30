@@ -867,11 +867,12 @@ GR::u32 XBasicInput::MapKeyToVKey( Xtreme::eInputDefaultButtons Key ) const
 
 
 
-void XBasicInput::AddBinding( const GR::u32 Handle, const GR::u32 Key )
+void XBasicInput::AddBinding( const GR::u32 Handle, const GR::u32 Key, const GR::u32 SecondaryKey )
 {
-  m_Binding2VKey[Handle] = Key;
+  m_Binding2VKey[Handle].first  = Key;
+  m_Binding2VKey[Handle].second = SecondaryKey;
 
-  m_pDebugger->Log( "Input.Full", "AddBinding for control %d, vkey %d, device %d, device control index %d, Enum Index %d, %s", Handle, Key,
+  m_pDebugger->Log( "Input.Full", "AddBinding for control %d, vkey %d, vkey2 %d, device %d, device control index %d, Enum Index %d, %s", Handle, Key, SecondaryKey,
                     GetControlDevice( Key ), m_pVirtualKey[Key].m_DeviceControlIndex, m_pVirtualKey[Key].m_EnumIndex, m_pVirtualKey[Key].m_Name.c_str() );
 }
 
@@ -897,10 +898,30 @@ bool XBasicInput::SaveBindings( IIOStream& Stream )
 
   Stream.WriteSize( m_Binding2VKey.size() );
 
+  // primary bindings
   tMapBinding2VKey::iterator    it( m_Binding2VKey.begin() );
   while ( it != m_Binding2VKey.end() )
   {
-    GR::u32   key( it->second );
+    GR::u32   key( it->second.first );
+
+    if ( ( key >= 0 )
+    &&   ( key < m_VirtualKeys )
+    &&   ( m_pVirtualKey[key].m_GlobalIndex < m_Controls.size() )
+    &&   ( m_Controls[m_pVirtualKey[key].m_GlobalIndex].m_Device < (int)m_Devices.size() ) )
+    {
+      Stream.WriteU32( it->first );
+      Stream.WriteString( m_Devices[m_Controls[m_pVirtualKey[key].m_GlobalIndex].m_Device].m_Device );
+      Stream.WriteU32( m_pVirtualKey[key].m_DeviceControlIndex );
+    }
+
+    ++it;
+  }
+
+  // secondary bindings
+  it = m_Binding2VKey.begin();
+  while ( it != m_Binding2VKey.end() )
+  {
+    GR::u32   key( it->second.second );
 
     if ( ( key >= 0 )
     &&   ( key < m_VirtualKeys )
@@ -930,18 +951,14 @@ bool XBasicInput::LoadBindings( IIOStream& Stream )
   }
 
   bool              restoreBindingFailed = false;
+  size_t            numEntries = Stream.ReadSize();
 
-  size_t    iEntries = Stream.ReadSize();
-
-  for ( size_t i = 0; i < iEntries; ++i )
+  for ( size_t i = 0; i < numEntries; ++i )
   {
-    GR::u32         bindHandle = Stream.ReadU32();
-
-    GR::String  device = Stream.ReadString();
-
-    GR::u32         controlIndex = Stream.ReadU32();
-
-    bool            bindingPossible = false;
+    GR::u32     bindHandle      = Stream.ReadU32();
+    GR::String  device          = Stream.ReadString();
+    GR::u32     controlIndex    = Stream.ReadU32();
+    bool        bindingPossible = false;
 
 
     tVectDevices::iterator    it( m_Devices.begin() );
@@ -954,7 +971,38 @@ bool XBasicInput::LoadBindings( IIOStream& Stream )
       {
         bindingPossible = true;
 
-        m_Binding2VKey[bindHandle] = Device.m_Controls[controlIndex].m_VirtualIndex;
+        m_Binding2VKey[bindHandle].first = Device.m_Controls[controlIndex].m_VirtualIndex;
+        break;
+      }
+
+      ++it;
+    }
+    if ( !bindingPossible )
+    {
+      restoreBindingFailed = true;
+    }
+  }
+
+  // secondary binding
+  for ( size_t i = 0; i < numEntries; ++i )
+  {
+    GR::u32         bindHandle      = Stream.ReadU32();
+    GR::String      device          = Stream.ReadString();
+    GR::u32         controlIndex    = Stream.ReadU32();
+    bool            bindingPossible = false;
+
+
+    tVectDevices::iterator    it( m_Devices.begin() );
+    while ( it != m_Devices.end() )
+    {
+      tInputDevice& Device( *it );
+
+      if ( ( Device.m_Device == device )
+      &&   ( controlIndex < Device.m_Controls.size() ) )
+      {
+        bindingPossible = true;
+
+        m_Binding2VKey[bindHandle].second = Device.m_Controls[controlIndex].m_VirtualIndex;
         break;
       }
 
@@ -977,6 +1025,46 @@ void XBasicInput::ClearAllBindings()
 
 
 
+bool XBasicInput::BoundActionPressed( GR::u32 BindHandle ) const
+{
+  GR::u32     key1 = BoundKey( BindHandle );
+  GR::u32     key2 = BoundSecondaryKey( BindHandle );
+
+  if ( ( key1 != 0 )
+  &&   ( VKeyPressed( key1 ) ) )
+  {
+    return true;
+  }
+  if ( ( key2 != 0 )
+  &&   ( VKeyPressed( key2 ) ) )
+  {
+    return true;
+  }
+  return false;
+}
+
+
+
+bool XBasicInput::ReleasedBoundActionPressed( GR::u32 BindHandle ) const
+{
+  GR::u32     key1 = BoundKey( BindHandle );
+  GR::u32     key2 = BoundSecondaryKey( BindHandle );
+
+  if ( ( key1 != 0 )
+  &&   ( ReleasedVKeyPressed( key1 ) ) )
+  {
+    return true;
+  }
+  if ( ( key2 != 0 )
+  &&   ( ReleasedVKeyPressed( key2 ) ) )
+  {
+    return true;
+  }
+  return false;
+}
+
+
+
 GR::u32 XBasicInput::BoundKey( const GR::u32 BindHandle ) const
 {
   tMapBinding2VKey::const_iterator    it( m_Binding2VKey.find( BindHandle ) );
@@ -984,7 +1072,19 @@ GR::u32 XBasicInput::BoundKey( const GR::u32 BindHandle ) const
   {
     return 0;
   }
-  return it->second;
+  return it->second.first;
+}
+
+
+
+GR::u32 XBasicInput::BoundSecondaryKey( const GR::u32 BindHandle ) const
+{
+  tMapBinding2VKey::const_iterator    it( m_Binding2VKey.find( BindHandle ) );
+  if ( it == m_Binding2VKey.end() )
+  {
+    return 0;
+  }
+  return it->second.second;
 }
 
 
@@ -1045,11 +1145,10 @@ void XBasicInput::SetButtonPressed( GR::u32 Button, bool Pressed )
                m_Controls[m_pVirtualKey[Button].m_GlobalIndex].m_DataOffset );
                */
 
-      m_pVirtualKey[Button].m_Pressed               = true;
-      m_pVirtualKey[Button].m_ButtonDownTicks       = m_PollTicks;
-      m_pVirtualKey[Button].m_ButtonFirstTimeDelay  = true;
-      m_pVirtualKey[Button].m_ButtonDown            = true;
-
+      m_pVirtualKey[Button].m_Pressed                 = true;
+      m_pVirtualKey[Button].m_ButtonDownTicks         = m_PollTicks;
+      m_pVirtualKey[Button].m_ButtonFirstTimeDelay    = true;
+      m_pVirtualKey[Button].m_ButtonDown              = true;
 
       if ( m_InputActive )
       {
@@ -1604,6 +1703,10 @@ GR::u32 XBasicInput::GetAnalogControlCount() const
 
 void XBasicInput::FrameCompleted()
 {
+  if ( !m_Initialized )
+  {
+    return;
+  }
   for ( GR::u32 i = 0; i < m_VirtualKeys; ++i )
   {
     m_pVirtualKey[i].m_WasPressed               = false;

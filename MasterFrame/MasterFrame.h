@@ -180,8 +180,6 @@ class MasterFrame : public LocalRegistry,
 
     std::list<GR::String>             m_StartParameter;
 
-    SubclassManager                   m_SubclassManager;
-
 
   public:
 

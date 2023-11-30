@@ -21,13 +21,13 @@ namespace GR
 
       struct tAnimFrame
       {
-        GR::Graphic::Image*   m_pImage;
-        GR::f32               m_fLength;
+        GR::Graphic::Image*   pImage;
+        GR::f32               Length;
 
         tAnimFrame( GR::Graphic::Image* pImage = NULL,
-                    GR::f32 fLength = 0.0f ) :
-                    m_pImage( pImage ),
-                    m_fLength( fLength )
+                    GR::f32 Length = 0.0f ) :
+                    pImage( pImage ),
+                    Length( Length )
         {
         }
       };
@@ -43,99 +43,99 @@ namespace GR
 
       struct tFramePos
       {
-        GR::up        m_Frame;
-        GR::f32       m_FrameTimeElapsed;
-        Animation*   m_pAnimation;
+        GR::up        Frame;
+        GR::f32       FrameTimeElapsed;
+        Animation*    pAnimation;
 
         tFramePos( Animation* pAnim = NULL ) :
-          m_pAnimation( pAnim ),
-          m_Frame( 0 ),
-          m_FrameTimeElapsed( 0.0f )
+          pAnimation( pAnim ),
+          Frame( 0 ),
+          FrameTimeElapsed( 0.0f )
         {
         }
 
         void SetAnimation( Animation* pAnim )
         {
-          m_pAnimation = pAnim;
-          m_Frame = 0;
-          m_FrameTimeElapsed = 0.0f;
+          pAnimation = pAnim;
+          Frame = 0;
+          FrameTimeElapsed = 0.0f;
         }
 
         void Update( const float ElapsedTime )
         {
-          if ( ( m_pAnimation == NULL )
-          ||   ( m_Frame >= m_pAnimation->m_Images.size() ) )
+          if ( ( pAnimation == NULL )
+          ||   ( Frame >= pAnimation->m_Images.size() ) )
           {
             return;
           }
 
-          float   fDelta = ElapsedTime;
+          float   delta = ElapsedTime;
 
-          while ( fDelta > 0.0f )
+          while ( delta > 0.0f )
           {
-            const tAnimFrame&   curFrame = m_pAnimation->m_Images[m_Frame];
+            const tAnimFrame&   curFrame = pAnimation->m_Images[Frame];
 
-            if ( curFrame.m_fLength == 0.0f )
+            if ( curFrame.Length == 0.0f )
             {
               // letzer Frame, dieser Frame bleibt
               return;
             }
 
-            if ( m_FrameTimeElapsed + fDelta < curFrame.m_fLength )
+            if ( FrameTimeElapsed + delta < curFrame.Length )
             {
               // der Frame ist noch nicht fertig
-              m_FrameTimeElapsed += fDelta;
+              FrameTimeElapsed += delta;
               return;
             }
 
-            fDelta -= curFrame.m_fLength - m_FrameTimeElapsed;
-            m_FrameTimeElapsed = 0.0f;
+            delta -= curFrame.Length - FrameTimeElapsed;
+            FrameTimeElapsed = 0.0f;
 
-            if ( m_pAnimation->GetType() & AT_FORWARD )
+            if ( pAnimation->GetType() & AT_FORWARD )
             {
-              m_Frame++;
-              if ( ( m_Frame >= m_pAnimation->m_Images.size() )
-              &&   ( m_pAnimation->GetType() & AT_LOOP ) )
+              Frame++;
+              if ( ( Frame >= pAnimation->m_Images.size() )
+              &&   ( pAnimation->GetType() & AT_LOOP ) )
               {
-                m_Frame = 0;
+                Frame = 0;
               }
             }
-            else if ( m_pAnimation->GetType() & AT_PING )
+            else if ( pAnimation->GetType() & AT_PING )
             {
-              m_Frame++;
-              if ( m_Frame >= m_pAnimation->m_Images.size() - 1 )
+              Frame++;
+              if ( Frame >= pAnimation->m_Images.size() - 1 )
               {
-                m_Frame = m_pAnimation->m_Images.size() - 1;
+                Frame = pAnimation->m_Images.size() - 1;
 
-                GR::u32   dwType = m_pAnimation->GetType();
+                GR::u32   dwType = pAnimation->GetType();
                 dwType     &= ~AT_PING;
-                m_pAnimation->SetType( dwType | AT_PONG );
+                pAnimation->SetType( dwType | AT_PONG );
               }
             }
-            else if ( m_pAnimation->GetType() & AT_PONG )
+            else if ( pAnimation->GetType() & AT_PONG )
             {
-              if ( m_Frame > 0 )
+              if ( Frame > 0 )
               {
-                m_Frame--;
+                Frame--;
               }
               else
               {
-                GR::u32   dwType = m_pAnimation->GetType();
+                GR::u32   dwType = pAnimation->GetType();
                 dwType     &= ~AT_PONG;
-                m_pAnimation->SetType( dwType | AT_PING );
+                pAnimation->SetType( dwType | AT_PING );
               }
             }
-            else if ( m_pAnimation->GetType() & AT_REVERSE )
+            else if ( pAnimation->GetType() & AT_REVERSE )
             {
-              if ( m_Frame > 0 )
+              if ( Frame > 0 )
               {
-                m_Frame--;
+                Frame--;
               }
-              else if ( m_pAnimation->GetType() & AT_LOOP )
+              else if ( pAnimation->GetType() & AT_LOOP )
               {
-                if ( !m_pAnimation->m_Images.empty() )
+                if ( !pAnimation->m_Images.empty() )
                 {
-                  m_Frame = m_pAnimation->m_Images.size() - 1;
+                  Frame = pAnimation->m_Images.size() - 1;
                 }
               }
             }
@@ -144,15 +144,15 @@ namespace GR
 
 
 
-        bool PutAnimation( GR::Graphic::GFXPage* pPage, GR::i32 iX, GR::i32 iY, GR::u32 ulFlags = IMAGE_METHOD_OPTIMAL, GR::Graphic::Image *pMaskImage = NULL )
+        bool PutAnimation( GR::Graphic::GFXPage* pPage, GR::i32 X, GR::i32 Y, GR::u32 Flags = IMAGE_METHOD_OPTIMAL, GR::Graphic::Image* pMaskImage = NULL )
         {
-          if ( ( m_pAnimation == NULL )
+          if ( ( pAnimation == NULL )
           ||   ( pPage == NULL ) )
           {
             return false;
           }
-          m_pAnimation->SetPosition( (GR::u32)m_Frame );
-          return m_pAnimation->PutAnimation( pPage, iX, iY, ulFlags, pMaskImage );
+          pAnimation->SetPosition( (GR::u32)Frame );
+          return pAnimation->PutAnimation( pPage, X, Y, Flags, pMaskImage );
         }
       };
 
@@ -169,7 +169,7 @@ namespace GR
       // Erzeugt ein leeres Animationsobjekt
       Animation( GR::u32 NewType = AT_FORWARD | AT_LOOP );
 
-      Animation( const GR::Char* lpszFileName );
+      Animation( const GR::Char* FileName );
 
       Animation( IIOStream& Stream );
 
@@ -178,9 +178,9 @@ namespace GR
 
       void Reset( void );
 
-      bool AddFrame( GR::Graphic::Image* pImage, GR::f32 fLength );
-      bool InsertFrame( GR::u32 Index, GR::Graphic::Image* pImage, GR::f32 fLength );
-      bool InsertFrameBehind( GR::u32 Index, GR::Graphic::Image* pImage, GR::f32 fLength );
+      bool AddFrame( GR::Graphic::Image* pImage, GR::f32 Length );
+      bool InsertFrame( GR::u32 Index, GR::Graphic::Image* pImage, GR::f32 Length );
+      bool InsertFrameBehind( GR::u32 Index, GR::Graphic::Image* pImage, GR::f32 Length );
 
       bool DeleteFrame( GR::Graphic::Image* pImage );
 
@@ -218,7 +218,7 @@ namespace GR
 
       void Next();
 
-      bool PutAnimation( GR::Graphic::GFXPage *pActualPage, signed long slXPos, signed long slYPos, GR::u32 ulFlags = IMAGE_METHOD_OPTIMAL, GR::Graphic::Image *pMaskImage = NULL );
+      bool PutAnimation( GR::Graphic::GFXPage* pActualPage, signed long XPos, signed long YPos, GR::u32 Flags = IMAGE_METHOD_OPTIMAL, GR::Graphic::Image* pMaskImage = NULL );
 
       void Compress( GR::u32 TransparentColor );
 

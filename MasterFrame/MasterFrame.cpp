@@ -107,8 +107,8 @@ bool MasterFrame::CleanUp()
 
 void MasterFrame::ShutDown()
 {
-  PostMessage( m_Window.Hwnd, WM_CLOSE, 0, 0 );
-  //m_ShutDownRequested = true;
+  //PostMessage( m_Window.Hwnd, WM_CLOSE, 0, 0 );
+  m_ShutDownRequested = true;
 }
 
 
@@ -306,7 +306,7 @@ void MasterFrame::ProcessCommandTokens( GR::Tokenizer::TokenSequence& m_TokenSeq
     m_itTokenPos++;
     if ( m_itTokenPos->Type() == GR::Tokenizer::TokenType::INT )
     {
-      DXSound::Instance().Play( m_itTokenPos->Int() );
+      DXSound::Instance().Play( (GR::u32)m_itTokenPos->Int() );
     }
   }
   else if ( currentToken.Type() == m_stopT )
@@ -319,7 +319,7 @@ void MasterFrame::ProcessCommandTokens( GR::Tokenizer::TokenSequence& m_TokenSeq
     }
     else if ( m_itTokenPos->Type() == GR::Tokenizer::TokenType::INT )
     {
-      DXSound::Instance().Stop( m_itTokenPos->Int() );
+      DXSound::Instance().Stop( (GR::u32)m_itTokenPos->Int() );
     }
   }
   else if ( currentToken.Type() == m_loopT )
@@ -328,7 +328,7 @@ void MasterFrame::ProcessCommandTokens( GR::Tokenizer::TokenSequence& m_TokenSeq
     m_itTokenPos++;
     if ( m_itTokenPos->Type() == GR::Tokenizer::TokenType::INT )
     {
-      DXSound::Instance().Loop( m_itTokenPos->Int() );
+      DXSound::Instance().Loop( (GR::u32)m_itTokenPos->Int() );
     }
   }
   else if ( currentToken.Type() == m_quitT )
@@ -444,7 +444,7 @@ bool MasterFrame::ParameterSwitch( const char* szSwitch )
 
 bool MasterFrame::Create( int iNewWidth, int iNewHeight, unsigned char ucDepth, DWORD dwFlags )
 {
-  m_SubclassManager.AddHandler( "MasterFrame", fastdelegate::MakeDelegate( this, &MasterFrame::WindowProc ) );
+  m_Window.SubclassManager.AddHandler( "MasterFrame", fastdelegate::MakeDelegate( this, &MasterFrame::WindowProc ) );
 
   WNDCLASS      WndClass;
 
@@ -801,7 +801,7 @@ LRESULT CALLBACK MasterFrame::MasterFrameWndProc( HWND hWnd, UINT message, WPARA
       return (LRESULT)g_pGlobalMasterFrame->WindowProc( hWnd, message, wParam, lParam );
     }
     */
-    return g_pGlobalMasterFrame->m_SubclassManager.CallChain( hWnd, message, wParam, lParam );
+    return g_pGlobalMasterFrame->m_Window.SubclassManager.CallChain( hWnd, message, wParam, lParam );
   }
 
   return ::DefWindowProc( hWnd, message, wParam, lParam );
@@ -893,11 +893,18 @@ BOOL MasterFrame::WindowProc( HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
       m_MouseButtons = (DWORD)wParam;
       break;
     case WM_ACTIVATE:
-      m_ApplicationActive = (BOOL)wParam;
+      m_ApplicationActive = (bool)!!(BOOL)wParam;
       break;
       //return 0;
     case WM_ERASEBKGND:
       return 1;
+    case WM_CLOSE:
+      m_ShutDownRequested = true;
+      return 0;
+      /*
+      CleanUp();
+      DestroyWindow( hwnd );
+      return 0;*/
       /*
     case WM_CLOSE:
       CleanUp();
@@ -913,17 +920,14 @@ BOOL MasterFrame::WindowProc( HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
       break;
   }
 
-  return m_SubclassManager.CallNext( hwnd, message, wParam, lParam );
-
+  return m_Window.SubclassManager.CallNext( hwnd, message, wParam, lParam );
 }
 
 
 
 DWORD MasterFrame::LoadSound( const char* szFileName, bool bLoad3d )
 {
-
   return DXSound::Instance().LoadWave( CWADFileSystem::Instance().OpenFile( szFileName ), bLoad3d );
-
 }
 
 

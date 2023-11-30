@@ -42,9 +42,9 @@ namespace Interface
 
 namespace GUI
 {
-  void WrapText( Interface::IFont* pFont, const GR::String& strText, GR::tRect& rectText, std::vector<GR::String>& vectText, bool bCalcRect = false );
-  void BreakText( Interface::IFont* pFont, const GR::String& strText, GR::tRect& rectResult, std::vector<GR::String>& vectText, bool bCalcRect = false );
-  GR::tPoint TextOffset( Interface::IFont* pFont, const GR::String& strText, GR::u32 textAlignment, const GR::tRect& Rect );
+  void WrapText( Interface::IFont* pFont, const GR::String& Text, GR::tRect& TextArea, std::vector<GR::String>& TextList, bool CalcRect = false );
+  void BreakText( Interface::IFont* pFont, const GR::String& Text, GR::tRect& TextArea, std::vector<GR::String>& TextList, bool CalcRect = false );
+  GR::tPoint TextOffset( Interface::IFont* pFont, const GR::String& Text, GR::u32 TextAlignment, const GR::tRect& Rect );
   GR::u64 GetTicks();
   GR::u64 GetDoubleClickTimeMS();
 
@@ -75,6 +75,8 @@ namespace GUI
       std::list<tElementCreatedFromXMLListener>     m_ElementCreatedListeners;
 
       Component*                                    m_pCurrentlyDrawnComponent;
+
+      std::set<Component*>                          m_AlreadyHandledComponentsThisFrame;
 
 
     public:
@@ -135,21 +137,21 @@ namespace GUI
 
       void Suspend( bool Suspend = true );
 
-      void SysColor( GUI::eColorIndex colIndex, GR::u32 dwColor );
+      void SysColor( GUI::eColorIndex colIndex, GR::u32 Color );
       GR::u32 GetSysColor( GUI::eColorIndex colIndex );
 
       static ComponentDisplayerBase& Instance();
 
-      virtual void          SetClipping( int iX, int iY, int iWidth, int iHeight ) = 0;
-      virtual void          SetOffset( int iX, int iY ) = 0;
+      virtual void          SetClipping( int X, int Y, int Width, int Height ) = 0;
+      virtual void          SetOffset( int X, int Y ) = 0;
       virtual GR::tPoint    GetOffset() = 0;
       virtual void          PushClipValues() = 0;
-      virtual void          StoreClipValues( int iX, int iY, int iWidth, int iHeight, int iXOffset, int iYOffset );
+      virtual void          StoreClipValues( int X, int Y, int Width, int Height, int XOffset, int YOffset );
       virtual void          PopClipValues();
-      virtual void          GetStoredClipValues( int& iX, int& iY, int& iWidth, int& iHeight, int& iXOffset, int& iYOffset );
+      virtual void          GetStoredClipValues( int& X, int& Y, int& Width, int& Height, int& XOffset, int& YOffset );
 
       virtual void DeleteComponent( Component* pComponent );
-      virtual void DeleteComponent( GR::u32 dwId );
+      virtual void DeleteComponent( GR::u32 Id );
       virtual void DisplayComponent( Component* pComponent );
       virtual void DisplayComponentFull( Component* pComponent, const GR::tPoint& Offset, const GR::tRect& ParentClipRect );
 
@@ -160,9 +162,9 @@ namespace GUI
       void NotifyComponent( Component* pComponent, const GUI::ComponentEvent& Event );
       void NotifyAllComponents( const GUI::ComponentEvent& Event );
 
-      void DisplayComponent( float fElapsedTime, Component* pRootComponent );
-      void UpdateComponent( GUI::Component* pComponent, const float fElapsedTime );
-      void UpdateAllControls( const float fElapsedTime );
+      void DisplayComponent( float ElapsedTime, Component* pRootComponent );
+      void UpdateComponent( GUI::Component* pComponent, const float ElapsedTime );
+      void UpdateAllControls( const float ElapsedTime );
 
       void DisplayAllControls();
       void DisplayComponentFromParent( Component* pParentComponent );
@@ -230,8 +232,8 @@ namespace GUI
                      GR::u32 Color = 0xffffffff,
                      const GR::tRect* pRect = NULL ) = 0;
 
-      virtual void DrawEdge( GR::u32 edgeType, const GR::tRect& rectEdge ) = 0;
-      virtual void DrawEdge( GR::u32 edgeType, const GR::tRect& rectEdge, const std::vector<std::pair<XTextureSection, GR::u32> >& Sections ) = 0;
+      virtual void DrawEdge( GR::u32 EdgeType, const GR::tRect& RectEdge ) = 0;
+      virtual void DrawEdge( GR::u32 EdgeType, const GR::tRect& RectEdge, const std::vector<std::pair<XTextureSection, GR::u32> >& Sections ) = 0;
       virtual void DrawLine( const GR::tPoint& Pos1, const GR::tPoint& Pos2, GR::u32 Color, GR::u32 Color2 = 0 ) = 0;
 
   };

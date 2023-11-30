@@ -64,10 +64,10 @@ namespace GR
 
 
     XMLElement::XMLElement( const GR::String& Type, const GR::String& ContentArg ) :
-      m_Type( Type ),
-      m_pParent( NULL ),
       m_IsCDataContent( false ),
-      m_IsSystemTag( false )
+      m_IsSystemTag( false ),
+      m_pParent( NULL ),
+      m_Type( Type )
     {
       // Sonderzeichen im Data übersetzen
       Content( ContentArg );
@@ -807,9 +807,9 @@ namespace GR
 
     XML::XML( bool bCheckTypes ) :
       m_pCurrentElement( NULL ),
-      m_CheckTypes( bCheckTypes ),
       m_pLoadingRootElement( NULL ),
-      m_LoadStackDepth( 0 )
+      m_LoadStackDepth( 0 ),
+      m_CheckTypes( bCheckTypes )
     {
 
       if ( m_CheckTypes )
@@ -956,9 +956,9 @@ namespace GR
 
       char*         pDataBlock = new char[size];
 
-      GR::u32 BytesRead = ioIn.ReadBlock( pDataBlock, size );
+      ioIn.ReadBlock( pDataBlock, size );
       ioIn.Close();
-
+      
       //dh::Log( "XML::Load Bytes geladen %d", dwBytesRead );
 
       m_LoadStackDepth++;
@@ -1284,8 +1284,6 @@ namespace GR
 
     bool XML::ParseTag( const GR::String& ParamTag )
     {
-      bool    correctlyClosed = false;
-
       if ( ParamTag.empty() )
       {
         dh::Log( "XML::ParseTag empty tag" );
@@ -1378,7 +1376,7 @@ namespace GR
       bool        apostrophe = false;
       GR::Char    cStartApostrophe = 32;
 
-      while ( pos < (int)Tag.length() )
+      while ( pos < Tag.length() )
       {
         if ( ( Tag.at( pos ) == '"' )
         ||   ( Tag.at( pos ) == 39 ) )   // '

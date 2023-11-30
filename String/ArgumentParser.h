@@ -18,7 +18,7 @@ namespace GR
       GR::String            m_AllowedSwitchCharacters;
 
 
-      bool IsSwitchCharacter( GR::Char Char );
+      bool IsSwitchCharacter( GR::Char Char ) const;
 
 
 
@@ -41,9 +41,9 @@ namespace GR
       
       struct ParameterInfo
       {
-        GR::String            Name;
-        GR::String            Value;
-        std::list<GR::String> ValidValues;
+        GR::String                Name;
+        GR::String                Value;
+        std::list<GR::String>     ValidValues;
         bool                      Optional;
         ParameterResult           Result;
         ParameterType             Type;
@@ -54,24 +54,24 @@ namespace GR
         ParameterInfo( const GR::String& Name = GR::String(), bool Optional = false, bool CaseSensitive = false, ParameterType Type = PT_SINGLE_VALUE ) :
           Name( Name ),
           Optional( Optional ),
-          CaseSensitive( CaseSensitive ),
           Result( PR_NOT_SET ),
-          Type( Type )
+          Type( Type ),
+          CaseSensitive( CaseSensitive )
         {
         }
       };
 
     private:
 
-      bool                                  ParameterNameMatches( const ParameterInfo& Info, const GR::String& Parameter );
+      bool                                  ParameterNameMatches( const ParameterInfo& Info, const GR::String& Parameter ) const;
 
 
     public:
 
-      std::vector<GR::String>           CommandLineParams;
+      std::vector<GR::String>               CommandLineParams;
       std::list<ParameterInfo>              AllowedParameters;
-      std::list<GR::String>             UnknownParameters;
-      std::vector<GR::String>           Arguments;
+      std::list<GR::String>                 UnknownParameters;
+      std::vector<GR::String>               Arguments;
 
 
 
@@ -85,16 +85,16 @@ namespace GR
       void                                  AddOptionalParameter( const GR::String& Param, bool CaseSensitive = false );
       
       bool                                  CheckParameters();
-      GR::String                            Parameter( const GR::String& Name );
-      bool                                  IsParameterSet( const GR::String& Name );
+      GR::String                            Parameter( const GR::String& Name ) const;
+      bool                                  IsParameterSet( const GR::String& Name ) const;
 
       void                                  SetCommandLine( int argc, const GR::Char* argv[] );
       
-      GR::String                            ErrorInfo();
-      GR::String                            CallInfo();
+      GR::String                            ErrorInfo() const;
+      GR::String                            CallInfo() const;
 
-      int                                   NumArguments();
-      GR::String                            Argument( int Index );
+      int                                   NumArguments() const;
+      GR::String                            Argument( int Index ) const;
 
   };
       

@@ -82,22 +82,15 @@ void CSSLConnection::SSLHandShake( CHTTPConnection& Connection, const ByteBuffer
 
     ByteBuffer    SHA1Hash;
 
-    m_SHA1.CalcHash( sslBlock, SHA1Hash );
+    m_SHA1.Calculate( sslBlock, SHA1Hash );
     /*
     for ( int i = 0; i < 5; ++i )
     {
       dh::Log( "SHA1 State (%d) = %x\n", i, m_SHA1.State( i ) );
     }*/
 
-    m_MD5.update( pData + 2, 31 );
+    //m_MD5.Update( pData + 2, 31 );
   
-    
-    for ( int i = 0; i < 4; ++i )
-    {
-      dh::Log( "MD5 State (%d) = %x\n", i, m_MD5.State( i ) );
-    }
-
-
     Connection.SendBinary( pData, sslBlock.Size(), true );
   }
   else if ( m_SSLHandshakeStep == SSL_SEND_CLIENT_HELLO )

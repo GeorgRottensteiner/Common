@@ -259,6 +259,23 @@ namespace GR
 
 
 
+      void Insert( size_t Position, const GR::string& InsertionText )
+      {
+        if ( Position > m_Length )
+        {
+          return;
+        }
+
+        ResizeBuffer( m_Length + InsertionText.length() );
+
+        memcpy( m_pBuffer + Position + InsertionText.length(), m_pBuffer + Position, m_Length - Position );
+        memcpy( m_pBuffer + Position, InsertionText.c_str(), InsertionText.length() );
+
+        m_Length += InsertionText.length();
+      }
+
+
+
       void erase( size_t Offset, size_t Count )
       {
         if ( ( Offset >= m_Length )
@@ -329,6 +346,107 @@ namespace GR
       size_t length() const
       {
         return m_Length;
+      }
+
+
+
+      const GR::string& TrimLeft( const char TrimChar = ' ' )
+      {
+        size_t    pos = find_first_not_of( TrimChar );
+
+        if ( pos == GR::string::npos )
+        {
+          if ( ( !empty() )
+          &&   ( m_pBuffer[0] == TrimChar ) )
+          {
+            // der String besteht nur aus dem Trimm-Zeichen
+            clear();
+            return *this;
+          }
+          // der String ist sauber
+          return *this;
+        }
+        erase( 0, pos );
+        return *this;
+      }
+
+
+
+      const GR::string& TrimLeft( const GR::string& TrimString )
+      {
+        if ( TrimString.empty() )
+        {
+          return *this;
+        }
+        while ( StartsWith( TrimString ) )
+        {
+          erase( 0, TrimString.length() );
+        }
+        return *this;
+      }
+
+
+
+      const GR::string& TrimRight( const char TrimChar = ' ' )
+      {
+        size_t    pos = find_last_not_of( TrimChar );
+
+        if ( pos == GR::string::npos )
+        {
+          if ( ( !empty() )
+          &&   ( m_pBuffer[0] == TrimChar ) )
+          {
+            // der String besteht nur aus dem Trimm-Zeichen
+            clear();
+            return *this;
+          }
+          // der String ist sauber
+          return *this;
+        }
+        erase( pos + 1, length() - pos - 1 );
+        return *this;
+      }
+
+
+
+      const GR::string& TrimRight( const GR::string& TrimString )
+      {
+        if ( TrimString.empty() )
+        {
+          return *this;
+        }
+
+        while ( EndsWith( TrimString ) )
+        {
+          erase( length() - TrimString.length(), TrimString.length() );
+        }
+        return *this;
+      }
+
+
+
+      const GR::string& pop_back()
+      {
+        if ( empty() )
+        {
+          return *this;
+        }
+
+        *this = substr( 0, m_Length - 1 );
+        return *this;
+      }
+
+
+
+      char& back()
+      {
+        if ( empty() )
+        {
+          static char nothing = 0;
+
+          return nothing;
+        }
+        return m_pBuffer[m_Length - 1];
       }
 
 
@@ -745,7 +863,7 @@ namespace GR
 
 
 
-      size_t find_last_of( char CharacterNotToFind ) const
+      size_t find_last_of( char CharacterNotToFind, size_t StartIndex = GR::string::npos ) const
       {
         if ( m_Length == 0 )
         {
@@ -753,6 +871,13 @@ namespace GR
         }
 
         char*     pPos = m_pBuffer + m_Length - 1;
+        if ( StartIndex != GR::string::npos )
+        {
+          if ( StartIndex < m_Length )
+          {
+            pPos = m_pBuffer + StartIndex;
+          }
+        }
 
         while ( pPos != m_pBuffer )
         {
@@ -851,7 +976,7 @@ namespace GR
 
 
 
-      size_t rfind( const GR::string& SearchText ) const
+      size_t rfind( const GR::string& SearchText, size_t offset = npos ) const
       {
         if ( SearchText.m_Length > m_Length )
         {
@@ -859,6 +984,14 @@ namespace GR
         }
 
         size_t    pos = m_Length - SearchText.m_Length;
+        if ( offset != npos )
+        {
+          if ( SearchText.m_Length > offset )
+          {
+            return npos;
+          }
+          pos = offset - SearchText.m_Length;
+        }
 
         while ( true )
         {

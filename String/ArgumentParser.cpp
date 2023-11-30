@@ -17,14 +17,14 @@ namespace GR
 
 
 
-  bool ArgumentParser::IsSwitchCharacter( GR::Char Char )
+  bool ArgumentParser::IsSwitchCharacter( GR::Char Char ) const
   {
     return ( m_AllowedSwitchCharacters.find( Char ) != GR::String::npos );
   }
 
 
 
-  bool ArgumentParser::ParameterNameMatches( const ParameterInfo& Info, const GR::String& Parameter )
+  bool ArgumentParser::ParameterNameMatches( const ParameterInfo& Info, const GR::String& Parameter ) const
   {
     if ( ( Info.CaseSensitive )
     &&   ( Info.Name == Parameter ) )
@@ -240,12 +240,12 @@ namespace GR
   
   
   
-  bool ArgumentParser::IsParameterSet( const GR::String& Name )
+  bool ArgumentParser::IsParameterSet( const GR::String& Name ) const
   {
-    std::list<ParameterInfo>::iterator    itPInfo( AllowedParameters.begin() );
+    std::list<ParameterInfo>::const_iterator    itPInfo( AllowedParameters.begin() );
     while ( itPInfo != AllowedParameters.end() )
     {
-      ParameterInfo& pInfo( *itPInfo );
+      const ParameterInfo& pInfo( *itPInfo );
       
       if ( pInfo.Result == PR_SET )
       {
@@ -268,12 +268,12 @@ namespace GR
 
   
 
-  GR::String ArgumentParser::Parameter( const GR::String& Name )
+  GR::String ArgumentParser::Parameter( const GR::String& Name ) const
   {
-    std::list<ParameterInfo>::iterator    itPInfo( AllowedParameters.begin() );
+    std::list<ParameterInfo>::const_iterator    itPInfo( AllowedParameters.begin() );
     while ( itPInfo != AllowedParameters.end() )
     {
-      ParameterInfo& pInfo( *itPInfo );
+      const ParameterInfo& pInfo( *itPInfo );
       
       if ( pInfo.Result == PR_SET )
       {
@@ -296,15 +296,15 @@ namespace GR
   
 
 
-  GR::String ArgumentParser::ErrorInfo()
+  GR::String ArgumentParser::ErrorInfo() const
   {
     GR::String     info;
 
 
-    std::list<ParameterInfo>::iterator    itPInfo( AllowedParameters.begin() );
+    std::list<ParameterInfo>::const_iterator    itPInfo( AllowedParameters.begin() );
     while ( itPInfo != AllowedParameters.end() )
     {
-      ParameterInfo& paramInfo( *itPInfo );
+      const ParameterInfo& paramInfo( *itPInfo );
 
       if ( paramInfo.Result == PR_INVALID_VALUE )
       {
@@ -328,7 +328,7 @@ namespace GR
       ++itPInfo;
     }
 
-    std::list<GR::String>::iterator    itUP( UnknownParameters.begin() );
+    std::list<GR::String>::const_iterator    itUP( UnknownParameters.begin() );
     while ( itUP != UnknownParameters.end() )
     {
       info += "Unknown parameter " + *itUP + " passed\r\n";
@@ -340,15 +340,15 @@ namespace GR
 
 
 
-  GR::String ArgumentParser::CallInfo()
+  GR::String ArgumentParser::CallInfo() const
   {
     GR::String     info;
 
 
-    std::list<ParameterInfo>::iterator    itPInfo( AllowedParameters.begin() );
+    std::list<ParameterInfo>::const_iterator    itPInfo( AllowedParameters.begin() );
     while ( itPInfo != AllowedParameters.end() )
     {
-      ParameterInfo& paramInfo( *itPInfo );
+      const ParameterInfo& paramInfo( *itPInfo );
 
       switch ( paramInfo.Type )
       {
@@ -358,6 +358,24 @@ namespace GR
             info += "[";
           }
           info += "-" + paramInfo.Name;
+          if ( !paramInfo.ValidValues.empty() )
+          {
+            info += " <";
+            int index = 0;
+            std::list<GR::String>::const_iterator    itVV( paramInfo.ValidValues.begin() );
+            while ( itVV != paramInfo.ValidValues.end() )
+            {
+              info += *itVV;
+              if ( index + 1 < (int)paramInfo.ValidValues.size() )
+              {
+                info += ",";
+              }
+              ++index;
+
+              ++itVV;
+            }
+            info += ">";
+          }
           if ( paramInfo.Optional )
           {
             info += "]";
@@ -374,7 +392,7 @@ namespace GR
           {
             info += " <";
             int index = 0;
-            std::list<GR::String>::iterator    itVV( paramInfo.ValidValues.begin() );
+            std::list<GR::String>::const_iterator    itVV( paramInfo.ValidValues.begin() );
             while ( itVV != paramInfo.ValidValues.end() )
             {
               info += *itVV;
@@ -402,14 +420,14 @@ namespace GR
 
 
 
-  int ArgumentParser::NumArguments()
+  int ArgumentParser::NumArguments() const
   {
     return (int)Arguments.size();
   }
 
 
 
-  GR::String ArgumentParser::Argument( int Index )
+  GR::String ArgumentParser::Argument( int Index ) const
   {
     if ( ( Index < 0 )
     ||   ( Index >= (int)Arguments.size() ) )

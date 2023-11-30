@@ -221,7 +221,11 @@ class DX11Renderer : public XBasicRenderer
     ID3D11Buffer*                         m_pFogBuffer;
     int                                   m_CachedFontType;
 
+#if OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP
+    WINDOWPLACEMENT                       m_WindowedPlacement;
+#else
     GR::tRect                             m_WindowedPlacement;
+#endif
 
     bool                                  m_Ready;
 

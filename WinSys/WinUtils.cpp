@@ -13,28 +13,52 @@
 #include <Grafik/Palette.h>
 
 
-BOOL CALLBACK Win::Util::EnumWindowProc( HWND hwnd, LPARAM lParam )
+
+namespace
 {
-
-  std::list<HWND>*    pListWindows = (std::list<HWND>*)lParam;
-
-  pListWindows->push_back( hwnd );
-
-  return TRUE;
-
+  bool s_EnumVisibleWindowsOnly = false;
 }
 
 
 
-std::list<HWND> Win::Util::EnumWindows()
-{
 
+BOOL CALLBACK Win::Util::EnumWindowProc( HWND hwnd, LPARAM lParam )
+{
+  std::list<HWND>*    pListWindows = (std::list<HWND>*)lParam;
+
+  if ( ( !s_EnumVisibleWindowsOnly )
+  ||   ( ::IsWindowVisible( hwnd ) ) )
+  {
+    pListWindows->push_back( hwnd );
+  }
+
+  return TRUE;
+}
+
+
+
+std::list<HWND> Win::Util::EnumWindows( bool VisibleOnly )
+{
   std::list<HWND>     listWindows;
+
+  s_EnumVisibleWindowsOnly = VisibleOnly;
 
   ::EnumWindows( EnumWindowProc, (LPARAM)&listWindows );
 
   return listWindows;
+}
 
+
+
+std::list<HWND> Win::Util::EnumChildWindows( HWND HwndParent, bool VisibleOnly )
+{
+  std::list<HWND>     listWindows;
+
+  s_EnumVisibleWindowsOnly = true;
+
+  ::EnumChildWindows( HwndParent, EnumWindowProc, (LPARAM)&listWindows );
+
+  return listWindows;
 }
 
 
@@ -245,35 +269,40 @@ GR::u32 Win::Util::InternetExplorerVersion()
 //-----------------------------------------------------------------------------
 HRESULT GetFileVersion( TCHAR* szPath, ULARGE_INTEGER* pllFileVersion )
 {
-    if( szPath == NULL || pllFileVersion == NULL )
-        return E_INVALIDARG;
+  if ( ( szPath == NULL )
+  ||   ( pllFileVersion == NULL ) )
+  {
+    return E_INVALIDARG;
+  }
 
-    DWORD Handle;
-    UINT  cb;
-    cb = GetFileVersionInfoSize( szPath, &Handle );
-    if (cb > 0)
+  DWORD   Handle;
+  UINT    cb;
+  cb = GetFileVersionInfoSize( szPath, &Handle );
+  if ( cb > 0 )
+  {
+    BYTE* pFileVersionBuffer = new BYTE[cb];
+    if ( pFileVersionBuffer == NULL )
     {
-        BYTE* pFileVersionBuffer = new BYTE[cb];
-        if( pFileVersionBuffer == NULL )
-            return E_OUTOFMEMORY;
-
-        if (GetFileVersionInfo( szPath, 0, cb, pFileVersionBuffer))
-        {
-            VS_FIXEDFILEINFO* pVersion = NULL;
-            if (VerQueryValue(pFileVersionBuffer, TEXT("\\"), (VOID**)&pVersion, &cb) &&
-                pVersion != NULL)
-            {
-                pllFileVersion->HighPart = pVersion->dwFileVersionMS;
-                pllFileVersion->LowPart  = pVersion->dwFileVersionLS;
-                delete[] pFileVersionBuffer;
-                return S_OK;
-            }
-        }
-
-        delete[] pFileVersionBuffer;
+      return E_OUTOFMEMORY;
     }
 
-    return E_FAIL;
+    if ( GetFileVersionInfo( szPath, 0, cb, pFileVersionBuffer ) )
+    {
+      VS_FIXEDFILEINFO* pVersion = NULL;
+      if ( ( VerQueryValue( pFileVersionBuffer, TEXT( "\\" ), (VOID**)&pVersion, &cb ) )
+      &&   ( pVersion != NULL ) )
+      {
+        pllFileVersion->HighPart = pVersion->dwFileVersionMS;
+        pllFileVersion->LowPart  = pVersion->dwFileVersionLS;
+        delete[] pFileVersionBuffer;
+        return S_OK;
+      }
+    }
+
+    delete[] pFileVersionBuffer;
+  }
+
+  return E_FAIL;
 }
 
 
@@ -1716,11 +1745,11 @@ GR::Graphic::ImageData Win::Util::CreateImageFromHDIB( HGLOBAL hmem )
 
             if ( iHeight < 0 )
             {
-              (WORD)*( (WORD*)ImageData.Data() + i + j * iWidth ) = wDummy;
+              *( (WORD*)ImageData.Data() + i + j * iWidth ) = wDummy;
             }
             else
             {
-              (WORD)*( (WORD*)ImageData.Data() + i + abs( iHeight - j - 1 ) * iWidth ) = wDummy;
+              *( (WORD*)ImageData.Data() + i + abs( iHeight - j - 1 ) * iWidth ) = wDummy;
             }
           }
         }

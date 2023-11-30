@@ -66,9 +66,9 @@ template <typename T> class MFGameStateManager : public IGameStateManager<T>
 
     bool                      ProcessEvent( const GUI::OutputEvent& Event )
     {
-      if ( !m_listGameStateStack.empty() )
+      if ( !m_GameStateStack.empty() )
       {
-        MFGameState<T>*   pState = (MFGameState<T>*)m_listGameStateStack.back();
+        MFGameState<T>*   pState = (MFGameState<T>*)m_GameStateStack.back();
         pState->ProcessEvent( Event );
       }
       return true;
@@ -89,7 +89,7 @@ template <typename T> class MFGameStateManager : public IGameStateManager<T>
 
     virtual void              PushState( IGameState<T>* pNewState )
     {
-      m_listGameStateStack.push_back( pNewState );
+      m_GameStateStack.push_back( pNewState );
       if ( m_pEventProducer )
       {
         m_pEventProducer->AddListener( (MFGameState<T>*)pNewState );
@@ -134,11 +134,11 @@ template <typename T> class MFGameStateManager : public IGameStateManager<T>
 
     void DoPopState()
     {
-      if ( !m_listGameStateStack.empty() )
+      if ( !m_GameStateStack.empty() )
       {
-        MFGameState<T>* pOldState = (MFGameState<T>*)m_listGameStateStack.back();
+        MFGameState<T>* pOldState = (MFGameState<T>*)m_GameStateStack.back();
 
-        m_listGameStateStack.pop_back();
+        m_GameStateStack.pop_back();
 
         pOldState->Exit();
         if ( m_pEventProducer )
@@ -148,12 +148,12 @@ template <typename T> class MFGameStateManager : public IGameStateManager<T>
 
         delete pOldState;
       }
-      if ( !m_listGameStateStack.empty() )
+      if ( !m_GameStateStack.empty() )
       {
         if ( m_ChangingState == 0 )
         {
           // only resume previous state when we're not changing states
-          MFGameState<T>* pCurrentState = (MFGameState<T>*)m_listGameStateStack.back();
+          MFGameState<T>* pCurrentState = (MFGameState<T>*)m_GameStateStack.back();
           pCurrentState->OnResume();
         }
       }

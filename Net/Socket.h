@@ -35,7 +35,7 @@ class CSocket
       ST_SOCKET_DATA_AVAILABLE,
     };
 
-    static std::map<SOCKET,CSocket*>                CSocket::m_mapSocketToClass;
+    static std::map<SOCKET,CSocket*>                m_mapSocketToClass;
 
 
     sockaddr_in         m_SocketAddress;

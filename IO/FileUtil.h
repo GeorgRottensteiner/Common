@@ -37,9 +37,9 @@ namespace GR
       bool FileExists( const GR::String& Filename );
       bool DirectoryExists( const GR::String& Dirname );
 #else
-      bool FileExists( const GR::Char* Filename );
+      bool FileExists( const GR::String& Filename );
 #endif // TANDEM_OSS
-#elif ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB )
+#elif ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB ) || ( OPERATING_SYSTEM == OS_LINUX )
       bool FileExists( const GR::String& Filename );
       bool DirectoryExists( const GR::String& Dirname );
 #endif // OS_ANDROID

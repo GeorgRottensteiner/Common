@@ -104,8 +104,8 @@ class HighScore
     void                Clear();
     bool                Initialise( GR::u32 Entries, size_t ItemDataLength = 0, bool HigherScoreUp = true );
 
-    bool                Load( const GR::Char* FileName );
-    void                Save( const GR::Char* FileName );
+    bool                Load( const GR::String& FileName );
+    void                Save( const GR::String& FileName );
 
     // returns true if the score would add a new entry
     bool                CouldEnter( int Score );

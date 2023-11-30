@@ -14,6 +14,10 @@
 #include <cextdecs.h>
 #endif
 
+#if OPERATING_SYSTEM == OS_LINUX
+#include <cstdarg>
+#include <unistd.h>
+#endif
 
 #include <stdio.h>
 
@@ -55,7 +59,7 @@ GR::String CMisc::AppPath( const GR::WChar* formatstr, ... )
   storedAppPath = GR_APP_ALTERNATIVE_APP_PATH;
 #else
 
-#if ( OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP ) || ( ( OPERATING_SUB_SYSTEM == OS_SUB_SDL ) && ( OPERATING_SYSTEM == OS_WINDOWS ) )
+#if ( OPERATING_SYSTEM != OS_LINUX ) && ( ( OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP ) || ( ( OPERATING_SUB_SYSTEM == OS_SUB_SDL ) && ( OPERATING_SYSTEM == OS_WINDOWS ) ) )
   GR::WChar          tempBuffer[65536];
   GetModuleFileNameW( NULL, tempBuffer, 65536 );
   while ( tempBuffer[wcslen( tempBuffer ) - 1] != '\\' )
@@ -202,7 +206,7 @@ GR::String CMisc::AppPath( const GR::Char* formatstr, ... )
 #ifdef GR_APP_ALTERNATIVE_APP_PATH
   storedAppPath = GR_APP_ALTERNATIVE_APP_PATH;
 #else
-#if ( OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP ) || ( ( OPERATING_SUB_SYSTEM == OS_SUB_SDL ) && ( OPERATING_SYSTEM == OS_WINDOWS ) )
+#if ( OPERATING_SYSTEM != OS_LINUX) && ( ( OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP ) || ( ( OPERATING_SUB_SYSTEM == OS_SUB_SDL ) && ( OPERATING_SYSTEM == OS_WINDOWS ) ) )
   GR::WChar            tempBuffer[65536];
   GetModuleFileNameW( NULL, tempBuffer, 65536 );
 
@@ -489,7 +493,7 @@ const GR::Char* CMisc::TimeStamp()
            today.Hour(),
            today.Minute(),
            today.Second(),
-           today.MicroSecond() * 1000 );
+           today.MicroSecond() / 1000 );
 #endif
 
   return buffer;

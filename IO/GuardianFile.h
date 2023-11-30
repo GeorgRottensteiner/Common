@@ -22,7 +22,7 @@ namespace GR
   namespace IO
   {
 
-    class GuardianFile : public IIOStream
+    class GuardianFile : public IIOStreamBase
     {
 
       protected:
@@ -43,6 +43,8 @@ namespace GR
         virtual ~GuardianFile();
 
         virtual bool              IsGood();
+
+        virtual bool              DataAvailable();
 
         virtual bool              Open( const GR::Char* szFileName, IIOStream::OpenType = OT_DEFAULT );
 

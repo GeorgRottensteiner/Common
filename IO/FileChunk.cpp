@@ -107,6 +107,13 @@ namespace GR
 
 
 
+    bool FileChunk::DataAvailable()
+    {
+      return m_ReadPos < Size();
+    }
+
+
+
     unsigned long FileChunk::ReadBlock( void* pData, std::size_t NumBytes )
     {
       if ( m_ReadPos >= Size() )

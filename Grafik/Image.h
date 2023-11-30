@@ -41,7 +41,7 @@ namespace GR
         IMAGE_WITH_COMPRESSION_LIST   = 5,
         IMAGE_WITH_PALETTE            = 6,
         IMAGE_WITH_COMPRESSION_LIST_AND_PALETTE = 7,
-        ANIMATION_EXTENDED            = 8   // with delay and type
+        ANIMATION_EXTENDED            = 8            // with delay and type
       };
     }
 
@@ -204,7 +204,7 @@ namespace GR
         ImageData* CreateImageData();
 
         // Lädt ein Image aus der angegebenen Datei ein
-        bool Load( const GR::Char* FileName );
+        bool Load( const GR::String& FileName );
 
         // Lädt ein Image der angegebenen Tiefe von der aktuellen Position der angegebenen Datei
         bool LoadAt( IIOStream& Stream, const unsigned char Bpp );
@@ -213,16 +213,16 @@ namespace GR
         bool Load( IIOStream& Stream );
 
         // Lädt ein BTN/BTH/BTX der angegebenen Tiefe aus der angegebenen Datei
-        bool LoadBTN( const GR::Char* FileName, const unsigned char Bpp );
+        bool LoadBTN( const GR::String& FileName, const unsigned char Bpp );
 
         // Lädt ein BTN/BTH/BTX der angegebenen Tiefe aus der aktuellen Position der angegebenen Datei
         bool LoadBTNAt( IIOStream& Stream, const unsigned char Bpp );
 
         // Lädt ein TGA beliebiger Tiefe aus der angegebenen Datei
-        bool LoadTGA( const GR::Char* FileName );
+        bool LoadTGA( const GR::String& FileName );
 
         // Speichert das Image in die angegebene Datei
-        bool Save( const GR::Char* FileName, const bool SaveWithCompressList = false, GR::Graphic::Palette* pPal = NULL ) const ;
+        bool Save( const GR::String& FileName, const bool SaveWithCompressList = false, GR::Graphic::Palette* pPal = NULL ) const ;
 
         // Speichert das Image an die aktuelle Position der Datei
         bool SaveAt( IIOStream& Stream ) const;

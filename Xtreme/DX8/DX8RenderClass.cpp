@@ -21,7 +21,7 @@
 
 #include <IO/FileStream.h>
 
-#include ".\dx8renderclass.h"
+#include "DX8RenderClass.h"
 #include "DX8Texture.h"
 #include "DX8VertexBuffer.h"
 

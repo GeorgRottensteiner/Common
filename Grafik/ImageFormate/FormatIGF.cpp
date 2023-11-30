@@ -42,9 +42,9 @@ namespace GR
            // &&   ( bType != IGF_TYPE_ANIMATION )   // da hier nur Grafiken eingeladen werden sollen,
            // &&   ( bType != IGF_TYPE_FONT )        // macht es keinen Sinn, diese Formate als erkannt
            // &&   ( bType != IGF_TYPE_PALETTE )     // gelten zu lassen
-           || ( bType == GR::Graphic::IGFType::IMAGE_WITH_COMPRESSION_LIST )
-           || ( bType == GR::Graphic::IGFType::IMAGE_WITH_PALETTE )
-           || ( bType == GR::Graphic::IGFType::IMAGE_WITH_COMPRESSION_LIST_AND_PALETTE ) )
+      ||   ( bType == GR::Graphic::IGFType::IMAGE_WITH_COMPRESSION_LIST )
+      ||   ( bType == GR::Graphic::IGFType::IMAGE_WITH_PALETTE )
+      ||   ( bType == GR::Graphic::IGFType::IMAGE_WITH_COMPRESSION_LIST_AND_PALETTE ) )
       {
         return true;
       }

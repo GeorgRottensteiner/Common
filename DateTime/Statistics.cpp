@@ -6,6 +6,8 @@
 
 #include <debug/debugclient.h>
 
+#undef max
+
 
 
 namespace GR
@@ -86,7 +88,7 @@ namespace GR
       std::map<GR::String,tStatsEntry>::const_iterator    it( m_StatInfos.begin() );
       while ( it != m_StatInfos.end() )
       {
-        const tStatsEntry& timeInfo( it->second );
+        //const tStatsEntry& timeInfo( it->second );
   
         dh::Log( "Timer %s:", it->first.c_str() );
         /*
@@ -123,7 +125,11 @@ namespace GR
         {
           char      temp[500];
           
-          sprintf_s( temp, "called %lld times, avg. %.6f sec, min. %.6f sec, max. %.6f sec", timeInfo.NumTimed, timeInfo.SumTimes / (GR::f32)timeInfo.NumTimed, timeInfo.Minimum, timeInfo.Maximum );
+#if OPERATING_SYSTEM == OS_WINDOWS
+          sprintf_s( temp, "called %llu times, avg. %.6f sec, min. %.6f sec, max. %.6f sec", timeInfo.NumTimed, timeInfo.SumTimes / (GR::f32)timeInfo.NumTimed, timeInfo.Minimum, timeInfo.Maximum );
+#else
+          sprintf( temp, "called %lu times, avg. %.6f sec, min. %.6f sec, max. %.6f sec", timeInfo.NumTimed, timeInfo.SumTimes / (GR::f32)timeInfo.NumTimed, timeInfo.Minimum, timeInfo.Maximum );
+#endif
           timerInfo += temp;
         }
         result += timerInfo + "\n";
@@ -211,7 +217,7 @@ namespace GR
        if ( entry.Type == StatsType::ST_COUNTER )
        {
          // Update the counter
-         if ( entry.Count <= ULONG_MAX - Increment )
+         if ( entry.Count <= std::numeric_limits<GR::u64>::max() - Increment )
          {
            entry.Count += Increment;
          }
@@ -408,7 +414,7 @@ namespace GR
      }
 
      // Check if we did not hit the ceiling
-     if ( Entry.Count < ULONG_MAX )
+     if ( Entry.Count < std::numeric_limits<GR::u64>::max() )
      {
        Entry.TopTenMaxTimes.insert( std::pair<GR::f64,GR::f64>( diff, StopTime ) );
        if ( Entry.TopTenMaxTimes.size() > 10 )
@@ -452,7 +458,7 @@ namespace GR
      }
 
      // Check if we did not hit the ceiling
-     if ( Entry.Count < ULONG_MAX )
+     if ( Entry.Count < std::numeric_limits<GR::u64>::max() )
      {
        if ( Entry.Maximum < Value )
        {

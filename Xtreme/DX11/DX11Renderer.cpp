@@ -295,9 +295,11 @@ bool DX11Renderer::Initialize( GR::u32 Width,
   m_DisplayOffset.clear();
 
 #if OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP
-  RECT      windowRect;
-  GetWindowRect( m_hwndViewport, &windowRect );
-  m_WindowedPlacement.set( windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top );
+  //RECT      windowRect;
+  //GetWindowRect( m_hwndViewport, &windowRect );
+  //m_WindowedPlacement.set( windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top );
+  m_WindowedPlacement.length = sizeof( WINDOWPLACEMENT );
+  GetWindowPlacement( m_hwndViewport, &m_WindowedPlacement );
 #endif
 
   //pDC->QueryInterface( __uuidof( ID3D11DeviceContext3 ), (void**)&m_pDeviceContext );
@@ -697,17 +699,18 @@ BOOL DX11Renderer::WindowProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
       if ( !wParam )
       {
         // we're being deactivated
-        //dh::Log( "I'm being deactivated" );
+        //dh::Log( "I'm being app deactivated" );
         if ( ( !m_TogglingFullScreen )
         &&   ( IsFullscreen() ) )
         {
           // switch off fullscreen
+          //dh::Log( "-turning off fullscreen due to WM_ACTIVATEAPP" );
           ToggleFullscreen();
         }
       }
       else
       {
-        //dh::Log( "I'm being activated" );
+        //dh::Log( "I'm being app activated" );
       }
       break;
   }
@@ -1519,7 +1522,8 @@ bool DX11Renderer::CreateSwapChain()
 
 #if OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP
   //result = pIDXGIFactory->MakeWindowAssociation( m_hwndViewport, DXGI_MWA_NO_ALT_ENTER );
-  result = pIDXGIFactory->MakeWindowAssociation( m_hwndViewport, DXGI_MWA_NO_WINDOW_CHANGES | DXGI_MWA_NO_ALT_ENTER | DXGI_MWA_NO_PRINT_SCREEN );
+  //result = pIDXGIFactory->MakeWindowAssociation( m_hwndViewport, DXGI_MWA_NO_WINDOW_CHANGES | DXGI_MWA_NO_ALT_ENTER | DXGI_MWA_NO_PRINT_SCREEN );
+  result = pIDXGIFactory->MakeWindowAssociation( m_hwndViewport, DXGI_MWA_NO_ALT_ENTER | DXGI_MWA_NO_PRINT_SCREEN );
   if ( FAILED( result ) )
   {
     pIDXGIFactory->Release();
@@ -1664,11 +1668,12 @@ bool DX11Renderer::ToggleFullscreen()
   if ( !fullScreen )
   {
 #if OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP
-    RECT      windowRect;
-    GetWindowRect( m_hwndViewport, &windowRect );
+    //RECT      windowRect;
+    //GetWindowRect( m_hwndViewport, &windowRect );
+    //m_WindowedPlacement.set( windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top );
 
-    m_WindowedPlacement.set( windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top );
-
+    m_WindowedPlacement.length = sizeof( WINDOWPLACEMENT );
+    GetWindowPlacement( m_hwndViewport, &m_WindowedPlacement );
     //dh::Log( "Store m_WindowedPlacement as %d,%d %dx%d", windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top );
 #endif
   }
@@ -1703,7 +1708,8 @@ bool DX11Renderer::ToggleFullscreen()
     // restore window placement
 #if OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP
     //dh::Log( "restore m_WindowedPlacement as %d,%d %dx%d", m_WindowedPlacement.Left, m_WindowedPlacement.Top, m_WindowedPlacement.width(), m_WindowedPlacement.height() );
-    SetWindowPos( m_hwndViewport, NULL, m_WindowedPlacement.Left, m_WindowedPlacement.Top, m_WindowedPlacement.width(), m_WindowedPlacement.height(), SWP_NOACTIVATE );
+    //SetWindowPos( m_hwndViewport, NULL, m_WindowedPlacement.Left, m_WindowedPlacement.Top, m_WindowedPlacement.width(), m_WindowedPlacement.height(), SWP_NOACTIVATE );
+    SetWindowPlacement( m_hwndViewport, &m_WindowedPlacement );
 
     //RecreateBuffers();
 
@@ -1786,6 +1792,20 @@ bool DX11Renderer::SetMode( XRendererDisplayMode& DisplayMode )
     // still try?
     m_Width = DisplayMode.Width;
     m_Height = DisplayMode.Height;
+
+    if ( DisplayMode.FullScreen )
+    {
+      DXGI_MODE_DESC      modeDesc;
+      modeDesc.Width = m_Width;
+      modeDesc.Height = m_Height;
+      modeDesc.Format = DXGI_FORMAT_UNKNOWN;
+      modeDesc.RefreshRate.Denominator = 0;
+      modeDesc.RefreshRate.Numerator = 0;
+      modeDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+      modeDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+
+      m_pSwapChain->ResizeTarget( &modeDesc );
+    }
 
     return OnResized();
     //return RecreateBuffers();

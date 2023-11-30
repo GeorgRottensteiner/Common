@@ -21,30 +21,34 @@ void GUIHottip::DisplayOnPage( GR::Graphic::GFXPage* pPage )
   GR::Graphic::ContextDescriptor      cdPage( pPage );
 
   cdPage.AlphaBox( 0, 0, m_ClientRect.size().x, m_ClientRect.size().y, 0xffffff, 192 );
-  pPage->Rectangle( 0, 0, m_ClientRect.size().x - 1, m_ClientRect.size().y - 1,
-              0 );
+  pPage->Rectangle( 0, 0, m_ClientRect.size().x - 1, m_ClientRect.size().y - 1, 0 );
 
   std::vector<GR::String>    vectText;
 
-  GR::tRect   rcClient;
+  GR::tRect   rcClientOrig;
 
-  GetClientRect( rcClient );
+  GetClientRect( rcClientOrig );
+
+  GR::tRect   rcClient( rcClientOrig );
 
   GR::Strings::WrapText( m_pFont, m_Caption, rcClient, vectText );
 
   rcClient.offset( 0, 2 );
 
+  rcClient.Left = rcClientOrig.Left;
+  rcClient.Right = rcClientOrig.Right;
+
   std::vector<GR::String>::iterator    it( vectText.begin() );
   while ( it != vectText.end() )
   {
     rcClient.Bottom = rcClient.Top + m_pFont->TextHeight( it->c_str() ) + 2;
+
     DrawText( pPage, it->c_str(), rcClient );
 
     rcClient.offset( 0, m_pFont->TextHeight( it->c_str() ) );
 
     ++it;
   }
-
 }
 
 

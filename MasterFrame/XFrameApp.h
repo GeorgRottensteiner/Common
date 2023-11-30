@@ -1,5 +1,4 @@
-#ifndef INCLUDE_CGAMEAPP_H__
-#define INCLUDE_CGAMEAPP_H__
+#pragma once
 
 
 
@@ -75,11 +74,12 @@ class XFrameApp : public Console,
 
     XFont*                m_pConsoleFont;
 
-    GR::tPoint            m_ptMouseHotSpot;
+    GR::tPoint            m_MouseHotSpot;
 
-    GR::tRect             m_rcClipRect;
+    GR::tRect             m_ClipRect;
 
-    bool                  m_ConsoleVisible;
+    bool                  m_ConsoleVisible,
+                          m_KeepMouseInsideDuringFullscreen;
 
     XRenderer*            m_pRenderClass;
 
@@ -136,6 +136,7 @@ class XFrameApp : public Console,
 #endif
 
     void                  ClipCursor( const GR::tRect& rcClipRect = GR::tRect() );
+    void                  ApplyClipCursor( const GR::tRect& ClipRect );
 
     bool                  SwitchRenderer( const char* szFileName = NULL );
     XRenderer*            Renderer();
@@ -149,6 +150,7 @@ class XFrameApp : public Console,
 
     void                  ToggleConsole();
     void                  ToggleFullscreen();
+    void                  KeepMouseInsideDuringFullscreen( bool KeepInside );
     void                  DetermineBestFullscreenMatch( XRendererDisplayMode& Mode );
 
     bool                  ConsoleVisible() const;
@@ -157,16 +159,16 @@ class XFrameApp : public Console,
 
     void                  ResetFrameTime();
 
-    XTextureSection       Section( const GR::String& strName );
-    XTexture*             Texture( const GR::String& strName );
-    GR::u32               Sound( const GR::String& strName );
-    XFont*                Font( const GR::String& strName );
-    XVertexBuffer*        VertexBuffer( const GR::String& strName );
-    XMesh*                Mesh( const GR::String& strName );
-    XBoundingBox          MeshBounds( const GR::String& strName );
-    CSpline               Spline( const GR::String& strName );
-    IAnimationManager<GR::String>::tAnimType Animation( const GR::String& strName );
-    tAnimationPos         AnimationPos( const GR::String& strName );
+    XTextureSection       Section( const GR::String& Name );
+    XTexture*             Texture( const GR::String& Name );
+    GR::u32               Sound( const GR::String& Name );
+    XFont*                Font( const GR::String& Name );
+    XVertexBuffer*        VertexBuffer( const GR::String& Name );
+    XMesh*                Mesh( const GR::String& Name );
+    XBoundingBox          MeshBounds( const GR::String& Name );
+    CSpline               Spline( const GR::String& Name );
+    IAnimationManager<GR::String>::tAnimType Animation( const GR::String& Name );
+    tAnimationPos         AnimationPos( const GR::String& Name );
     XTextureSection       AnimationFrame( const tAnimationPos& AnimPos );
 
     XTextureSection       Tile( const GR::String& Tileset, const int TileIndex );
@@ -206,7 +208,6 @@ class XFrameApp : public Console,
 
 
 
-#endif //INCLUDE_CGAMEAPP_H__
 
 
 

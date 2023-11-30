@@ -63,11 +63,11 @@ namespace GR
 
       void              Reset();
 
-      bool              Load( const GR::Char* FileName );
+      bool              Load( const GR::String& FileName );
 
-      bool              Save( const GR::Char* FileName );
+      bool              Save( const GR::String& FileName );
 
-      bool              LoadFNT( const GR::Char* FileName, unsigned char Bpp, GR::u32 Transparent = 0 );
+      bool              LoadFNT( const GR::String& FileName, unsigned char Bpp, GR::u32 Transparent = 0 );
 
       bool              LoadFNT( IIOStream& Stream, unsigned char Bpp );
 
@@ -79,7 +79,7 @@ namespace GR
       virtual int       TextLength( const GR::Char* ) const;
       virtual int       TextLength( const GR::String& ) const;
 
-      virtual int       TextHeight( const GR::Char* = NULL ) const;  // "" gibt die Standardhöhe
+      virtual int       TextHeight( const GR::String& = GR::String() ) const;  // "" gibt die Standardhöhe
 
       virtual int       FontSpacing();
 

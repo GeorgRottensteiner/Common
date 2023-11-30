@@ -35,246 +35,254 @@ namespace GR
   namespace IO
   {
 
-class FileStream : public IIOStream
-{
-
-  protected:
-
-    size_t                    m_CacheSize;
-
-
-    int                       m_LastError;
-
-
-  public:
-
-
-    FileStream();
-
-    FileStream( const GR::Char* FileName, IIOStream::OpenType oType = OT_DEFAULT );
-
-    FileStream( const GR::String& FileName, IIOStream::OpenType oType = OT_DEFAULT );
-
-    virtual ~FileStream();
-
-    virtual bool              IsGood();
-
-    virtual bool              Open( const GR::Char* FileName, IIOStream::OpenType = OT_DEFAULT );
-
-    virtual bool              Open( const GR::String& FileName, IIOStream::OpenType = OT_DEFAULT );
-
-
-#if OPERATING_SUB_SYSTEM == OS_SUB_GUARDIAN
-    bool                      OpenTandem( IIOStream::OpenType OType,
-                                          const char* Filename,
-                                          short FileCode,
-                                          short PrimaryExtentSize,
-                                          short SecondaryExtentSize,
-                                          short MaximumExtents,
-                                          short FileType,
-                                          short Options,
-                                          short RecordLen,
-                                          short BlockLen,
-                                          short KeyLen,
-                                          short KeyOffset,
-                                          bool Buffered );
-
-    short                     GetFileError() const;
-
-    short                     GetFileCode();
-    short                     GetFileType();
-
-    virtual bool              ReadLine( GR::String& Result );
-    virtual bool              ReadLine( GR::WString& Result );
-    virtual bool              ReadLine( char* pTarget, unsigned long MaxReadLength );
-
-#endif
-
-    virtual GR::i32           LastError() const;
-
-    virtual void              Close();
-
-    virtual bool              Flush();
-
-    void                      SetCacheSize( size_t Size );
-
-#if OPERATING_SYSTEM == OS_WINDOWS
-    virtual HANDLE            GetHandle();
-#elif OPERATING_SYSTEM == OS_ANDROID
-    virtual AAsset*           GetHandle();
-#elif OPERATING_SUB_SYSTEM == OS_SUB_GUARDIAN
-    virtual short             GetHandle();
-#else
-    virtual FILE*             GetHandle();
-#endif
-
-    virtual GR::u64           GetSize();
-
-    virtual unsigned long     ReadBlock( void* pTarget, size_t CountBytes );
-
-    virtual unsigned long     WriteBlock( const void* pSource, size_t CountBytes );
-
-    virtual unsigned long     SetPosition( GR::i64 Offset, PositionType = PT_SET );
-
-    virtual GR::u64           GetPosition();
-
-
-  private:
-
-    bool                    ReadToBuffer( void* pTarget, unsigned long BytesToRead, unsigned long& BytesRead );
-
-    class FileStreamImpl : public GR::CRefCountObject
+    class FileStream : public IIOStreamBase
     {
+
+      protected:
+
+        int                       m_LastError;
+    
+        size_t                    m_CacheSize;
+
+
+
 
       public:
 
-        ByteBuffer        m_Cache;
 
-        GR::i64           m_CacheBytesUsed;
-        GR::i64           m_FilePosAfterCache;
-        GR::i64           m_PseudoFilePos;
+        FileStream();
 
-        #if OPERATING_SYSTEM == OS_WINDOWS
-        HANDLE            m_Handle;
+        FileStream( const GR::Char* FileName, IIOStream::OpenType oType = OT_DEFAULT );
 
-        FileStreamImpl( HANDLE hFile ) :
-          m_FilePosAfterCache( 0 ),
-          m_CacheBytesUsed( 0 ),
-          m_PseudoFilePos( 0 )
+        FileStream( const GR::String& FileName, IIOStream::OpenType oType = OT_DEFAULT );
+
+        virtual bool              IsGood();
+
+        virtual bool              Open( const GR::Char* FileName, IIOStream::OpenType = OT_DEFAULT );
+
+        virtual bool              Open( const GR::String& FileName, IIOStream::OpenType = OT_DEFAULT );
+
+
+#if OPERATING_SUB_SYSTEM == OS_SUB_GUARDIAN
+        bool                      OpenTandem( IIOStream::OpenType OType,
+                                              const char* Filename,
+                                              short FileCode,
+                                              short PrimaryExtentSize,
+                                              short SecondaryExtentSize,
+                                              short MaximumExtents,
+                                              short FileType,
+                                              short Options,
+                                              short RecordLen,
+                                              short BlockLen,
+                                              short KeyLen,
+                                              short KeyOffset,
+                                              bool Buffered );
+
+        short                     GetFileError() const;
+
+        short                     GetFileCode();
+        short                     GetFileType();
+
+        virtual bool              ReadLine( GR::String& Result );
+        virtual bool              ReadLine( GR::WString& Result );
+        virtual bool              ReadLine( char* pTarget, unsigned long MaxReadLength );
+
+#endif
+
+        virtual GR::i32           LastError() const;
+
+        virtual void              Close();
+
+        virtual bool              Flush();
+
+        void                      SetCacheSize( size_t Size );
+
+#if OPERATING_SYSTEM == OS_WINDOWS
+        virtual HANDLE            GetHandle();
+#elif OPERATING_SYSTEM == OS_ANDROID
+        virtual AAsset*           GetHandle();
+#elif OPERATING_SUB_SYSTEM == OS_SUB_GUARDIAN
+        virtual short             GetHandle();
+#else
+        virtual FILE*             GetHandle();
+#endif
+
+        virtual GR::u64           GetSize();
+
+        virtual unsigned long     ReadBlock( void* pTarget, size_t CountBytes );
+
+        virtual unsigned long     WriteBlock( const void* pSource, size_t CountBytes );
+
+        virtual unsigned long     SetPosition( GR::i64 Offset, PositionType = PT_SET );
+
+        virtual GR::u64           GetPosition();
+
+        virtual bool              DataAvailable();
+
+
+      private:
+
+        bool                    ReadToBuffer( void* pTarget, unsigned long BytesToRead, unsigned long& BytesRead );
+
+        class FileStreamImpl : public GR::CRefCountObject
         {
-          m_Handle = hFile;
-        }
 
-        void Close()
-        {
-          if ( m_Handle == INVALID_HANDLE_VALUE )
-          {
-            return;
-          }
+          public:
 
-          CloseHandle( m_Handle );
-          m_Handle = INVALID_HANDLE_VALUE;
-          m_Cache.Clear();
-          m_FilePosAfterCache = 0;
-          m_PseudoFilePos     = 0;
-        }
+            ByteBuffer        m_Cache;
 
-        #elif OPERATING_SYSTEM == OS_ANDROID
-        AAsset*           m_Handle;
+            GR::i64           m_CacheBytesUsed;
+            GR::i64           m_FilePosAfterCache;
+            GR::u64           m_PseudoFilePos;
+            GR::u64           m_CachedFileSize;
 
-        FileStreamImpl( AAsset* hFile ) :
-          m_CacheBytesUsed( 0 ),
-          m_FilePosAfterCache( 0 ),
-          m_PseudoFilePos( 0 )
-        {
-          m_Handle = hFile;
-        }
 
-        void Close()
-        {
-          if ( m_Handle == NULL )
-          {
-            return;
-          }
-          AAsset_close( m_Handle );
-          m_Handle = NULL;
-          m_Cache.Clear();
-          m_FilePosAfterCache = 0;
-          m_PseudoFilePos = 0;
-        }
 
-        #elif OPERATING_SUB_SYSTEM == OS_SUB_GUARDIAN
+            #if OPERATING_SYSTEM == OS_WINDOWS
+            HANDLE            m_Handle;
 
-        short         m_Handle;
+            FileStreamImpl( HANDLE hFile ) :
+              m_FilePosAfterCache( 0 ),
+              m_CacheBytesUsed( 0 ),
+              m_PseudoFilePos( 0 ),
+              m_CachedFileSize( (GR::u64)-1 )
+            {
+              m_Handle = hFile;
+            }
 
-        bool          m_EditFileOpened;
-        bool          m_LFNeedsToBeAdded;
+            void Close()
+            {
+              if ( m_Handle == INVALID_HANDLE_VALUE )
+              {
+                return;
+              }
 
-        FileStreamImpl( short hFile ) :
-          m_FilePosAfterCache( 0 ),
-          m_CacheBytesUsed( 0 ),
-          m_PseudoFilePos( 0 ),
-          m_EditFileOpened( false ),
-          m_LFNeedsToBeAdded( false )
-        {
-          m_Handle = hFile;
-        }
+              CloseHandle( m_Handle );
+              m_Handle = INVALID_HANDLE_VALUE;
+              m_Cache.Clear();
+              m_FilePosAfterCache = 0;
+              m_PseudoFilePos     = 0;
+            }
 
-        void Close()
-        {
-          if ( m_Handle < 0 )
-          {
-            return;
-          }
-          if ( m_EditFileOpened )
-          {
-            CLOSEEDIT_( m_Handle );
-          }
-          else
-          {
-            FILE_CLOSE_( m_Handle );
-          }
-          m_Handle = -1;
-          m_Cache.Clear();
-          m_FilePosAfterCache = 0;
-          m_PseudoFilePos     = 0;
-          m_EditFileOpened    = false;
-        }
+            #elif OPERATING_SYSTEM == OS_ANDROID
+            AAsset*           m_Handle;
 
-        #else
+            FileStreamImpl( AAsset* hFile ) :
+              m_CacheBytesUsed( 0 ),
+              m_FilePosAfterCache( 0 ),
+              m_PseudoFilePos( 0 ),
+              m_CachedFileSize( (GR::u64)-1 )
+            {
+              m_Handle = hFile;
+            }
 
-        FILE*             m_Handle;
+            void Close()
+            {
+              if ( m_Handle == NULL )
+              {
+                return;
+              }
+              AAsset_close( m_Handle );
+              m_Handle = NULL;
+              m_Cache.Clear();
+              m_FilePosAfterCache = 0;
+              m_PseudoFilePos = 0;
+            }
 
-        FileStreamImpl( FILE* hFile ) :
-          m_CacheBytesUsed( 0 ),
-          m_FilePosAfterCache( 0 ),
-          m_PseudoFilePos( 0 )
-        {
-          m_Handle = hFile;
-        }
+            #elif OPERATING_SUB_SYSTEM == OS_SUB_GUARDIAN
 
-        void Close()
-        {
-          if ( m_Handle == NULL )
-          {
-            return;
-          }
+            short         m_Handle;
 
-          fclose( m_Handle );
-          m_Handle = NULL;
-          m_Cache.Clear();
-          m_FilePosAfterCache = 0;
-          m_PseudoFilePos     = 0;
+            bool          m_EditFileOpened;
+            bool          m_LFNeedsToBeAdded;
+
+            FileStreamImpl( short hFile ) :
+              m_FilePosAfterCache( 0 ),
+              m_CacheBytesUsed( 0 ),
+              m_PseudoFilePos( 0 ),
+              m_EditFileOpened( false ),
+              m_LFNeedsToBeAdded( false ),
+              m_CachedFileSize( (GR::u64)-1 )
+            {
+              m_Handle = hFile;
+            }
+
+            void Close()
+            {
+              if ( m_Handle < 0 )
+              {
+                return;
+              }
+              if ( m_EditFileOpened )
+              {
+                CLOSEEDIT_( m_Handle );
+              }
+              else
+              {
+                FILE_CLOSE_( m_Handle );
+              }
+              m_Handle = -1;
+              m_Cache.Clear();
+              m_FilePosAfterCache = 0;
+              m_PseudoFilePos     = 0;
+              m_EditFileOpened    = false;
+            }
+
+            #else
+
+            FILE*             m_Handle;
+
+            FileStreamImpl( FILE* hFile ) :
+              m_CacheBytesUsed( 0 ),
+              m_FilePosAfterCache( 0 ),
+              m_PseudoFilePos( 0 ),
+              m_CachedFileSize( (GR::u64)-1 )
+            {
+              m_Handle = hFile;
+            }
+
+            void Close()
+            {
+              if ( m_Handle == NULL )
+              {
+                return;
+              }
+
+              fclose( m_Handle );
+              m_Handle = NULL;
+              m_Cache.Clear();
+              m_FilePosAfterCache = 0;
+              m_PseudoFilePos     = 0;
 
 #if OPERATING_SYSTEM == OS_WEB
-          //if ( ( m_OpenType == IIOStream::OT_WRITE_ONLY )
-          //||   ( m_OpenType == IIOStream::OT_READ_WRITE )
-          //||   ( m_OpenType == IIOStream::OT_WRITE_APPEND ) )
-          {
-            MAIN_THREAD_EM_ASM(
-              FS.syncfs( false, function( err )
+              //if ( ( m_OpenType == IIOStream::OT_WRITE_ONLY )
+              //||   ( m_OpenType == IIOStream::OT_READ_WRITE )
+              //||   ( m_OpenType == IIOStream::OT_WRITE_APPEND ) )
               {
-                //if ( err ) throw err;
-                // handle callback
-              } );
-            );
-          }
+                MAIN_THREAD_EM_ASM(
+                  FS.syncfs( false, function( err )
+                  {
+                    //if ( err ) throw err;
+                    // handle callback
+                  } );
+                );
+              }
 #endif
-        }
-        #endif
+            }
+            #endif
 
 
-        ~FileStreamImpl()
-        {
-          Close();
-        }
+            ~FileStreamImpl()
+            {
+              Close();
+            }
 
+
+        };
+
+        ISmartPointer<FileStreamImpl>     m_Impl;
 
     };
-
-    ISmartPointer<FileStreamImpl>     m_Impl;
-
-};
 
 
   }

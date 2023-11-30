@@ -13,9 +13,9 @@ namespace GUI
   ComponentDisplayerBase* ComponentDisplayerBase::s_pInstance = NULL;
 
 
-  void WrapText( Interface::IFont* pFont, const GR::String& strText, GR::tRect& rectText, std::vector<GR::String>& vectText, bool bCalcRect )
+  void WrapText( Interface::IFont* pFont, const GR::String& Text, GR::tRect& TextArea, std::vector<GR::String>& TextLines, bool CalcRect )
   {
-    vectText.clear();
+    TextLines.clear();
 
     if ( pFont == NULL )
     {
@@ -23,9 +23,9 @@ namespace GUI
     }
 
     // jetzt Text schnippeln
-    GR::String   strDummy = strText;
+    GR::String    strDummy = Text;
 
-    GR::String   strNewLine;
+    GR::String    strNewLine;
 
     int           iPos = -1;
 
@@ -38,8 +38,8 @@ namespace GUI
       ++iPos;
       if ( iPos >= (int)strDummy.length() )
       {
-        vectText.push_back( strDummy );
-        if ( bCalcRect )
+        TextLines.push_back( strDummy );
+        if ( CalcRect )
         {
           int   iPixelLength = pFont->TextLength( strDummy.c_str() );
           if ( iPixelLength > rcResult.width() )
@@ -54,7 +54,7 @@ namespace GUI
         if ( strDummy[iPos] == 10 )
         {
           // Linebreak
-          vectText.push_back( strDummy.substr( 0, iPos ) );
+          TextLines.push_back( strDummy.substr( 0, iPos ) );
           strDummy = strDummy.substr( iPos + 1 );
           iPos = -1;
           continue;
@@ -68,7 +68,7 @@ namespace GUI
       &&   ( iPos < (int)strDummy.length() )
       &&   ( strDummy[iPos + 1] == 'n' ) )
       {
-        if ( bCalcRect )
+        if ( CalcRect )
         {
           int   iPixelLength = pFont->TextLength(  strDummy.substr( 0, iPos ).c_str() );
           if ( iPixelLength > rcResult.width() )
@@ -76,11 +76,11 @@ namespace GUI
             rcResult.width( iPixelLength );
           }
         }
-        vectText.push_back( strDummy.substr( 0, iPos ) );
+        TextLines.push_back( strDummy.substr( 0, iPos ) );
         strDummy = strDummy.substr( iPos + 2 );
         iPos = -1;
       }
-      else if ( pFont->TextLength( strDummy.substr( 0, iPos ).c_str() ) >= rectText.size().x )
+      else if ( pFont->TextLength( strDummy.substr( 0, iPos ).c_str() ) >= TextArea.size().x )
       {
         if ( strDummy[iPos] != '\n' )
         {
@@ -98,7 +98,7 @@ namespace GUI
           while ( strDummy[iNewPos] != ' ' );
           iPos = iNewPos;
         }
-        if ( bCalcRect )
+        if ( CalcRect )
         {
           int   iPixelLength = pFont->TextLength(  strDummy.substr( 0, iPos ).c_str() );
           if ( iPixelLength > rcResult.width() )
@@ -106,17 +106,17 @@ namespace GUI
             rcResult.width( iPixelLength );
           }
         }
-        vectText.push_back( strDummy.substr( 0, iPos ) );
+        TextLines.push_back( strDummy.substr( 0, iPos ) );
         strDummy = strDummy.substr( iPos + 1 );
         iPos = -1;
       }
     }
     while ( strDummy.length() );
 
-    if ( bCalcRect )
+    if ( CalcRect )
     {
-      rcResult.height( (int)vectText.size() * pFont->TextHeight() );
-      rectText = rcResult;
+      rcResult.height( (int)TextLines.size() * pFont->TextHeight() );
+      TextArea = rcResult;
     }
   }
 
@@ -606,23 +606,23 @@ namespace GUI
       
       
       
-  void ComponentDisplayerBase::GetStoredClipValues( int& iX, int& iY, int& iWidth, int& iHeight, int& iXOffset, int& iYOffset )
+  void ComponentDisplayerBase::GetStoredClipValues( int& X, int& Y, int& Width, int& Height, int& XOffset, int& YOffset )
   {
     if ( !m_ClipRects.empty() )
     {
       GR::tRect&    rectClipping = m_ClipRects.back();
 
-      iX      = rectClipping.Left;
-      iY      = rectClipping.Top;
-      iWidth  = rectClipping.width();
-      iHeight = rectClipping.height();
+      X      = rectClipping.Left;
+      Y      = rectClipping.Top;
+      Width  = rectClipping.width();
+      Height = rectClipping.height();
     }
     if ( !m_Offsets.empty() )
     {
-      GR::tPoint&   ptOffset = m_Offsets.back();
+      GR::tPoint&   offset = m_Offsets.back();
 
-      iXOffset = ptOffset.x;
-      iYOffset = ptOffset.y;
+      XOffset = offset.x;
+      YOffset = offset.y;
     }
   }
 
@@ -776,13 +776,37 @@ namespace GUI
 
     while ( true )
     {
-      pComponent->Update( m_ElapsedTimeSinceLastFrame );
-      if ( pComponent->IsVisible() )
+      Component* pNextComponent = NULL;
+      tListComponents::iterator   it( pParentComponent->m_Components.begin() );
+      while ( ( it != pParentComponent->m_Components.end() )
+      &&      ( *it != pComponent ) )
       {
-        DisplayComponentFull( pComponent, GR::tPoint( iXOffset, iYOffset ), GR::tRect( iX, iY, iWidth, iHeight ) );
+        ++it;
+      }
+      if ( it == pParentComponent->m_Components.end() )
+      {
+        break;
+      }
+      ++it;
+      if ( it != pParentComponent->m_Components.end() )
+      {
+        pNextComponent = *it;
+      }
+
+      // Hottips could be displayed twice because they shuffle the Z order during update
+      if ( m_AlreadyHandledComponentsThisFrame.find( pComponent ) == m_AlreadyHandledComponentsThisFrame.end() )
+      {
+        pComponent->Update( m_ElapsedTimeSinceLastFrame );
+        m_AlreadyHandledComponentsThisFrame.insert( pComponent );
+        if ( pComponent->IsVisible() )
+        {
+          DisplayComponentFull( pComponent, GR::tPoint( iXOffset, iYOffset ), GR::tRect( iX, iY, iWidth, iHeight ) );
+        }
       }
 
       // find next control (do not reuse iterator, list may have changed)
+      pComponent = pNextComponent;
+      /*
       tListComponents::iterator   it( pParentComponent->m_Components.begin() );
       while ( ( it != pParentComponent->m_Components.end() )
       &&      ( *it != pComponent ) )
@@ -798,7 +822,7 @@ namespace GUI
       {
         break;
       }
-      pComponent = *it;
+      pComponent = *it;*/
     }
 
     PopClipValues();
@@ -853,14 +877,14 @@ namespace GUI
 
 
 
-  void ComponentDisplayerBase::DisplayComponent( float fElapsedTime, Component* pRootComponent )
+  void ComponentDisplayerBase::DisplayComponent( float ElapsedTime, Component* pRootComponent )
   {
     if ( pRootComponent == NULL )
     {
       return;
     }
 
-    m_ElapsedTimeSinceLastFrame  = fElapsedTime;
+    m_ElapsedTimeSinceLastFrame  = ElapsedTime;
 
     tListComponents::iterator    it( pRootComponent->m_Components.begin() );
 
@@ -924,14 +948,14 @@ namespace GUI
 
 
 
-  void ComponentDisplayerBase::UpdateComponent( GUI::Component* pComponent, const float fElapsedTime )
+  void ComponentDisplayerBase::UpdateComponent( GUI::Component* pComponent, const float ElapsedTime )
   {
     if ( pComponent == NULL )
     {
       return;
     }
 
-    pComponent->Update( fElapsedTime );
+    pComponent->Update( ElapsedTime );
 
     size_t    curIndex = 0;
     size_t    curSize = pComponent->m_Components.size();
@@ -940,7 +964,7 @@ namespace GUI
     {
       GUI::Component* pChildComponent = pComponent->m_Components[curIndex];
 
-      UpdateComponent( pChildComponent, fElapsedTime );
+      UpdateComponent( pChildComponent, ElapsedTime );
 
       if ( curSize != pComponent->m_Components.size() )
       {
@@ -958,9 +982,9 @@ namespace GUI
 
 
 
-  void ComponentDisplayerBase::UpdateAllControls( const float fElapsedTime )
+  void ComponentDisplayerBase::UpdateAllControls( const float ElapsedTime )
   {
-    m_ElapsedTimeSinceLastFrame  = fElapsedTime;
+    m_ElapsedTimeSinceLastFrame  = ElapsedTime;
 
     size_t    curIndex = 0;
     size_t    curSize = m_Components.size();
@@ -969,7 +993,7 @@ namespace GUI
     {
       GUI::Component* pComponent = m_Components[curIndex];
 
-      UpdateComponent( pComponent, fElapsedTime );
+      UpdateComponent( pComponent, ElapsedTime );
       if ( curSize != m_Components.size() )
       {
         // do NOT inc current index, the next control might have been removed
@@ -992,6 +1016,7 @@ namespace GUI
     {
       return;
     }
+    m_AlreadyHandledComponentsThisFrame.clear();
 
     PushClipValues();
 
@@ -1008,46 +1033,49 @@ namespace GUI
 
     while ( true )
     {
-      pComponent->Update( m_ElapsedTimeSinceLastFrame );
-
-      if ( pComponent->IsVisible() )
+      if ( m_AlreadyHandledComponentsThisFrame.find( pComponent ) == m_AlreadyHandledComponentsThisFrame.end() )
       {
-        int     iXA = iXOffset + pComponent->Position().x,
-                iYA = iYOffset + pComponent->Position().y,
-                iXB = iXOffset + pComponent->Position().x + pComponent->Width(),
-                iYB = iYOffset + pComponent->Position().y + pComponent->Height();
-
-
-        SetClipping( iXA, iYA, pComponent->Width(), pComponent->Height() );
-        SetOffset( iXOffset + pComponent->Position().x,
-                    iYOffset + pComponent->Position().y );
-
-        if ( !m_NothingIsVisible )
+        pComponent->Update( m_ElapsedTimeSinceLastFrame );
+        m_AlreadyHandledComponentsThisFrame.insert( pComponent );
+        if ( pComponent->IsVisible() )
         {
-          pComponent->DisplayNonClient( this );
+          int     iXA = iXOffset + pComponent->Position().x,
+                  iYA = iYOffset + pComponent->Position().y,
+                  iXB = iXOffset + pComponent->Position().x + pComponent->Width(),
+                  iYB = iYOffset + pComponent->Position().y + pComponent->Height();
 
-          GR::tRect   rcClient;
 
-          pComponent->GetClientRect( rcClient );
+          SetClipping( iXA, iYA, pComponent->Width(), pComponent->Height() );
+          SetOffset( iXOffset + pComponent->Position().x,
+                      iYOffset + pComponent->Position().y );
 
-          GR::tPoint  ptClientOffset = pComponent->GetClientOffset();
-
-          iXA = iXOffset + pComponent->Position().x + ptClientOffset.x;
-          iYA = iYOffset + pComponent->Position().y + ptClientOffset.y;
-          iXB = iXA + rcClient.size().x;
-          iYB = iYA + rcClient.size().y;
-
-          if ( ( iXB - iXA > 0 )
-          &&   ( iYB - iYA > 0 )
-          &&   ( iXB > 0 )
-          &&   ( iYB > 0 ) )
+          if ( !m_NothingIsVisible )
           {
-            SetClipping( iXA, iYA, iXB - iXA, iYB - iYA );
-            SetOffset( iXA, iYA );
+            pComponent->DisplayNonClient( this );
 
-            if ( !m_NothingIsVisible )
+            GR::tRect   rcClient;
+
+            pComponent->GetClientRect( rcClient );
+
+            GR::tPoint  ptClientOffset = pComponent->GetClientOffset();
+
+            iXA = iXOffset + pComponent->Position().x + ptClientOffset.x;
+            iYA = iYOffset + pComponent->Position().y + ptClientOffset.y;
+            iXB = iXA + rcClient.size().x;
+            iYB = iYA + rcClient.size().y;
+
+            if ( ( iXB - iXA > 0 )
+            &&   ( iYB - iYA > 0 )
+            &&   ( iXB > 0 )
+            &&   ( iYB > 0 ) )
             {
-              DisplayComponent( pComponent );
+              SetClipping( iXA, iYA, iXB - iXA, iYB - iYA );
+              SetOffset( iXA, iYA );
+
+              if ( !m_NothingIsVisible )
+              {
+                DisplayComponent( pComponent );
+              }
             }
           }
         }

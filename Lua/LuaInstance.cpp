@@ -42,7 +42,6 @@ void LuaInstance::LuaInit()
 
   m_LuaInstance = luaL_newstate();
 
-  //luaopen_base( m_LuaInstance );
   luaL_requiref( m_LuaInstance, "_G", luaopen_base, 1 );
   Pop();    // remove lib
   luaL_requiref( m_LuaInstance, "coroutine", luaopen_coroutine, 1 );
@@ -55,40 +54,39 @@ void LuaInstance::LuaInit()
 
   Pop( GetTop() );
 
-  /*
-function Wait( Ticks )  
-  co_ElapsedTicks = 0;  
-  while ( co_ElapsedTicks < Ticks ) do    
-    local  Result = coroutine.yield( Ticks );    
-    co_ElapsedTicks = co_ElapsedTicks + Result;  
-  end  
-  co_ElapsedTicks = co_ElapsedTicks - Ticks;
-end
-*/
-
-  /*
-    function LuaContinueThread( co_event, ElapsedTime )  
-      local result, second_value = coroutine.resume( co_event, ElapsedTime );  
-      if ( second_value == nil ) then    
-        -- Thread done	
-        co_event = nil;    
-        return 1;  
-      end  
-      return 0;
-    end
-    */
-
-  //lua_pushString( m_LuaInstance, "LuaHandler" );
-  //lua_setglobal( m_LuaInstance, 
-
   DoString( CMisc::printf( "LuaHandler = %d", this ) );
+
+  DoString( "function LuaCreateThread( Func )\n"
+            "  if ( Func == nil ) then\n"
+            "    return 1;\n"
+            "  end\n"
+            "  if ( globalCounter == nil ) then"
+            "    globalCounter = 0;"
+            "  end"
+            "  local newName = \"threadFuncglob\" .. globalCounter;"
+            "  newThread = coroutine.create( Func );\n"
+            "  _G[newName] = newThread;\n"
+            "  local rresult, second_value = coroutine.resume( newThread, 0 );\n"
+            "  if ( not rresult ) then\n"
+            "    --Ein Fehler!\n"
+            "    _ALERT( second_value );\n"
+            "    return 0;\n"
+            "  end\n"
+            "  if ( second_value == nil ) then\n"
+            "     --Thread done\n"
+            "    newThread = nil;\n"
+            "    return 1;\n"
+            "  end\n"
+            "  LuaAddThread( newName );\n"
+            "  return 0;\n"
+            "end\n" );
 
   DoString( "function LuaContinueThread( co_event, ElapsedTime )\n"
             "  local result, second_value = coroutine.resume( co_event, ElapsedTime );\n"
             "  if ( not result ) then\n"
             "    --Ein Fehler!\n"
             "    _ALERT( second_value );\n"
-            "    return 0;\n"
+            "    return 1;\n"
             "  end\n"
             "  if ( second_value == nil ) then\n"
             "    -- Thread done\n"
@@ -98,11 +96,10 @@ end
             "  return 0;\n"
             "end" );
 
-  DoString( "function Wait( iTicks )\n"
+  DoString( "function Wait( Ticks )\n"
             "  local WaitStartTime = GetTime();\n"
-            //"  _ALERT( \"Wait ticks pos a\" );\n"
             "  while ( true ) do\n"
-            "    if ( GetTime() > WaitStartTime + iTicks ) then\n"
+            "    if ( GetTime() > WaitStartTime + Ticks ) then\n"
             "      break;\n"
             "    end\n"
             "    coroutine.yield( 1 )\n"
@@ -137,9 +134,9 @@ int LuaInstance::Alert( lua_State* L )
 
 
 
-bool LuaInstance::DoString( const GR::String& strScript )
+bool LuaInstance::DoString( const GR::String& Script )
 {
-  int errorCode = luaL_dostring( m_LuaInstance, strScript.c_str() );
+  int errorCode = luaL_dostring( m_LuaInstance, Script.c_str() );
 
   if ( errorCode != 0 )
   {
@@ -150,9 +147,9 @@ bool LuaInstance::DoString( const GR::String& strScript )
 
 
 
-bool LuaInstance::DoFile( const GR::String& strFilename )
+bool LuaInstance::DoFile( const GR::String& Filename )
 {
-  int errorCode = luaL_dofile( m_LuaInstance, strFilename.c_str() );
+  int errorCode = luaL_dofile( m_LuaInstance, Filename.c_str() );
 
   if ( errorCode != 0 )
   {
@@ -163,87 +160,85 @@ bool LuaInstance::DoFile( const GR::String& strFilename )
 
 
 
-void LuaInstance::Register( lua_CFunction pFunction, const char* szFunctionName )
+void LuaInstance::Register( lua_CFunction pFunction, const char* FunctionName )
 {
   if ( ( pFunction == NULL )
-  ||   ( szFunctionName == NULL ) )
+  ||   ( FunctionName == NULL ) )
   {
     return;
   }
 
   lua_pushcfunction( m_LuaInstance, pFunction );
-  lua_setglobal( m_LuaInstance, szFunctionName );
+  lua_setglobal( m_LuaInstance, FunctionName );
 }
 
 
 
-bool LuaInstance::FunctionExists( const GR::String& strScript )
+bool LuaInstance::FunctionExists( const GR::String& Script )
 {
+  size_t      oldPos = 0;
+  int         truePushedParamCount = 0;
+  GR::String  lastTable;
 
-  size_t      iOldPos = 0;
-
-  int         iPushedParams = 0;
-  int         iTruePushedParams = 0;
-
-  GR::String strLastTable;
-
-  if ( strScript.find( '.' ) == GR::String::npos )
+  if ( Script.find( '.' ) == GR::String::npos )
   {
     // pure variable
-    lua_getglobal( m_LuaInstance, strScript.c_str() );
+    lua_getglobal( m_LuaInstance, Script.c_str() );
 
-    bool bIsFunction = lua_isfunction( m_LuaInstance, -1 );
+    bool isFunction = lua_isfunction( m_LuaInstance, -1 );
     PopAll();
-    return bIsFunction;
+
+    return isFunction;
   }
 
   while ( true )
   {
-    size_t      iDotPos = strScript.find( '.', iOldPos );
+    size_t      dotPos = Script.find( '.', oldPos );
 
-    if ( iDotPos == GR::String::npos )
+    if ( dotPos == GR::String::npos )
     {
       // reine Variable
-      if ( iTruePushedParams == 0 )
+      if ( truePushedParamCount == 0 )
       {
-        PushString( strScript );
+        PushString( Script );
         lua_rawget( m_LuaInstance, -1 );
 
-        bool bIsFunction = lua_isfunction( m_LuaInstance, -1 );
+        bool isFunction = lua_isfunction( m_LuaInstance, -1 );
         PopAll();
-        return bIsFunction;
+
+        return isFunction;
       }
-      PushString( strScript.substr( iOldPos ) );
-      ++iTruePushedParams;
+      PushString( Script.substr( oldPos ) );
+      ++truePushedParamCount;
 
       lua_rawget( m_LuaInstance, -2 );
 
-      bool bIsFunction = lua_isfunction( m_LuaInstance, -1 );
+      bool isFunction = lua_isfunction( m_LuaInstance, -1 );
       PopAll();
-      return bIsFunction;
+
+      return isFunction;
     }
 
-    strLastTable = strScript.substr( iOldPos, iDotPos - iOldPos );
-    ++iTruePushedParams;
-    if ( iTruePushedParams == 1 )
+    lastTable = Script.substr( oldPos, dotPos - oldPos );
+    ++truePushedParamCount;
+    if ( truePushedParamCount == 1 )
     {
       // fetch from the global table
-      lua_getglobal( m_LuaInstance, strLastTable.c_str() );
-      //lua_gettable( m_LuaInstance, LUA_GLOBALSINDEX );
+      lua_getglobal( m_LuaInstance, lastTable.c_str() );
     }
     else
     {
-      PushString( strLastTable );
+      PushString( lastTable );
       lua_rawget( m_LuaInstance, -2 );
     }
     if ( !lua_istable( m_LuaInstance, -1 ) )
     {
       PopAll();
-      dh::Log( "LuaInstance:FunctionExists - no table %s", strScript.substr( 0, iDotPos ).c_str() );
+      dh::Log( "LuaInstance:FunctionExists - no table %s", Script.substr( 0, dotPos ).c_str() );
       return false;
     }
 
-    iOldPos = iDotPos + 1;
+    oldPos = dotPos + 1;
   }
 }
 
@@ -280,7 +275,6 @@ bool LuaInstance::StartThread( const GR::String& ThreadName, const GR::String& F
             "  end\n"
             "  if ( second_value == nil ) then\n"
             "    -- Thread done\n"
-            //"    _ALERT( \"thread done already\" );\n"
             "    " + varName + " = nil;\n"
             "    return 1;\n"
             "  end\n"
@@ -295,14 +289,27 @@ bool LuaInstance::StartThread( const GR::String& ThreadName, const GR::String& F
 
 int LuaInstance::CreateThread( lua_State* L )
 {
-  // TODO - wenn Funktion direkt übergeben, auch starten!
   if ( !lua_isstring( L, -1 ) )
   {
+    if ( lua_isfunction( L, -1 ) )
+    {
+      lua_getglobal( L, "LuaCreateThread" );
+      int error = lua_pcall( L, 1, 1, 0 );
+      if ( error )
+      {
+        GR::String   errorMessage = lua_tostring( L, -1 );
+        lua_pop( L, 1 );
+
+        dh::Log( "CreateThread error %s\n", errorMessage.c_str() );
+        return 0;
+      }
+    }
+    dh::Log( "CreateThread, expected string with function name (got %s instead)", lua_typename( L, lua_type( L, -1 ) ) );
     lua_pop( L, 1 );
     return 0;
   }
 
-  GR::String     strThreadName = lua_tostring( L, -1 );
+  GR::String     threadName = lua_tostring( L, -1 );
 
   lua_pop( L, 1 );
 
@@ -310,9 +317,9 @@ int LuaInstance::CreateThread( lua_State* L )
   LuaInstance*   pLuaHandler = (LuaInstance*)(GR::up)lua_tonumber( L, -1 );
   lua_pop( L, 1 );
 
-  if ( !pLuaHandler->StartThread( strThreadName, strThreadName ) )
+  if ( !pLuaHandler->StartThread( threadName, threadName ) )
   {
-
+    dh::Log( "StartThread %s failed", threadName.c_str() );
   }
 
   return 0;
@@ -322,10 +329,11 @@ int LuaInstance::CreateThread( lua_State* L )
 
 GR::String LuaInstance::StartScriptAsThread( const GR::String& Script, const GR::String& UserThreadName, const GR::String& ThisVariable )
 {
-  GR::String     threadName = UserThreadName;
+  static int      threadCounter = 0;
 
-  static int  threadCounter = 0;
-  int   newValue = ++threadCounter;
+  GR::String      threadName = UserThreadName;
+  int             newValue = ++threadCounter;
+
   GR::String     randomFunctionName = Misc::Format( "TempThreadFunc_%1%%2%" ) << threadCounter << ( GR::up )&Script;
   if ( threadName.empty() )
   {
@@ -355,11 +363,12 @@ int LuaInstance::AddThread( lua_State* L )
 {
   if ( !lua_isstring( L, -1 ) )
   {
+    dh::Log( "AddThread, expected string with function name (got %s instead)", lua_typename( L, lua_type( L, -1 ) ) );
     lua_pop( L, 1 );
     return 0;
   }
 
-  GR::String     strThreadName = lua_tostring( L, -1 );
+  GR::String     threadName = lua_tostring( L, -1 );
 
   lua_pop( L, 1 );
 
@@ -367,7 +376,7 @@ int LuaInstance::AddThread( lua_State* L )
   LuaInstance*   pLuaHandler = (LuaInstance*)(GR::up)lua_tonumber( L, -1 );
   lua_pop( L, 1 );
 
-  pLuaHandler->m_Threads.push_back( strThreadName );
+  pLuaHandler->m_Threads.push_back( threadName );
 
   return 0;
 }
@@ -382,7 +391,7 @@ int LuaInstance::KillThread( lua_State* L )
     return 0;
   }
 
-  GR::String     strThreadName = lua_tostring( L, -1 );
+  GR::String     threadName = lua_tostring( L, -1 );
 
   lua_pop( L, 1 );
 
@@ -390,8 +399,8 @@ int LuaInstance::KillThread( lua_State* L )
   LuaInstance*   pLuaHandler = (LuaInstance*)(GR::up)lua_tonumber( L, -1 );
   lua_pop( L, 1 );
 
-  pLuaHandler->DoString( ( strThreadName + " = nil;" ).c_str() );
-  pLuaHandler->m_Threads.remove( strThreadName );
+  pLuaHandler->DoString( ( threadName + " = nil;" ).c_str() );
+  pLuaHandler->m_Threads.remove( threadName );
 
   return 0;
 }
@@ -404,7 +413,7 @@ int LuaInstance::GetTime( lua_State* L )
   LuaInstance*   pLuaHandler = (LuaInstance*)(GR::up)lua_tonumber( L, -1 );
   lua_pop( L, 1 );
 
-  lua_pushnumber( L, pLuaHandler->m_CurrentTime * 1000.0f );//GetTickCount() );
+  lua_pushnumber( L, pLuaHandler->m_CurrentTime * 1000.0f );
   return 1;
 }
 
@@ -431,15 +440,14 @@ void LuaInstance::ResumeThreads( const float ElapsedTime )
     lua_getglobal( m_LuaInstance, threadName.c_str() );
     lua_pushnumber( m_LuaInstance, ElapsedTime );
 
-    //lua_call( m_LuaInstance, 2, 1 );
-    int iError = lua_pcall( m_LuaInstance, 2, 1, 0 );
+    int error = lua_pcall( m_LuaInstance, 2, 1, 0 );
 
-    if ( iError )
+    if ( error )
     {
-      GR::String   strError = lua_tostring( m_LuaInstance, -1 );
+      GR::String   errorMsg = lua_tostring( m_LuaInstance, -1 );
       lua_pop( m_LuaInstance, 1 );
       
-      dh::Log( "Thread (%s) error %s\n", threadName.c_str(), strError.c_str() );
+      dh::Log( "Thread (%s) error %s\n", threadName.c_str(), errorMsg.c_str() );
 
       // Thread ist kaputt
       it = m_Threads.erase( it );
@@ -450,10 +458,10 @@ void LuaInstance::ResumeThreads( const float ElapsedTime )
       continue;
     }
 
-    int   iReturnValue = (int)lua_tonumber( m_LuaInstance, -1 );
+    int   returnValue = (int)lua_tonumber( m_LuaInstance, -1 );
     lua_pop( m_LuaInstance, 1 );
 
-    if ( iReturnValue )
+    if ( returnValue )
     {
       // Thread ist fertig
       it = m_Threads.erase( it );
@@ -484,16 +492,16 @@ bool LuaInstance::IsNil( int Index )
 
 
 
-GR::ip LuaInstance::ToNumber( int iIndex )
+GR::ip LuaInstance::ToNumber( int Index )
 {
-  return (GR::ip)lua_tonumber( m_LuaInstance, iIndex );
+  return (GR::ip)lua_tonumber( m_LuaInstance, Index );
 }
 
 
 
-GR::f32 LuaInstance::ToF32( int iIndex )
+GR::f32 LuaInstance::ToF32( int Index )
 {
-  return (GR::f32)lua_tonumber( m_LuaInstance, iIndex );
+  return (GR::f32)lua_tonumber( m_LuaInstance, Index );
 }
 
 
@@ -505,16 +513,16 @@ int LuaInstance::GetTop()
 
 
 
-void LuaInstance::PushString( const GR::String& strText )
+void LuaInstance::PushString( const GR::String& Text )
 {
-  lua_pushstring( m_LuaInstance, strText.c_str() );
+  lua_pushstring( m_LuaInstance, Text.c_str() );
 }
 
 
 
-void LuaInstance::PushNumber( GR::ip iNumber )
+void LuaInstance::PushNumber( GR::ip Number )
 {
-  lua_pushnumber( m_LuaInstance, (lua_Number)iNumber );
+  lua_pushnumber( m_LuaInstance, (lua_Number)Number );
 }
 
 
@@ -526,9 +534,9 @@ void LuaInstance::PushNumberF( GR::f32 Number )
 
 
 
-void LuaInstance::PushBoolean( bool bBool )
+void LuaInstance::PushBoolean( bool Bool )
 {
-  lua_pushboolean( m_LuaInstance, bBool );
+  lua_pushboolean( m_LuaInstance, Bool );
 }
 
 
@@ -540,9 +548,9 @@ void LuaInstance::PushNIL()
 
 
 
-void LuaInstance::Pop( int iCount )
+void LuaInstance::Pop( int Count )
 {
-  lua_pop( m_LuaInstance, iCount );
+  lua_pop( m_LuaInstance, Count );
 }
 
 
@@ -559,11 +567,11 @@ void LuaInstance::KillAllThreads()
   std::list<GR::String>::iterator    it( m_Threads.begin() );
   while ( it != m_Threads.end() )
   {
-    GR::String&    strThreadName = *it;
+    GR::String&    threadName = *it;
 
     // auf NULL setzen
     lua_pushnil( m_LuaInstance );
-    lua_setglobal( m_LuaInstance, strThreadName.c_str() );
+    lua_setglobal( m_LuaInstance, threadName.c_str() );
 
     it = m_Threads.erase( it );
   }
@@ -578,27 +586,27 @@ GR::up LuaInstance::RunningThreadCount() const
 
 
 
-GR::String LuaInstance::ToString( int iIndex )
+GR::String LuaInstance::ToString( int Index )
 {
-  if ( !lua_isstring( m_LuaInstance, iIndex ) )
+  if ( !lua_isstring( m_LuaInstance, Index ) )
   {
     return GR::String();
   }
-  return lua_tostring( m_LuaInstance, iIndex );
+  return lua_tostring( m_LuaInstance, Index );
 }
 
 
 
-bool LuaInstance::ToBoolean( int iIndex )
+bool LuaInstance::ToBoolean( int Index )
 {
-  return !!lua_toboolean( m_LuaInstance, iIndex );
+  return !!lua_toboolean( m_LuaInstance, Index );
 }
 
 
 
-GR::String LuaInstance::GetGlobal( const GR::String& strVarName )
+GR::String LuaInstance::GetGlobal( const GR::String& VarName )
 {
-  lua_getglobal( m_LuaInstance, strVarName.c_str() );
+  lua_getglobal( m_LuaInstance, VarName.c_str() );
   GR::String strResult = ToString( -1 );
   lua_pop( m_LuaInstance, 1 );
 
@@ -607,28 +615,25 @@ GR::String LuaInstance::GetGlobal( const GR::String& strVarName )
 
 
 
-GR::String LuaInstance::GetVar( const GR::String& strVarName )
+GR::String LuaInstance::GetVar( const GR::String& VarName )
 {
-  size_t      iOldPos = 0;
-
-  int         iPushedParams = 0;
-  int         iTruePushedParams = 0;
-
-  GR::String strLastTable;
+  size_t      oldPos = 0;
+  int         truePushedParamCount = 0;
+  GR::String  lastTable;
 
   while ( true )
   {
-    size_t      iDotPos = strVarName.find( '.', iOldPos );
+    size_t      dotPos = VarName.find( '.', oldPos );
 
-    if ( iDotPos == GR::String::npos )
+    if ( dotPos == GR::String::npos )
     {
       // reine Variable
-      if ( iTruePushedParams == 0 )
+      if ( truePushedParamCount == 0 )
       {
-        return GetGlobal( strVarName );
+        return GetGlobal( VarName );
       }
-      PushString( strVarName.substr( iOldPos ) );
-      ++iTruePushedParams;
+      PushString( VarName.substr( oldPos ) );
+      ++truePushedParamCount;
 
       lua_rawget( m_LuaInstance, -2 );
 
@@ -640,230 +645,203 @@ GR::String LuaInstance::GetVar( const GR::String& strVarName )
       return strResult;
     }
 
-    strLastTable = strVarName.substr( iOldPos, iDotPos - iOldPos );
-    ++iTruePushedParams;
-    if ( iTruePushedParams == 1 )
+    lastTable = VarName.substr( oldPos, dotPos - oldPos );
+    ++truePushedParamCount;
+    if ( truePushedParamCount == 1 )
     {
       // fetch from the global table
-      lua_getglobal( m_LuaInstance, strLastTable.c_str() );
-      //lua_gettable( m_LuaInstance, LUA_GLOBALSINDEX );
+      lua_getglobal( m_LuaInstance, lastTable.c_str() );
     }
     else
     {
-      PushString( strLastTable );
+      PushString( lastTable );
       lua_rawget( m_LuaInstance, -2 );
     }
     if ( !lua_istable( m_LuaInstance, -1 ) )
     {
       PopAll();
-      dh::Log( "LuaInstance:GetVar - no table %s", strVarName.substr( 0, iDotPos ).c_str() );
+      dh::Log( "LuaInstance:GetVar - no table %s", VarName.substr( 0, dotPos ).c_str() );
       return GR::String();
     }
 
-    iOldPos = iDotPos + 1;
+    oldPos = dotPos + 1;
   }
-
 }
 
 
 
-bool LuaInstance::SetVar( const GR::String& strVarName, const GR::String& Value )
+bool LuaInstance::SetVar( const GR::String& VarName, const GR::String& Value )
 {
-
-  size_t      iOldPos = 0;
-
-  int         iPushedParams = 0;
-  int         iTruePushedParams = 0;
-
-  GR::String strLastTable;
+  size_t      oldPos = 0;
+  int         pushedParamCount = 0;
+  GR::String  lastTable;
 
   while ( true )
   {
-    size_t      iDotPos = strVarName.find( '.', iOldPos );
+    size_t dotPos = VarName.find( '.', oldPos );
 
-    if ( iDotPos == GR::String::npos )
+    if ( dotPos == GR::String::npos )
     {
       // reine Variable
-      if ( iTruePushedParams == 0 )
+      if ( pushedParamCount == 0 )
       {
-        SetGlobal( strVarName, Value );
+        SetGlobal( VarName, Value );
         return true;
       }
-      PushString( strVarName.substr( iOldPos ) );
+      PushString( VarName.substr( oldPos ) );
       PushString( Value );
 
       lua_rawset( m_LuaInstance, -3 );
 
-      //dh::Log( "Type: %s", lua_typename( m_LuaInstance, lua_type( m_LuaInstance, -1 ) ) );
-
       PopAll();
       return true;
     }
 
-    strLastTable = strVarName.substr( iOldPos, iDotPos - iOldPos );
-    ++iTruePushedParams;
-    if ( iTruePushedParams == 1 )
+    lastTable = VarName.substr( oldPos, dotPos - oldPos );
+    ++pushedParamCount;
+    if ( pushedParamCount == 1 )
     {
       // fetch from the global table
-      lua_getglobal( m_LuaInstance, strLastTable.c_str() );
-      //lua_gettable( m_LuaInstance, LUA_GLOBALSINDEX );
+      lua_getglobal( m_LuaInstance, lastTable.c_str() );
     }
     else
     {
-      PushString( strLastTable );
+      PushString( lastTable );
       lua_rawget( m_LuaInstance, -2 );
     }
     if ( !lua_istable( m_LuaInstance, -1 ) )
     {
       PopAll();
-      dh::Log( "LuaInstance:SetVar - no table %s", strVarName.substr( 0, iDotPos ).c_str() );
+      dh::Log( "LuaInstance:SetVar - no table %s", VarName.substr( 0, dotPos ).c_str() );
       return false;
     }
 
-    iOldPos = iDotPos + 1;
+    oldPos = dotPos + 1;
   }
 }
 
 
 
-bool LuaInstance::SetVar( const GR::String& strVarName, const GR::ip Value )
+bool LuaInstance::SetVar( const GR::String& VarName, const GR::ip Value )
 {
-
-  size_t      iOldPos = 0;
-
-  int         iPushedParams = 0;
-  int         iTruePushedParams = 0;
-
-  GR::String strLastTable;
+  size_t      oldPos = 0;
+  int         pushedParamCount = 0;
+  GR::String  lastTable;
 
   while ( true )
   {
-    size_t      iDotPos = strVarName.find( '.', iOldPos );
+    size_t  dotPos = VarName.find( '.', oldPos );
 
-    if ( iDotPos == GR::String::npos )
+    if ( dotPos == GR::String::npos )
     {
       // reine Variable
-      if ( iTruePushedParams == 0 )
+      if ( pushedParamCount == 0 )
       {
-        SetGlobal( strVarName, Value );
+        SetGlobal( VarName, Value );
         return true;
       }
-      PushString( strVarName.substr( iOldPos ) );
+      PushString( VarName.substr( oldPos ) );
       PushNumber( (int)Value );
 
       lua_rawset( m_LuaInstance, -3 );
 
-      //dh::Log( "Type: %s", lua_typename( m_LuaInstance, lua_type( m_LuaInstance, -1 ) ) );
-
       PopAll();
       return true;
     }
 
-    strLastTable = strVarName.substr( iOldPos, iDotPos - iOldPos );
-    ++iTruePushedParams;
-    if ( iTruePushedParams == 1 )
+    lastTable = VarName.substr( oldPos, dotPos - oldPos );
+    ++pushedParamCount;
+    if ( pushedParamCount == 1 )
     {
       // fetch from the global table
-      lua_getglobal( m_LuaInstance, strLastTable.c_str() );
-      //lua_gettable( m_LuaInstance, LUA_GLOBALSINDEX );
+      lua_getglobal( m_LuaInstance, lastTable.c_str() );
     }
     else
     {
-      PushString( strLastTable );
+      PushString( lastTable );
       lua_rawget( m_LuaInstance, -2 );
     }
     if ( !lua_istable( m_LuaInstance, -1 ) )
     {
       PopAll();
-      dh::Log( "LuaInstance:SetVar - no table %s", strVarName.substr( 0, iDotPos ).c_str() );
+      dh::Log( "LuaInstance:SetVar - no table %s", VarName.substr( 0, dotPos ).c_str() );
       return false;
     }
 
-    iOldPos = iDotPos + 1;
+    oldPos = dotPos + 1;
   }
 }
 
 
 
-bool LuaInstance::SetVar( const GR::String& strVarName, const GR::f32 Value )
+bool LuaInstance::SetVar( const GR::String& VarName, const GR::f32 Value )
 {
-
-  size_t      iOldPos = 0;
-
-  int         iPushedParams = 0;
-  int         iTruePushedParams = 0;
-
-  GR::String strLastTable;
+  size_t      oldPos = 0;
+  int         pushedParamCount = 0;
+  GR::String  lastTable;
 
   while ( true )
   {
-    size_t      iDotPos = strVarName.find( '.', iOldPos );
+    size_t  dotPos = VarName.find( '.', oldPos );
 
-    if ( iDotPos == GR::String::npos )
+    if ( dotPos == GR::String::npos )
     {
       // reine Variable
-      if ( iTruePushedParams == 0 )
+      if ( pushedParamCount == 0 )
       {
-        SetGlobal( strVarName, Value );
+        SetGlobal( VarName, Value );
         return true;
       }
-      PushString( strVarName.substr( iOldPos ) );
+      PushString( VarName.substr( oldPos ) );
       lua_pushnumber( m_LuaInstance, Value );
 
       lua_rawset( m_LuaInstance, -3 );
 
-      //dh::Log( "Type: %s", lua_typename( m_LuaInstance, lua_type( m_LuaInstance, -1 ) ) );
-
       PopAll();
       return true;
     }
 
-    strLastTable = strVarName.substr( iOldPos, iDotPos - iOldPos );
-    ++iTruePushedParams;
-    if ( iTruePushedParams == 1 )
+    lastTable = VarName.substr( oldPos, dotPos - oldPos );
+    ++pushedParamCount;
+    if ( pushedParamCount == 1 )
     {
       // fetch from the global table
-      lua_getglobal( m_LuaInstance, strLastTable.c_str() );
-      //lua_gettable( m_LuaInstance, LUA_GLOBALSINDEX );
+      lua_getglobal( m_LuaInstance, lastTable.c_str() );
     }
     else
     {
-      PushString( strLastTable );
+      PushString( lastTable );
       lua_rawget( m_LuaInstance, -2 );
     }
     if ( !lua_istable( m_LuaInstance, -1 ) )
     {
       PopAll();
-      dh::Log( "LuaInstance:SetVar - no table %s", strVarName.substr( 0, iDotPos ).c_str() );
+      dh::Log( "LuaInstance:SetVar - no table %s", VarName.substr( 0, dotPos ).c_str() );
       return false;
     }
 
-    iOldPos = iDotPos + 1;
+    oldPos = dotPos + 1;
   }
 }
 
 
 
-bool LuaInstance::GetTable( const GR::String& strTableName )
+bool LuaInstance::GetTable( const GR::String& TableName )
 {
-
-  size_t      iOldPos = 0;
-
-  int         iPushedParams = 0;
-  int         iTruePushedParams = 0;
-
-  GR::String strLastTable;
+  size_t      oldPos = 0;
+  int         pushedParamCount = 0;
+  GR::String  lastTable;
 
   while ( true )
   {
-    size_t      iDotPos = strTableName.find( '.', iOldPos );
+    size_t  dotPos = TableName.find( '.', oldPos );
 
-    if ( iDotPos == GR::String::npos )
+    if ( dotPos == GR::String::npos )
     {
       // reine Variable
-      if ( iTruePushedParams == 0 )
+      if ( pushedParamCount == 0 )
       {
-        lua_getglobal( m_LuaInstance, strTableName.c_str() );
+        lua_getglobal( m_LuaInstance, TableName.c_str() );
         if ( !lua_istable( m_LuaInstance, -1 ) )
         {
           PopAll();
@@ -871,8 +849,8 @@ bool LuaInstance::GetTable( const GR::String& strTableName )
         }
         return true;
       }
-      PushString( strTableName.substr( iOldPos ) );
-      ++iTruePushedParams;
+      PushString( TableName.substr( oldPos ) );
+      ++pushedParamCount;
 
       lua_rawget( m_LuaInstance, -2 );
 
@@ -884,84 +862,78 @@ bool LuaInstance::GetTable( const GR::String& strTableName )
       return true;
     }
 
-    strLastTable = strTableName.substr( iOldPos, iDotPos - iOldPos );
-    ++iTruePushedParams;
-    if ( iTruePushedParams == 1 )
+    lastTable = TableName.substr( oldPos, dotPos - oldPos );
+    ++pushedParamCount;
+    if ( pushedParamCount == 1 )
     {
       // fetch from the global table
-      lua_getglobal( m_LuaInstance, strLastTable.c_str() );
-      //lua_gettable( m_LuaInstance, LUA_GLOBALSINDEX );
+      lua_getglobal( m_LuaInstance, lastTable.c_str() );
     }
     else
     {
-      PushString( strLastTable );
+      PushString( lastTable );
       lua_rawget( m_LuaInstance, -2 );
     }
     if ( !lua_istable( m_LuaInstance, -1 ) )
     {
       PopAll();
-      dh::Log( "LuaInstance:GetTable - no table %s", strTableName.substr( 0, iDotPos ).c_str() );
+      dh::Log( "LuaInstance:GetTable - no table %s", TableName.substr( 0, dotPos ).c_str() );
       return false;
     }
 
-    iOldPos = iDotPos + 1;
+    oldPos = dotPos + 1;
   }
 }
 
 
 
-void LuaInstance::SetGlobal( const GR::String& strVarName )
+void LuaInstance::SetGlobal( const GR::String& VarName )
 {
-  lua_setglobal( m_LuaInstance, strVarName.c_str() );
+  lua_setglobal( m_LuaInstance, VarName.c_str() );
 }
 
 
 
-void LuaInstance::SetGlobal( const GR::String& strVarName, const GR::String& strVarValue )
+void LuaInstance::SetGlobal( const GR::String& VarName, const GR::String& VarValue )
 {
-  lua_pushstring( m_LuaInstance, strVarValue.c_str() );
-  lua_setglobal( m_LuaInstance, strVarName.c_str() );
+  lua_pushstring( m_LuaInstance, VarValue.c_str() );
+  lua_setglobal( m_LuaInstance, VarName.c_str() );
 }
 
 
 
-void LuaInstance::SetGlobal( const GR::String& strVarName, const GR::ip iValue )
+void LuaInstance::SetGlobal( const GR::String& VarName, const GR::ip Value )
 {
-  lua_pushnumber( m_LuaInstance, (lua_Number)iValue );
-  lua_setglobal( m_LuaInstance, strVarName.c_str() );
+  lua_pushnumber( m_LuaInstance, (lua_Number)Value );
+  lua_setglobal( m_LuaInstance, VarName.c_str() );
 }
 
 
 
 void LuaInstance::SetGlobal( const GR::String& VarName, const GR::f32 Value )
 {
-
   lua_pushnumber( m_LuaInstance, Value );
   lua_setglobal( m_LuaInstance, VarName.c_str() );
-
 }
 
 
 
-void LuaInstance::SetGlobal( const GR::String& strVarName, const bool Value )
+void LuaInstance::SetGlobal( const GR::String& VarName, const bool Value )
 {
-
   lua_pushboolean( m_LuaInstance, Value );
-  lua_setglobal( m_LuaInstance, strVarName.c_str() );
-
+  lua_setglobal( m_LuaInstance, VarName.c_str() );
 }
 
 
 
-bool LuaInstance::IsThreadRunning( const GR::String& strThreadName )
+bool LuaInstance::IsThreadRunning( const GR::String& ThreadName )
 {
-
   std::list<GR::String>::iterator    it( m_Threads.begin() );
   while ( it != m_Threads.end() )
   {
-    GR::String&    strListedThreadName = *it;
+    GR::String&    listedThreadName = *it;
 
-    if ( strThreadName == strListedThreadName.substr( 6 ) )
+    if ( ThreadName == listedThreadName.substr( 6 ) )
     {
       return true;
     }
@@ -969,39 +941,38 @@ bool LuaInstance::IsThreadRunning( const GR::String& strThreadName )
   }
 
   return false;
-
 }
 
 
 
-void LuaInstance::RegisterHandler( tHandlerFunction Function, const GR::String& strFunctionName )
+void LuaInstance::RegisterHandler( tHandlerFunction Function, const GR::String& FunctionName )
 {
-  if ( m_Handler.find( strFunctionName ) != m_Handler.end() )
+  if ( m_Handler.find( FunctionName ) != m_Handler.end() )
   {
-    UnregisterHandler( strFunctionName );
+    UnregisterHandler( FunctionName );
   }
 
   PopAll();
 
-  m_Handler["HandlerFunc" + strFunctionName] = Function;
+  m_Handler["HandlerFunc" + FunctionName] = Function;
 
   tHandlerFunction* pFunc = static_cast<tHandlerFunction*>( lua_newuserdata( m_LuaInstance, sizeof( tHandlerFunction ) ) );
   *pFunc = Function;
   lua_pushnumber( m_LuaInstance, (int)(GR::up)this );
   lua_pushcclosure( m_LuaInstance, &LuaInstance::HandlerThunk, 2 );
-  lua_setglobal( m_LuaInstance, strFunctionName.c_str() );
+  lua_setglobal( m_LuaInstance, FunctionName.c_str() );
 }
 
 
 
-void LuaInstance::UnregisterHandler( const GR::String& strFunctionName )
+void LuaInstance::UnregisterHandler( const GR::String& FunctionName )
 {
-  tMapHandler::iterator   it( m_Handler.find( "HandlerFunc" + strFunctionName ) );
+  tMapHandler::iterator   it( m_Handler.find( "HandlerFunc" + FunctionName ) );
   if ( it != m_Handler.end() )
   {
     m_Handler.erase( it );
     PushNIL();
-    SetGlobal( strFunctionName ); 
+    SetGlobal( FunctionName );
   }
 }
 
@@ -1022,11 +993,11 @@ int LuaInstance::HandlerThunk( lua_State* L )
 
   pLua->m_LuaInstance = L;
 
-  int   iResult = (*p)( *pLua );
+  int   result = (*p)( *pLua );
 
   pLua->m_LuaInstance = pOrigState;
 
-  return iResult;
+  return result;
 }
 
 

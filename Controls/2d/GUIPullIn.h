@@ -15,15 +15,15 @@ class GR::Graphic::GFXPage;
 
 
 
-class CGUIPullIn : public CAbstractPullIn<CGUIComponent>
+class GUIPullIn : public AbstractPullIn<GUIComponent>
 {
 
   public:
 
-    DECLARE_CLONEABLE( CGUIPullIn, "GUI.PullIn" )
+    DECLARE_CLONEABLE( GUIPullIn, "GUI.PullIn" )
 
 
-    CGUIPullIn( int iNewX = 0, int iNewY = 0, 
+    GUIPullIn( int iNewX = 0, int iNewY = 0, 
                 int iNewWidth = 0, int iNewHeight = 0, 
                 const char* szCaption = "", 
                 GR::u32 dwId = 0, 

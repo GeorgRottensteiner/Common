@@ -1,4 +1,4 @@
-#include ".\ValueStorage.h"
+#include "ValueStorage.h"
 
 #include <String/Path.h>
 
@@ -15,6 +15,16 @@ namespace GR
       static GR::String     reply;
 
       reply = Path::Append( m_UserAppDataPath, Filename );
+      return reply.c_str();
+    }
+
+
+
+    const GR::Char* ValueStorage::AllUsersAppDataPath( const GR::Char* Filename )
+    {
+      static GR::String     reply;
+
+      reply = Path::Append( m_AllUsersAppDataPath, Filename );
       return reply.c_str();
     }
 
@@ -39,6 +49,13 @@ namespace GR
     void ValueStorage::SetUserAppPath( const GR::String& Path )
     {
       m_UserAppDataPath = Path;
+    }
+
+
+
+    void ValueStorage::SetAllUsersAppPath( const GR::String& Path )
+    {
+      m_AllUsersAppDataPath = Path;
     }
 
   }

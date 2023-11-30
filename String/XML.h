@@ -30,17 +30,16 @@ namespace GR
 
     class XMLElement
     {
-
       protected:
 
-        GR::String                m_Content;
+        GR::String                    m_Content;
 
         bool                          m_IsCDataContent;
         bool                          m_IsSystemTag;
 
         XMLElement*                   m_pParent;
 
-        GR::String                ContentToString();
+        GR::String                    ContentToString();
 
 
       public:
@@ -53,8 +52,9 @@ namespace GR
         tListAttributes               m_Attributes;  
 
         tListElements                 m_Childs;
+        
+        GR::String                    m_Type;
 
-        GR::String                m_Type;
 
 
         void                          AddAttribute( const GR::String& AttributeName, const GR::String& AttributeValue );
@@ -62,8 +62,8 @@ namespace GR
         void                          RemoveAllAttributes();
 
         size_t                        AttributeCount() const;
-        GR::String                AttributeName( size_t Index ) const;
-        GR::String                AttributeValue( size_t Index ) const;
+        GR::String                    AttributeName( size_t Index ) const;
+        GR::String                    AttributeValue( size_t Index ) const;
 
         void                          InsertChild( XMLElement* pChild );
         XMLElement*                   AddElement( const GR::String& ElementName, const GR::String& Content = GR::String() );

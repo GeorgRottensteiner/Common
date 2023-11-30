@@ -76,9 +76,9 @@ namespace GR
 
       };
 
-    };
-  };
-};
+    }
+  }
+}
 
 
 #endif // GR_NET_SOCKET_CLIENT

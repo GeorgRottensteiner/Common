@@ -49,6 +49,7 @@ void GUIListControl::DisplayOnPage( GUIComponentDisplayer& Displayer )
 
   // Selection
   Displayer.m_pActualRenderer->SetShader( XRenderer::ST_FLAT_NO_TEXTURE );
+
   if ( GetLineRect( m_SelectedItem, rc ) )
   {
     Displayer.DrawQuad( rc.Left, rc.Top, rc.width(), rc.height(), GetColor( GUI::COL_HIGHLIGHT ) );
@@ -56,6 +57,10 @@ void GUIListControl::DisplayOnPage( GUIComponentDisplayer& Displayer )
   if ( GetLineRect( m_MouseOverItem, rc ) )
   {
     Displayer.DrawQuad( rc.Left, rc.Top, rc.width(), rc.height(), GetColor( GUI::COL_HOTLIGHT ) );
+  }
+  if ( GetItemRect( m_MouseOverItem, m_MouseOverSubItem, rc ) )
+  {
+    Displayer.DrawQuad( rc.Left, rc.Top, rc.width(), rc.height(), GetColor( GUI::COL_ACTIVECAPTION ) );
   }
 
 

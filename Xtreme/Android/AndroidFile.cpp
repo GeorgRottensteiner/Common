@@ -17,7 +17,7 @@ namespace GR
   namespace IO
   {
     AndroidFile::AndroidFile() :
-      IIOStream(),
+      IIOStreamBase(),
       m_Impl( new AndroidFileImpl( NULL ) ),
       m_LastError( 0 ),
       m_CacheSize( 256 )
@@ -28,7 +28,7 @@ namespace GR
 
 
     AndroidFile::AndroidFile( const GR::Char* pFileName, IIOStream::OpenType oType ) :
-      IIOStream(),
+      IIOStreamBase(),
       m_Impl( new AndroidFileImpl( NULL ) ),
       m_LastError( 0 ),
       m_CacheSize( 256 )
@@ -41,7 +41,7 @@ namespace GR
 
 
     AndroidFile::AndroidFile( const GR::String& FileName, IIOStream::OpenType oType ) :
-      IIOStream(),
+      IIOStreamBase(),
       m_Impl( new AndroidFileImpl( NULL ) ),
       m_LastError( 0 ),
       m_CacheSize( 256 )
@@ -64,7 +64,7 @@ namespace GR
         m_Impl->Close();
       }
 
-      IIOStream::Close();
+      IIOStreamBase::Close();
 
       m_OpenType  = OT_CLOSED;
     }
@@ -390,6 +390,18 @@ namespace GR
       return ftell( m_Impl->m_Handle );
     #endif
       */
+    }
+
+
+
+    bool AndroidFile::DataAvailable()
+    {
+      if ( m_Impl->m_Handle == NULL )
+      {
+        return false;
+      }
+      // TODO - not really correct, innit?
+      return true;
     }
 
 

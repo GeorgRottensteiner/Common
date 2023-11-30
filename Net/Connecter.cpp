@@ -1,4 +1,5 @@
 #include <winsock2.h>
+#include <ws2tcpip.h>
 
 #include "Connecter.h"
 
@@ -18,9 +19,6 @@ namespace GR
   {
     namespace Socket
     {
-
-
-
       Connecter::Connecter() :
         m_bInitialised( false ),
         m_hSocketEvent( WSA_INVALID_EVENT ),
@@ -32,10 +30,14 @@ namespace GR
         SetSocketTimeout( 1000 );
       }
 
+
+
       Connecter::~Connecter()
       {
         Shutdown();
       }
+
+
 
       bool Connecter::Initialize()
       {
@@ -56,6 +58,8 @@ namespace GR
         return true;
       }
 
+
+
       void Connecter::Shutdown()
       {
         if ( m_bInitialised )
@@ -67,7 +71,9 @@ namespace GR
         }
       }
 
-      bool Connecter::Connect( const GR::String& strIP, const GR::u16 wPort )
+
+
+      bool Connecter::Connect( const GR::String& IPAddress, const GR::u16 Port )
       {
         if ( !m_bInitialised )
         {
@@ -100,46 +106,115 @@ namespace GR
 		      return false;
 	      }
 
+        /*
 	      LPHOSTENT lpHostEntry;
-        lpHostEntry = gethostbyname( strIP.c_str() );
+        lpHostEntry = gethostbyname( IPAddress.c_str() );
 	      if ( lpHostEntry == NULL )
 	      {
           dh::Log( "Connecter: Gethostbyname failed" );
           Disconnect();
 		      return false;
-	      }
+	      }*/
+        struct addrinfo hints;
+        ZeroMemory( &hints, sizeof( hints ) );
+        hints.ai_family = AF_INET;
+        hints.ai_socktype = SOCK_STREAM;
+        hints.ai_protocol = IPPROTO_TCP;
 
-	      SOCKADDR_IN sa;
-	      sa.sin_family = AF_INET;
-	      sa.sin_addr = *((LPIN_ADDR)*lpHostEntry->h_addr_list);
-	      sa.sin_port = htons( wPort );
+        //GR::String    portText = "https";// Misc::Format() << Port;
+        // with "https" other ports don't work reliably
+        GR::String    portText = Misc::Format() << Port;
+        struct addrinfo* result = NULL;
 
-	      m_Socket = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
-	      if ( m_Socket == INVALID_SOCKET )
-	      {
-          dh::Log( "Connecter: Socket creation failed" );
+        DWORD dwRetval = getaddrinfo( IPAddress.c_str(), portText.c_str(), &hints, &result );
+        if ( dwRetval != 0 )
+        {
+          dh::Log( "Connecter: getaddrinfo failed with error: %d", dwRetval );
           Disconnect();
-		      return false;
-	      }
+          return false;
+        }
 
-	      int nRet = connect( m_Socket, (LPSOCKADDR)&sa, sizeof( SOCKADDR_IN ) );
-	      if ( nRet == SOCKET_ERROR )
-	      {
-		      nRet = WSAGetLastError();
-		      if ( nRet == WSAEWOULDBLOCK )
-		      {
-			      //fprintf(stderr,"\nConnect would block");
-		      }
-		      else
-		      {
-            dh::Log( "Connecter: Connect failed" );
-            Disconnect();
+        SOCKADDR_IN sa;
+        sa.sin_family = AF_INET;
+        sa.sin_port = htons( Port );
+
+        addrinfo* ptr = result;
+        for ( ptr = result; ptr != NULL; ptr = ptr->ai_next )
+        {
+          m_Socket = socket( ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol );
+          if ( m_Socket == INVALID_SOCKET )
+          {
+            dh::Log( "Connecter: Socket creation failed" );
+            continue;
+          }
+
+          int nRet = connect( m_Socket, ptr->ai_addr, (int)ptr->ai_addrlen );
+          if ( nRet == SOCKET_ERROR )
+          {
+            nRet = WSAGetLastError();
+            if ( nRet == WSAEWOULDBLOCK )
+            {
+              //fprintf(stderr,"\nConnect would block");
+              break;
+            }
             m_dwLastError = nRet;
-			      return false;
-		      }
-	      }
+            continue;
+          }
+          break;
+        }
+        freeaddrinfo( result );
+        if ( ptr == NULL )
+        {
+          dh::Log( "Connecter: Connect failed (%d)", m_dwLastError );
+          dh::Log( "Connecter: Connect going to fallback" );
 
-        nRet = WSAEventSelect( m_Socket, m_hSocketEvent, FD_ACCEPT | FD_WRITE | FD_READ | FD_CLOSE );
+          // use old code as fallback
+          LPHOSTENT lpHostEntry;
+          lpHostEntry = gethostbyname( IPAddress.c_str() );
+          if ( lpHostEntry == NULL )
+          {
+            dh::Log( "Connecter: Gethostbyname failed" );
+            Disconnect();
+            return false;
+          }
+
+          SOCKADDR_IN sa;
+          sa.sin_family = AF_INET;
+          sa.sin_addr = *( (LPIN_ADDR)*lpHostEntry->h_addr_list );
+          sa.sin_port = htons( Port );
+
+          m_Socket = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
+          if ( m_Socket == INVALID_SOCKET )
+          {
+            dh::Log( "Connecter: Socket creation failed" );
+            Disconnect();
+            return false;
+          }
+
+          int nRet = connect( m_Socket, (LPSOCKADDR)&sa, sizeof( SOCKADDR_IN ) );
+          if ( nRet == SOCKET_ERROR )
+          {
+            nRet = WSAGetLastError();
+            if ( nRet == WSAEWOULDBLOCK )
+            {
+              //fprintf(stderr,"\nConnect would block");
+            }
+            else
+            {
+              dh::Log( "Connecter: Connect failed" );
+              Disconnect();
+              m_dwLastError = nRet;
+              return false;
+            }
+          }
+
+          // end of old code
+          //Disconnect();
+          //return false;
+        }
+
+        
+        int nRet = WSAEventSelect( m_Socket, m_hSocketEvent, FD_ACCEPT | FD_WRITE | FD_READ | FD_CLOSE );
 	      if ( nRet == SOCKET_ERROR )
 	      {
           dh::Log( "Connecter: WSAEventSelect failed" );
@@ -159,6 +234,8 @@ namespace GR
         return true;
       }
 
+
+
       DWORD WINAPI Connecter::ConnecterProcHelper( LPVOID lpParam )
       {
         Connecter*   pConnecter = (Connecter*)lpParam;
@@ -168,8 +245,15 @@ namespace GR
         return dwResult;
       }
 
+
+
       DWORD Connecter::ThreadProc()
       {
+        ByteBuffer     bbTemp;
+
+        bbTemp.Resize( 65536 );
+
+
         WSAEVENT      Events[2];
 
         while ( true )
@@ -224,11 +308,7 @@ namespace GR
 		        {
               //dh::Log( "Connecter: FD_READ %d", events.iErrorCode[FD_READ_BIT] );
 			        // Read the data and write it to stdout
-              ByteBuffer     bbTemp;
-
-              bbTemp.Resize( 4096 );
-
-              int nRet = recv( m_Socket, (char*)bbTemp.Data(), 4096, 0 );
+              int nRet = recv( m_Socket, (char*)bbTemp.Data(), (int)bbTemp.Size(), 0 );
 			        if ( nRet == SOCKET_ERROR )
 			        {
                 dh::Error( "Connector: Error while receiving" );
@@ -236,8 +316,11 @@ namespace GR
               else
               {
                 //dh::Log( "Received %d bytes", nRet );
-                bbTemp.Resize( nRet );
-                OnDataReceived( bbTemp );
+                ByteBuffer     receivedData( nRet );
+
+                memcpy( receivedData.Data(), bbTemp.Data(), nRet );
+
+                OnDataReceived( receivedData );
               }
 		        }
 		        // Write event?
@@ -301,6 +384,8 @@ namespace GR
         m_DisconnectPending = false;
       }
 
+
+
       void Connecter::Disconnect()
       {
         //dh::Log( "Connecter::Disconnect called" );
@@ -332,6 +417,8 @@ namespace GR
         m_DisconnectPending = false;
       }
 
+
+
       bool Connecter::Send( const ByteBuffer& bbData )
       {
         if ( m_Socket == INVALID_SOCKET )
@@ -355,26 +442,34 @@ namespace GR
         return true;
       }
 
+
+
       void Connecter::OnDataReceived( ByteBuffer& bbIncoming )
       {
         SendEvent( tSocketEvent( tSocketEvent::SE_DATA_RECEIVED, m_Socket, bbIncoming.Data(), (GR::u32)bbIncoming.Size() ) );
       }
+
+
 
       void Connecter::OnConnected()
       {
         SendEvent( tSocketEvent( tSocketEvent::SE_CONNECTED, m_Socket, NULL, 0 ) );
       }
 
+
+
       void Connecter::OnDisconnected()
       {
         SendEvent( tSocketEvent( tSocketEvent::SE_DISCONNECTED, m_Socket, NULL, 0 ) );
       }
+
+
 
       bool Connecter::IsConnected()
       {
         return Socket() != INVALID_SOCKET;
       }
 
-    };
-  };
-};
+    }
+  }
+}

@@ -32,30 +32,30 @@ namespace Misc
           PT_HEX
         };
 
-        GR::String  m_Text;
-        GR::f64         m_dblValue;
-        eType           m_Type;
+        GR::String      Text;
+        GR::f64         DoubleValue;
+        eType           Type;
 
         tParam( const GR::String& strType ) :
-          m_Text( strType ),
-          m_dblValue( 0 ),
-          m_Type( PT_STRING )
+          Text( strType ),
+          DoubleValue( 0 ),
+          Type( PT_STRING )
         {
         }
 
         tParam( const double dblValue ) :
-          m_dblValue( dblValue ),
-          m_Type( PT_DOUBLE )
+          DoubleValue( dblValue ),
+          Type( PT_DOUBLE )
         {
-          char    szTemp[309 + 40 + 2];
+          char    temp[309 + 40 + 2];
 
 #if OPERATING_SYSTEM == OS_WINDOWS
-          _gcvt_s( szTemp, 309 + 40 + 2, dblValue, 30 );
+          _gcvt_s( temp, 309 + 40 + 2, dblValue, 30 );
 #else
           //sprintf_s( szTemp, 309 + 40 + 2, "%f", dblValue );
           sprintf( szTemp, "%f", dblValue );
 #endif
-          m_Text = szTemp;
+          Text = temp;
         }
 
       };
@@ -65,37 +65,37 @@ namespace Misc
 
     public:
 
-      std::vector<tParam>       m_vectParameters;
+      std::vector<tParam>       m_Parameters;
 
 
       const GR::String Result() const;
 
-      CFormat& Format( const GR::String& strFormatString );
+      CFormat& Format( const GR::String& FormatString );
 
       operator GR::String() const;
 
-      friend CFormat operator<< ( CFormat Format, const GR::String& strParam );
-      friend CFormat operator<< ( CFormat Format, const GR::WString& strParam );
-      friend CFormat operator<< ( CFormat Format, const char* szParam );
-      friend CFormat operator<< ( CFormat Format, const GR::ip iParam );
+      friend CFormat operator<< ( CFormat Format, const GR::String& Param );
+      friend CFormat operator<< ( CFormat Format, const GR::Char* Param );
+      friend CFormat operator<< ( CFormat Format, const GR::Char Param );
+      friend CFormat operator<< ( CFormat Format, const GR::ip Param );
 
 #if OPERATING_SYSTEM == OS_TANDEM
-      friend CFormat operator<< ( CFormat Format, const long iParam );
+      friend CFormat operator<< ( CFormat Format, const long Param );
 #endif
 
 #if OS_ENVIRONMENT == OS_ENVIRONMENT_32
-      friend CFormat operator<< ( CFormat Format, const GR::i64 iParam );
-      friend CFormat operator<< ( CFormat Format, const GR::u64 iParam );
+      friend CFormat operator<< ( CFormat Format, const GR::i64 Param );
+      friend CFormat operator<< ( CFormat Format, const GR::u64 Param );
 #elif OS_ENVIRONMENT == OS_ENVIRONMENT_64
-      friend CFormat operator<< ( CFormat Format, const GR::i32 iParam );
-      friend CFormat operator<< ( CFormat Format, const GR::u32 iParam );
+      friend CFormat operator<< ( CFormat Format, const GR::i32 Param );
+      friend CFormat operator<< ( CFormat Format, const GR::u32 Param );
 #endif
-      friend CFormat operator<< ( CFormat Format, const GR::up iParam );
+      friend CFormat operator<< ( CFormat Format, const GR::up Param );
 #if OPERATING_SYSTEM == OS_WEB
-      friend CFormat operator<< ( CFormat Format, const size_t iParam );
+      friend CFormat operator<< ( CFormat Format, const size_t Param );
 #endif
-      friend CFormat operator<< ( CFormat Format, const GR::f64 iParam );
-      friend CFormat operator<< ( CFormat Format, const bool bParam );
+      friend CFormat operator<< ( CFormat Format, const GR::f64 Param );
+      friend CFormat operator<< ( CFormat Format, const bool Param );
 
       void AddParam( const tParam& Param );
   };
@@ -107,20 +107,21 @@ namespace Misc
 
 
   // zweite Generation
-  CFormat operator<< ( CFormat Format, const GR::String& strParam );
+  CFormat operator<< ( CFormat Format, const GR::String& Param );
   CFormat operator<< ( CFormat Format, const GR::Char* Param );
-  CFormat operator<< ( CFormat Format, const GR::up dwParam );
-  CFormat operator<< ( CFormat Format, const size_t dwParam );
-  CFormat operator<< ( CFormat Format, const GR::ip iParam );
+  CFormat operator<< ( CFormat Format, const GR::Char Param );
+  CFormat operator<< ( CFormat Format, const GR::up Param );
+  CFormat operator<< ( CFormat Format, const size_t Param );
+  CFormat operator<< ( CFormat Format, const GR::ip Param );
 #if OS_ENVIRONMENT == OS_ENVIRONMENT_32
-  CFormat operator<< ( CFormat Format, const GR::i64 iParam );
-  CFormat operator<< ( CFormat Format, const GR::u64 iParam );
+  CFormat operator<< ( CFormat Format, const GR::i64 Param );
+  CFormat operator<< ( CFormat Format, const GR::u64 Param );
 #elif OS_ENVIRONMENT == OS_ENVIRONMENT_64
-  CFormat operator<< ( CFormat Format, const GR::i32 iParam );
-  CFormat operator<< ( CFormat Format, const GR::u32 iParam );
+  CFormat operator<< ( CFormat Format, const GR::i32 Param );
+  CFormat operator<< ( CFormat Format, const GR::u32 Param );
 #endif
-  CFormat operator<< ( CFormat Format, const GR::f64 dParam );
-  CFormat operator<< ( CFormat Format, const bool bParam );
+  CFormat operator<< ( CFormat Format, const GR::f64 Param );
+  CFormat operator<< ( CFormat Format, const bool Param );
 
 }
 

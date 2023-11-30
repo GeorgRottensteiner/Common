@@ -98,6 +98,7 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
     size_t                      m_VisibleItems,
                                 m_SelectedItem,
                                 m_MouseOverItem,
+                                m_MouseOverSubItem,
                                 m_Offset;
 
     size_t                      m_HeaderPushedIndex;
@@ -227,6 +228,7 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
       m_ItemHeight       = 12;
       m_SelectedItem     = -1;
       m_MouseOverItem    = -1;
+      m_MouseOverSubItem = -1;
       m_HeaderHeight     = m_ItemHeight;
       m_Offset           = 0;
       m_HorzOffset       = 0;
@@ -270,6 +272,7 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
       m_ItemHeight       = 12;
       m_SelectedItem     = (size_t)-1;
       m_MouseOverItem    = -1;
+      m_MouseOverSubItem = -1;
       m_HeaderHeight     = m_ItemHeight;
       m_Offset           = 0;
       m_HorzOffset       = 0;
@@ -658,7 +661,8 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
           }
           return true;
         case CET_MOUSE_OUT:
-          m_MouseOverItem = (size_t)-1;
+          m_MouseOverItem     = (size_t)-1;
+          m_MouseOverSubItem  = (size_t)-1;
           break;
         case CET_KEY_DOWN:
           if ( m_Items.NumRows() )
@@ -760,11 +764,13 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
 
             if ( HitTest( Event.Position, iItem, subItem ) )
             {
-              m_MouseOverItem = iItem;
+              m_MouseOverItem     = iItem;
+              m_MouseOverSubItem  = subItem;
             }
             else
             {
               m_MouseOverItem = (size_t)-1;
+              m_MouseOverSubItem = (size_t)-1;
             }
           }
           break;
@@ -814,7 +820,7 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
                   {
                     if ( m_SelectedItem != (size_t)-1 )
                     {
-                      GenerateEventForParent( OET_LISTBOX_ITEM_DBLCLK, m_ItemIndex[m_SelectedItem] );
+                      GenerateEventForParent( OET_LISTBOX_ITEM_DBLCLK, m_ItemIndex[m_SelectedItem], subItem );
                     }
                   }
                   return true;
@@ -948,8 +954,9 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
 
     virtual void DeleteAllItems()
     {
-      m_SelectedItem   = (size_t)-1;
-      m_MouseOverItem  = (size_t)-1;
+      m_SelectedItem      = (size_t)-1;
+      m_MouseOverItem     = (size_t)-1;
+      m_MouseOverSubItem  = (size_t)-1;
       m_Items.ClearItems();
       m_ItemIndex.clear();
 
@@ -960,8 +967,9 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
 
     virtual void ResetContent()
     {
-      m_SelectedItem   = (size_t)-1;
-      m_MouseOverItem  = (size_t)-1;
+      m_SelectedItem      = (size_t)-1;
+      m_MouseOverItem     = (size_t)-1;
+      m_MouseOverSubItem  = (size_t)-1;
       m_Items.Clear();
       m_ItemIndex.clear();
       m_vectColumns.clear();

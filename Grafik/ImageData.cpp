@@ -527,7 +527,21 @@ namespace GR
               }
               return true;
             }
-            // GR::Graphic::IF_A8R8G8B8 nach GR::Graphic::IF_A8R8G8B8 ---------------------------------------
+            // GR::Graphic::IF_A8R8G8B8 nach GR::Graphic::IF_X8R8G8B8 ---------------------------------------
+            else if ( pTargetData->m_ImageFormat == GR::Graphic::IF_X8R8G8B8 )
+            {
+              GR::u32*    pTarget;
+              // we're not touching the top byte at all -> TODO?
+              for ( int i = 0; i < iHeight; i++ )
+              {
+                pTarget = ( (GR::u32*)pTargetData->m_pData ) + i * pTargetData->m_LineOffsetInBytes / 4;
+                pSource = (GR::u32*)m_pData + iX1 + ( i + iY1 ) * m_LineOffsetInBytes / 4;
+
+                memcpy( pTarget, pSource, iWidth * 4 );
+              }
+              return true;
+            }
+            // GR::Graphic::IF_A8R8G8B8 nach GR::Graphic::IF_A8B8G8R8 ---------------------------------------
             else if ( pTargetData->m_ImageFormat == GR::Graphic::IF_A8B8G8R8 )
             {
               GR::u32* pTarget;

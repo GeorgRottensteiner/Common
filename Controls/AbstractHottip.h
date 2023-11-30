@@ -285,7 +285,7 @@ template <class BASECLASS> class AbstractHottip : public BASECLASS
           m_InsideTicks += 1000.0 * ElapsedTime;
           if ( m_InsideTicks >= m_DelayBeforeDisplayTicks )
           {
-            // set invisible now
+            // set visible now
             // make sure our parent is the topmost container
 
             GUI::ComponentContainer*    pTopLevelParent = GetTopLevelParent();

@@ -41,7 +41,7 @@ class DebugService : public IDebugService
     bool LogToFileEnabled( const GR::String& System );
 
     void LogDirect( const GR::String& System, const GR::String& Text );
-    void Log( const GR::String& System, const char* Format, ... );
+    void Log( const GR::String& System, const GR::Char* Format, ... );
 
 };
 

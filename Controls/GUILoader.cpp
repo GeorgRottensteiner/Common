@@ -384,8 +384,8 @@ namespace GUI
     ApplyCustomSection( &m_XMLGUIRoot, "CustomSection.CheckboxUnchecked", GUI::CTS_CHECKBOX_UNCHECKED );
     ApplyCustomSection( &m_XMLGUIRoot, "CustomSection.CheckboxCheck", GUI::CTS_CHECKBOX_CHECK );
 
-    ApplyCustomSection( &m_XMLGUIRoot, "CustomSection.RadioChecked", GUI::CTS_RADIO_CHECKED );
-    ApplyCustomSection( &m_XMLGUIRoot, "CustomSection.RadioUnchecked", GUI::CTS_RADIO_UNCHECKED );
+    ApplyCustomSection( &m_XMLGUIRoot, "CustomSection.RadioButtonChecked", GUI::CTS_RADIO_CHECKED );
+    ApplyCustomSection( &m_XMLGUIRoot, "CustomSection.RadioButtonUnchecked", GUI::CTS_RADIO_UNCHECKED );
 
     ApplyCustomSection( &m_XMLGUIRoot, "CustomSection.Slider", GUI::CTS_SLIDER );
     ApplyCustomSection( &m_XMLGUIRoot, "CustomSection.Slider.Top", GUI::CTS_SLIDER_TOP );

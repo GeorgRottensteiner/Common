@@ -16,7 +16,7 @@ class GR::Graphic::GFXPage;
 
 
 
-class CGUIListCtrl : public CAbstractListCtrl<CGUIComponent,CGUIScrollbar>
+class GUIListCtrl : public AbstractListCtrl<GUIComponent,GUIScrollbar>
 {
 
   protected:
@@ -28,10 +28,10 @@ class CGUIListCtrl : public CAbstractListCtrl<CGUIComponent,CGUIScrollbar>
 
   public:
 
-    DECLARE_CLONEABLE( CGUIListCtrl, "ListCtrl" )
+    DECLARE_CLONEABLE( GUIListCtrl, "ListCtrl" )
 
 
-    CGUIListCtrl( int iNewX = 0, int iNewY = 0, int iNewWidth = 0, int iNewHeight = 0, GR::u32 dwType = LCS_DEFAULT, GR::u32 dwId = 0 );
+    GUIListCtrl( int iNewX = 0, int iNewY = 0, int iNewWidth = 0, int iNewHeight = 0, GR::u32 dwType = LCS_DEFAULT, GR::u32 dwId = 0 );
 
 
     virtual void          DisplayOnPage( GR::Graphic::GFXPage* pPage );

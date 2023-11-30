@@ -125,18 +125,18 @@ namespace Misc
                   iParamNachkommaStellen = iValue;
                   break;
               }
-              if ( ( iParamNumber <= m_vectParameters.size() )
+              if ( ( iParamNumber <= m_Parameters.size() )
               &&   ( iParamNumber > 0 ) )
               {
-                const tParam&     Param = m_vectParameters[iParamNumber - 1];
+                const tParam&     Param = m_Parameters[iParamNumber - 1];
 
-                GR::String        strParamContent = Param.m_Text;
+                GR::String        strParamContent = Param.Text;
 
-                if ( Param.m_Type == tParam::PT_DOUBLE )
+                if ( Param.Type == tParam::PT_DOUBLE )
                 {
                   strParamContent.erase();
 
-                  GR::f64     dblValue = Param.m_dblValue;
+                  GR::f64     dblValue = Param.DoubleValue;
 
                   GR::i64     iValue = (GR::i64)dblValue;
 
@@ -158,7 +158,7 @@ namespace Misc
                     strParamContent = (GR::Char)( ( iValue % 10 ) + '0' ) + strParamContent;
                     iValue /= 10;
                   }
-                  if ( Param.m_dblValue < 0 )
+                  if ( Param.DoubleValue < 0 )
                   {
                     strParamContent = "-" + strParamContent;
                   }
@@ -182,7 +182,7 @@ namespace Misc
                   }
                   else if ( iParamStellen > 0 )
                   {
-                    // nach hinten auffüllen
+                    // fill up
                     while ( strParamContent.length() < (size_t)iParamStellen )
                     {
                       strParamContent += " ";
@@ -204,18 +204,28 @@ namespace Misc
                     {
                       dblValue = -dblValue;
                     }
-                    dblValue = remainder( dblValue, 1. );
+                    double intPart;
+                    dblValue = modf( dblValue, &intPart );
                     while ( iParamNachkommaStellen )
                     {
                       dblValue *= 10;
-                      //strParamContent += (char)( (int)fmod( dblValue, 10 ) + '0' );
+                      if ( iParamNachkommaStellen == 1 )
+                      {
+                        if ( (char)( (int)fmod( dblValue * 10, 10 ) + '0' ) >= '5' )
+                        {
+                          dblValue += 1;
+                        }
+                      }
+                      strParamContent += (char)( (int)fmod( dblValue, 10 ) + '0' );
                       --iParamNachkommaStellen;
                     }
+                    /*
                     if ( (char)( (int)fmod( dblValue * 10, 10 ) + '0' ) >= '5' )
                     {
                       dblValue += 1;
                     }
-                    strParamContent += GR::Convert::ToString( (GR::u64)dblValue );
+                    //strParamContent += (char)( (int)fmod( dblValue, 10 ) + '0' );
+                    //strParamContent += GR::Convert::ToString( (GR::u64)dblValue );*/
                   }
                 }
                 else
@@ -232,7 +242,7 @@ namespace Misc
                   {
                     GR::u64 iValue = GR::Convert::ToU64( strParamContent );
 
-                    strParamContent = GR::Convert::ToHexA( iValue, iParamStellen );
+                    strParamContent = GR::Convert::ToHex( iValue, iParamStellen );
                   }
                   if ( ( iParamStellen != 0 )
                   &&   ( cFillChar ) )
@@ -253,7 +263,7 @@ namespace Misc
                   }
                   else if ( iParamStellen > 0 )
                   {
-                    // nach hinten auffüllen
+                    // fill up
                     while ( strParamContent.length() < (size_t)iParamStellen )
                     {
                       strParamContent += " ";
@@ -300,7 +310,7 @@ namespace Misc
   {
     m_Content = strFormatString;
 
-    m_vectParameters.clear();
+    m_Parameters.clear();
 
     return *this;
   }
@@ -316,7 +326,7 @@ namespace Misc
 
   void CFormat::AddParam( const tParam& Param )
   {
-    m_vectParameters.push_back( Param );
+    m_Parameters.push_back( Param );
   }
 
   
@@ -344,9 +354,9 @@ namespace Misc
 
 
   // zweite Generation
-  CFormat operator<< ( CFormat Format, const GR::String& strParam )
+  CFormat operator<< ( CFormat Format, const GR::String& Param )
   {
-    Format.AddParam( CFormat::tParam( strParam ) );
+    Format.AddParam( CFormat::tParam( Param ) );
 
     return Format;
   }
@@ -356,6 +366,18 @@ namespace Misc
   CFormat operator<< ( CFormat Format, const GR::Char* Param )
   {
     Format.AddParam( CFormat::tParam( Param ) );
+
+    return Format;
+  }
+
+
+
+  CFormat operator<< ( CFormat Format, const GR::Char Param )
+  {
+    GR::String    temp;
+
+    temp.append( Param );
+    Format.AddParam( CFormat::tParam( temp ) );
 
     return Format;
   }

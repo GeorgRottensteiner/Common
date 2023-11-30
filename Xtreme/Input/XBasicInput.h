@@ -152,7 +152,7 @@ class XBasicInput : public EventProducerImpl<Xtreme::tInputEvent,GR::Service::Se
     typedef std::map<Xtreme::eInputDefaultButtons,GR::u32>        tMapDefaultKeys;
     typedef std::multimap<Xtreme::eInputDefaultButtons,GR::u32>   tMapVirtualKeys;
 
-    typedef std::map<GR::u32,GR::u32>                         tMapBinding2VKey;
+    typedef std::map<GR::u32,std::pair<GR::u32,GR::u32> >         tMapBinding2VKey;
 
     typedef std::vector<tInputDevice>                         tVectDevices;
 
@@ -236,13 +236,16 @@ class XBasicInput : public EventProducerImpl<Xtreme::tInputEvent,GR::Service::Se
     bool                          IsCommandByKey( GR::u32 Key, const char* Command ) const;
 
     // Bindings
-    void                          AddBinding( const GR::u32 Handle, const GR::u32 Key );
+    void                          AddBinding( const GR::u32 Handle, const GR::u32 Key, const GR::u32 SecondaryKey = 0 );
     void                          RemoveBinding( const GR::u32 Handle );
 
     bool                          SaveBindings( IIOStream& Stream );
     bool                          LoadBindings( IIOStream& Stream );
     void                          ClearAllBindings();
     GR::u32                       BoundKey( const GR::u32 BindHandle ) const;
+    GR::u32                       BoundSecondaryKey( const GR::u32 BindHandle ) const;
+    virtual bool                  BoundActionPressed( GR::u32 BindHandle ) const;
+    virtual bool                  ReleasedBoundActionPressed( GR::u32 BindHandle ) const;
 
     GR::u32                       MapKeyToVKey( Xtreme::eInputDefaultButtons Key ) const;
 

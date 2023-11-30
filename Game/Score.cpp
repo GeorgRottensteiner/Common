@@ -256,12 +256,12 @@ bool HighScore::Insert( int Score, const GR::String& Name, void* pItemData )
 
 
 
-bool HighScore::Load( const char* szFileName )
+bool HighScore::Load( const GR::String& FileName )
 {
   GR::IO::FileStream  fileScore;
 
   
-  if ( !fileScore.Open( szFileName, IIOStream::OT_READ_ONLY ) )
+  if ( !fileScore.Open( FileName, IIOStream::OT_READ_ONLY ) )
   {
     return false;
   }
@@ -318,18 +318,16 @@ bool HighScore::Load( const char* szFileName )
   fileScore.Close();
 
   return true;
-
 }
 
 
 
-void HighScore::Save( const char* szFileName )
+void HighScore::Save( const GR::String& FileName )
 {
-
   GR::IO::FileStream     fileScore;
 
 
-  if ( !fileScore.Open( szFileName, IIOStream::OT_WRITE_ONLY ) )
+  if ( !fileScore.Open( FileName, IIOStream::OT_WRITE_ONLY ) )
   {
     return;
   }
@@ -361,7 +359,6 @@ void HighScore::Save( const char* szFileName )
     }
   }
   fileScore.Close();
-
 }
 
 

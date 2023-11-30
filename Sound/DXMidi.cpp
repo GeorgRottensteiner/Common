@@ -1,7 +1,7 @@
 #define INITGUID
 
 #include <dmusicc.h>
-#include <dmusici.h>
+//#include <dmusici.h>
 #include <dsound.h>
 
 #include <debug/debugclient.h>
@@ -714,7 +714,6 @@ HRESULT CMusicSegment::GetStyle( IDirectMusicStyle8** ppStyle, DWORD dwStyleInde
 
 bool CDXMidi::LoadMusic( const char* strFileName )
 {
-
   // Free any previous segment, and make a new one
   if ( m_pSegment )
   {
@@ -756,9 +755,7 @@ bool CDXMidi::LoadMusic( const char* strFileName )
 
 bool CDXMidi::LoadMusic( IIOStream& Stream )
 {
-
   return false;
-
 }
 
 

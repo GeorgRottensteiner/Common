@@ -516,12 +516,13 @@ void XBasicFont::FontFromTexture( GR::u32 Flags, XTexture* pTextureTarget, GR::G
         ++letterX;
         if ( letterX >= m_Width )
         {
+          minX = 0;
           break;
         }
       }
       while ( true );
 
-      letterX = m_Width - 1;
+      letterX = minX;
       do
       {
         for ( int letterY = 0; letterY < m_Height; ++letterY )
@@ -533,13 +534,13 @@ void XBasicFont::FontFromTexture( GR::u32 Flags, XTexture* pTextureTarget, GR::G
             break;
           }
         }
-        if ( maxX > 0 )
+        if ( maxX < letterX )
         {
           // in diesem Durchlauf kein Pixel mehr gefunden
           break;
         }
-        --letterX;
-        if ( letterX < 0 )
+        ++letterX;
+        if ( letterX >= m_Width )
         {
           break;
         }

@@ -19,7 +19,7 @@ namespace GR
   {
 
     class FileChunk : public ByteBuffer,
-                      public IIOStream
+                      public IIOStreamBase
     {
 
       public:
@@ -42,6 +42,7 @@ namespace GR
 
         virtual unsigned long ReadBlock( void* pData, std::size_t NumBytes );
         virtual unsigned long WriteBlock( const void* pData, std::size_t NumBytes );
+        virtual bool          DataAvailable();
 
 
       protected:

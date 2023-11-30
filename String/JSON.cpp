@@ -1001,6 +1001,20 @@ namespace GR
 
 
 
+      Parser::iterator Parser::begin()
+      {
+        return Parser::iterator( m_RootElement.FirstChild() );
+      }
+
+
+
+      Parser::iterator Parser::end()
+      {
+        return Parser::iterator();
+      }
+
+
+
       void Parser::SetLineBreak( const GR::String& LineBreak )
       {
         m_NewLine = LineBreak;

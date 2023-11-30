@@ -88,7 +88,7 @@ namespace GR
 
 
 
-  bool Font::Load( const GR::Char* Filename )
+  bool Font::Load( const GR::String& Filename )
   {
     GR::IO::FileStream       fileFont;
 
@@ -151,7 +151,7 @@ namespace GR
 
 
 
-  bool Font::Save( const GR::Char* Filename )
+  bool Font::Save( const GR::String& Filename )
   {
     GR::IO::FileStream       fileFont;
 
@@ -235,7 +235,7 @@ namespace GR
 
 
 
-  bool Font::LoadFNT( const GR::Char* FileName, unsigned char Bpp, GR::u32 Transparent )
+  bool Font::LoadFNT( const GR::String& FileName, unsigned char Bpp, GR::u32 Transparent )
   {
     GR::IO::FileStream    ioIn;
 
@@ -385,7 +385,7 @@ namespace GR
     {
       if ( !m_FixedWidth )
       {
-        GR::Graphic::Image* pLetter = GetLetter( Text[i] );
+        GR::Graphic::Image* pLetter = GetLetter( (GR::u8)Text[i] );
         if ( pLetter )
         {
           length += pLetter->GetWidth() + m_FontSpacing;
@@ -443,11 +443,9 @@ namespace GR
 
 
 
-  int Font::TextHeight( const GR::Char* Text ) const
+  int Font::TextHeight( const GR::String& Text ) const
   {
-    size_t    len = 0;
-    if ( ( Text == NULL )
-    ||   ( ( len = GR::Strings::Length( Text ) ) == 0 ) )
+    if ( Text.empty() )
     {
       // Standard-Höhe der üblichen Übeltäter
       return TextHeight( "AZÄÖÜyg\\" );
@@ -455,7 +453,7 @@ namespace GR
 
     unsigned long   height = 0;
 
-    for ( size_t i = 0; i < len; i++ )
+    for ( size_t i = 0; i < Text.length(); i++ )
     {
       GR::Graphic::Image*   pLetter = GetLetter( Text[i] );
       if ( pLetter )

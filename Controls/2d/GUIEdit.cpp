@@ -128,7 +128,7 @@ void GUIEdit::DisplayOnPage( GR::Graphic::GFXPage* pPage )
 
       for ( size_t iPos = m_TextOffset; iPos < strLine.length(); ++iPos )
       {
-        GR::Graphic::Image*  pLetter = ( (GR::CFont*)m_pFont )->GetLetter( strLine[iPos] );
+        GR::Graphic::Image*  pLetter = ( (GR::Font*)m_pFont )->GetLetter( strLine[iPos] );
         if ( pLetter == NULL )
         {
           continue;

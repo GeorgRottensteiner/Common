@@ -10,6 +10,7 @@
 
 #pragma comment( lib, "wininet.lib" )
 #pragma comment( lib, "urlmon.lib" )
+#pragma comment( lib, "Ws2_32.lib" )
 
 
 
@@ -131,9 +132,13 @@ namespace GR
 
     BOOL __stdcall IsInNet( LPSTR lpszIPAddress, LPSTR lpszDest, LPSTR lpszMask )
     {
-      DWORD dwDest    = inet_addr( lpszDest );
-      DWORD dwIpAddr  = inet_addr( lpszIPAddress );
-      DWORD dwMask    = inet_addr( lpszMask );
+      DWORD dwDest;
+      DWORD dwIpAddr;
+      DWORD dwMask;
+
+      inet_pton( AF_INET, lpszDest, &dwDest );
+      inet_pton( AF_INET, lpszIPAddress, &dwIpAddr );
+      inet_pton( AF_INET, lpszMask, &dwMask );
 
       if ( ( dwDest == INADDR_NONE )
       ||   ( dwIpAddr == INADDR_NONE )

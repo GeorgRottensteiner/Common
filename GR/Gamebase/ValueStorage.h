@@ -19,17 +19,20 @@ namespace GR
       private:
 
         GR::String        m_UserAppDataPath;
+        GR::String        m_AllUsersAppDataPath;
         GR::String        m_AppDataPath;
 
 
       public:
 
         virtual const GR::Char*         UserAppDataPath( const GR::Char* Filename );
+        virtual const GR::Char*         AllUsersAppDataPath( const GR::Char* Filename );
         virtual const GR::Char*         AppPath( const GR::Char* Filename );
 
 
         void SetAppPath( const GR::String& Path );
         void SetUserAppPath( const GR::String& Path );
+        void SetAllUsersAppPath( const GR::String& Path );
 
     };
 

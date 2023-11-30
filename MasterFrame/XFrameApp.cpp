@@ -67,13 +67,14 @@ XFrameApp::XFrameApp() :
   m_FixedLogicTimeStep( 0.05f ),
   m_IconID( 0 ),
   m_BitmapResourceID( 0 ),
-  m_ptMouseHotSpot( 0, 0 ),
+  m_MouseHotSpot( 0, 0 ),
   m_CurScreenshotNumber( 0 ),
   m_ClassName( _T( "XFrameWndClass" ) ),
   m_CustomMouseCursorColor( 0xffffffff ),
   m_GUILoader( GUIComponentDisplayer::Instance() ),
   m_GUI( GUIComponentDisplayer::Instance() ),
-  m_ForceFixedSize( false )
+  m_ForceFixedSize( false ),
+  m_KeepMouseInsideDuringFullscreen( true )
 {
   g_pFrameApp = this;
 
@@ -86,17 +87,17 @@ XFrameApp::XFrameApp() :
   GR::Service::Environment::Instance().SetService( "Logger", &m_DebugService );
   GR::Service::Environment::Instance().SetService( "WindowFrame", &m_RenderFrame );
 
-  m_ETChangeState = EventQueue::Instance().RegisterEvent( "App.ChangeState" );
-  m_ETPushState   = EventQueue::Instance().RegisterEvent( "App.PushState" );
-  m_ETPushStateOnStack = EventQueue::Instance().RegisterEvent( "App.PushStateOnStack" );
-  m_ETPopState    = EventQueue::Instance().RegisterEvent( "App.PopState" );
-  m_ETPopAnyState = EventQueue::Instance().RegisterEvent( "App.PopAnyState" );
-  m_ETShutDown    = EventQueue::Instance().RegisterEvent( "App.ShutDown" );
-  m_ETShuttingDown = EventQueue::Instance().RegisterEvent( "App.Info.ShuttingDown" );
+  m_ETChangeState         = EventQueue::Instance().RegisterEvent( "App.ChangeState" );
+  m_ETPushState           = EventQueue::Instance().RegisterEvent( "App.PushState" );
+  m_ETPushStateOnStack    = EventQueue::Instance().RegisterEvent( "App.PushStateOnStack" );
+  m_ETPopState            = EventQueue::Instance().RegisterEvent( "App.PopState" );
+  m_ETPopAnyState         = EventQueue::Instance().RegisterEvent( "App.PopAnyState" );
+  m_ETShutDown            = EventQueue::Instance().RegisterEvent( "App.ShutDown" );
+  m_ETShuttingDown        = EventQueue::Instance().RegisterEvent( "App.Info.ShuttingDown" );
   m_ETRendererInitialised = EventQueue::Instance().RegisterEvent( "Renderer.Initialised" );
   m_ETRendererReleased    = EventQueue::Instance().RegisterEvent( "Renderer.Released" );
 
-  m_GUI.m_pEventProducer = this;
+  m_GUI.m_pEventProducer  = this;
 
   EventQueue::Instance().AddListener( this );
 }
@@ -214,7 +215,7 @@ void XFrameApp::DoSplashScreen()
 
 
 
-bool XFrameApp::SwitchRenderer( const char* szFileName )
+bool XFrameApp::SwitchRenderer( const char* FileName )
 {
   if ( m_pRenderClass )
   {
@@ -230,17 +231,18 @@ bool XFrameApp::SwitchRenderer( const char* szFileName )
   }
 #endif
 
-  if ( szFileName == NULL )
+  if ( FileName == NULL )
   {
+    ConsolePrint( "Renderer switched off" );
     EventProducer<GR::Gamebase::tXFrameEvent>::SendEvent( GR::Gamebase::tXFrameEvent( GR::Gamebase::tXFrameEvent::ET_RENDERER_SWITCHED ) );
     return false;
   }
 
 #if OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP
-  m_hinstCurrentRenderer = LoadLibraryA( szFileName );
+  m_hinstCurrentRenderer = LoadLibraryA( FileName );
   if ( m_hinstCurrentRenderer == NULL )
   {
-    m_hinstCurrentRenderer = LoadLibraryA( AppPath( szFileName ).c_str() );
+    m_hinstCurrentRenderer = LoadLibraryA( AppPath( FileName ).c_str() );
   }
   if ( m_hinstCurrentRenderer )
   {
@@ -255,6 +257,7 @@ bool XFrameApp::SwitchRenderer( const char* szFileName )
     }
   }
 #endif
+  ConsolePrint( "Renderer switched to %s", FileName );
   EventProducer<GR::Gamebase::tXFrameEvent>::SendEvent( GR::Gamebase::tXFrameEvent( GR::Gamebase::tXFrameEvent::ET_RENDERER_SWITCHED ) );
   if ( m_pRenderClass )
   {
@@ -277,10 +280,10 @@ bool XFrameApp::RunDefaultModules()
   if ( m_RenderFrame.m_DisplayMode.Width == 0 )
   {
     // default modes
-    m_RenderFrame.m_DisplayMode.Width = 640;
-    m_RenderFrame.m_DisplayMode.Height = 480;
+    m_RenderFrame.m_DisplayMode.Width       = 640;
+    m_RenderFrame.m_DisplayMode.Height      = 480;
     m_RenderFrame.m_DisplayMode.ImageFormat = GR::Graphic::ImageData::ImageFormatFromDepth( 16 );
-    m_RenderFrame.m_DisplayMode.FullScreen = false;
+    m_RenderFrame.m_DisplayMode.FullScreen  = false;
   }
 
 #if OPERATING_SYSTEM != OS_WEB
@@ -294,11 +297,12 @@ bool XFrameApp::RunDefaultModules()
     }
     m_RenderFrame.SetSize( m_RenderFrame.m_DisplayMode.Width, m_RenderFrame.m_DisplayMode.Height );
 
+    ConsolePrint( "Renderer switched to existing" );
     EventProducer<GR::Gamebase::tXFrameEvent>::SendEvent( GR::Gamebase::tXFrameEvent( GR::Gamebase::tXFrameEvent::ET_RENDERER_SWITCHED ) );
   }
 #endif
 
-  Xtreme::XInput* pExistingInput = ( Xtreme::XInput* )GR::Service::Environment::Instance().Service( "Input" );
+  Xtreme::XInput* pExistingInput = (Xtreme::XInput*)GR::Service::Environment::Instance().Service( "Input" );
   if ( pExistingInput != NULL )
   {
     m_pInputClass = pExistingInput;
@@ -487,14 +491,16 @@ bool XFrameApp::RunDefaultModules()
   {
     XRendererDisplayMode    mode;
 
-    mode.Width        = m_EnvironmentConfig.StartUpWidth;
-    mode.Height       = m_EnvironmentConfig.StartUpHeight;
+    //dh::Log( "initWithFullscreen setting %dx%d", m_RenderFrame.m_DisplayMode.Width, m_RenderFrame.m_DisplayMode.Height );
+    mode.Width = m_RenderFrame.m_DisplayMode.Width;
+    mode.Height = m_RenderFrame.m_DisplayMode.Height;
     mode.ImageFormat  = m_pRenderClass->ImageFormat();
     mode.FullScreen   = true;
 
     DetermineBestFullscreenMatch( mode );
 
     m_pRenderClass->SetMode( mode );
+    EventProducer<GR::Gamebase::tXFrameEvent>::SendEvent( GR::Gamebase::tXFrameEvent( GR::Gamebase::tXFrameEvent::ET_WINDOW_MODE_CHANGED ) );
   }
 
   m_pRenderClass->Canvas( m_EnvironmentDisplayRect );
@@ -667,12 +673,12 @@ void XFrameApp::RunLoop()
 #if ( OPERATING_SUB_SYSTEM == OS_SUB_UNIVERSAL_APP ) || ( OPERATING_SUB_SYSTEM == OS_SUB_WINDOWS_PHONE )
       CoreWindow::GetForCurrentThread()->Dispatcher->ProcessEvents( CoreProcessEventsOption::ProcessOneAndAllPending );
 #elif OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP
-      BOOL    bRet = GetMessage( &msg, NULL, 0, 0 );
-      if ( bRet == 0 )
+      BOOL    returnValue = GetMessage( &msg, NULL, 0, 0 );
+      if ( returnValue == 0 )
       {
         break;
       }
-      else if ( bRet == -1 )
+      else if ( returnValue == -1 )
       {
         // Fehler!
         break;
@@ -745,13 +751,13 @@ void XFrameApp::RunLoop()
 #elif OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP
       while ( PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE ) )
       {
-        BOOL    bRet = GetMessage( &msg, NULL, 0, 0 );
+        BOOL    returnValue = GetMessage( &msg, NULL, 0, 0 );
 
-        if ( bRet == 0 )
+        if ( returnValue == 0 )
         {
           goto main_loop_done;
         }
-        else if ( bRet == -1 )
+        else if ( returnValue == -1 )
         {
           // Fehler!
           goto main_loop_done;
@@ -803,45 +809,45 @@ void XFrameApp::RunLoop()
         }*/
       }
 #endif
-      GR::f64   fNewFrameTime = Time::Timer::Time();
-      GR::f32   ElapsedTime = ( GR::f32 )Time::Timer::Time( Time::Timer::TF_GETELAPSEDTIME );
-      GR::f32   fElapsedFixedTime = ( GR::f32 )( GR::f64 )( fNewFrameTime - m_LastFixedFrameTime );
+      GR::f64   newFrameTime = Time::Timer::Time();
+      GR::f32   elapsedTime = ( GR::f32 )Time::Timer::Time( Time::Timer::TF_GETELAPSEDTIME );
+      GR::f32   elapsedFixedTime = ( GR::f32 )( GR::f64 )( newFrameTime - m_LastFixedFrameTime );
 
-      if ( ElapsedTime > 10.0f )
+      if ( elapsedTime > 10.0f )
       {
-        ElapsedTime = 0.0f;
+        elapsedTime = 0.0f;
       }
       //dh::Log( "TTElapsedTime %.6f", elapsedTime );
       //dh::Log( "ElapsedTime %.6f", ElapsedTime );
 
       if ( m_ConsoleVisible )
       {
-        ElapsedTime = 0.0f;
-        m_LastFixedFrameTime = fNewFrameTime;
-        m_LastFrameTime = fNewFrameTime;
+        elapsedTime = 0.0f;
+        m_LastFixedFrameTime = newFrameTime;
+        m_LastFrameTime = newFrameTime;
       }
 
-      int     iSafetyLoopCounter = 0;
-      while ( fElapsedFixedTime >= m_FixedLogicTimeStep )
+      int     safetyLoopCounter = 0;
+      while ( elapsedFixedTime >= m_FixedLogicTimeStep )
       {
-        iSafetyLoopCounter++;
-        if ( iSafetyLoopCounter > 25 )
+        safetyLoopCounter++;
+        if ( safetyLoopCounter > 25 )
         {
           // Safety-Break um eventuelle Endlosloops zu verhindern
-          m_LastFixedFrameTime = fNewFrameTime;
+          m_LastFixedFrameTime = newFrameTime;
           break;
         }
         m_StateManager.UpdateCurrentState();
         UpdateFixedLogic();
         EventProducer<GR::Gamebase::tXFrameEvent>::ProcessEventQueue();
-        fElapsedFixedTime -= ( GR::f32 )m_FixedLogicTimeStep;
+        elapsedFixedTime -= ( GR::f32 )m_FixedLogicTimeStep;
         m_LastFixedFrameTime += m_FixedLogicTimeStep;
       }
-      m_LastFrameTime = fNewFrameTime;
+      m_LastFrameTime = newFrameTime;
 
       if ( m_pInputClass )
       {
-        m_pInputClass->Update( ElapsedTime );
+        m_pInputClass->Update( elapsedTime );
       }
 
       if ( ( m_pRenderClass )
@@ -854,9 +860,9 @@ void XFrameApp::RunLoop()
           m_pRenderClass->SaveScreenShot( screenShotFile.c_str() );
         }
       }
-      m_StateManager.UpdateStatesPerDisplayFrame( ElapsedTime );
-      UpdatePerDisplayFrame( ElapsedTime );
-      UpdateAssets( ElapsedTime );
+      m_StateManager.UpdateStatesPerDisplayFrame( elapsedTime );
+      UpdatePerDisplayFrame( elapsedTime );
+      UpdateAssets( elapsedTime );
       EventProducer<GR::Gamebase::tXFrameEvent>::ProcessEventQueue();
       EventQueue::Instance().ProcessQueue();
 
@@ -889,7 +895,7 @@ void XFrameApp::RunLoop()
       m_StateManager.PopAllStates();
       EventProducer<GR::Gamebase::tXFrameEvent>::SendEvent( GR::Gamebase::tXFrameEvent( GR::Gamebase::tXFrameEvent::ET_SHUTDOWN ) );
 
-      GR::IO::FileStream    ioOut( UserAppDataPath( "xtreme.cfg" ).c_str(), IIOStream::OT_WRITE_ONLY );
+      GR::IO::FileStream    ioOut( UserAppDataPath( "xtreme.cfg" ), IIOStream::OT_WRITE_ONLY );
       Save( ioOut );
 
       m_GUI.DeleteAllControls();
@@ -949,14 +955,14 @@ int XFrameApp::PreLoopRun()
     m_RenderFrame.SetSize( m_RenderFrame.m_DisplayMode.Width, m_RenderFrame.m_DisplayMode.Height );
     m_EnvironmentDisplayRect.set( 0, 0, m_RenderFrame.m_DisplayMode.Width, m_RenderFrame.m_DisplayMode.Height );
   }
-  std::list<GR::String>::iterator    itCL( m_StartParameter.begin() );
+  auto   itCL( m_StartParameter.begin() );
   while ( itCL != m_StartParameter.end() )
   {
-    const GR::String& strParam( *itCL );
+    const GR::String& param( *itCL );
 
-    if ( strParam.find( "/log:" ) == 0 )
+    if ( param.find( "/log:" ) == 0 )
     {
-      GR::String   strLog = strParam.substr( 5 );
+      GR::String   strLog = param.substr( 5 );
 
       std::list<GR::String>    listLogParams;
 
@@ -970,15 +976,15 @@ int XFrameApp::PreLoopRun()
         ++it;
       }
     }
-    else if ( strParam.find( "/logtofile:" ) == 0 )
+    else if ( param.find( "/logtofile:" ) == 0 )
     {
-      GR::String   strLog = strParam.substr( 11 );
+      GR::String   strLog = param.substr( 11 );
 
       std::list<GR::String>    listLogParams;
 
       GR::Strings::Split( strLog, ',', listLogParams );
 
-      std::list<GR::String>::iterator    it( listLogParams.begin() );
+      auto it( listLogParams.begin() );
       while ( it != listLogParams.end() )
       {
         m_DebugService.LogEnable( *it );
@@ -998,7 +1004,7 @@ int XFrameApp::PreLoopRun()
 
   if ( !InitInstance() )
   {
-    dh::Log( "initinstance failed" );
+    dh::Log( "InitInstance failed" );
     ReleaseAssets();
     SwitchRenderer( NULL );
     SwitchInput();
@@ -1275,10 +1281,10 @@ LRESULT XFrameApp::WindowProc( UINT message, WPARAM wParam, LPARAM lParam )
           }
           ToggleFullscreen();
 
-          if ( m_rcClipRect.width() != 0 )
+          if ( m_ClipRect.width() != 0 )
           {
             // reset cliprect to adjust changed windows pos
-            ClipCursor( GR::tRect( 0, 0, m_rcClipRect.width(), m_rcClipRect.height() ) );
+            ApplyClipCursor( m_ClipRect );
           }
           return 0;
         }
@@ -1301,17 +1307,22 @@ LRESULT XFrameApp::WindowProc( UINT message, WPARAM wParam, LPARAM lParam )
     case WM_ACTIVATE:
       m_ApplicationActive = ( LOWORD( wParam ) != WA_INACTIVE );
 
-      if ( m_rcClipRect.width() > 0 )
+      if ( m_ClipRect.width() > 0 )
       {
         if ( !m_ApplicationActive )
         {
           // Entclippen
           ::ClipCursor( NULL );
         }
-        else
+        else if ( m_ClipRect.width() > 0 )
         {
           // Cliprect wiederherstellen
-          ClipCursor( GR::tRect( 0, 0, m_rcClipRect.width(), m_rcClipRect.height() ) );
+          ApplyClipCursor( m_ClipRect );
+        }
+        else if ( ( m_KeepMouseInsideDuringFullscreen )
+        &&        ( m_pRenderClass->IsFullscreen() ) )
+        {
+          ApplyClipCursor( GR::tRect( 0, 0, m_pRenderClass->Width(), m_pRenderClass->Height() ) );
         }
       }
 
@@ -1371,8 +1382,16 @@ bool XFrameApp::ProcessEvent( const GR::Gamebase::tXFrameEvent& Event )
         if ( m_RenderFrame.m_DisplayMode.FullScreen )
         {
           //XRendererDisplayMode    mode = m_StoredWindowedMode;
-          dh::Log( "called DetermineBestFullscreenMatch from processevent" );
+          //dh::Log( "called DetermineBestFullscreenMatch from processevent" );
           //DetermineBestFullscreenMatch( mode );
+
+          if ( m_KeepMouseInsideDuringFullscreen )
+          {
+            if ( m_ClipRect.width() == 0 )
+            {
+              ApplyClipCursor( GR::tRect( 0, 0, m_pRenderClass->Width(), m_pRenderClass->Height() ) );
+            }
+          }
         }
         else if ( m_EnvironmentConfig.FixedSize )
         {
@@ -1384,6 +1403,17 @@ bool XFrameApp::ProcessEvent( const GR::Gamebase::tXFrameEvent& Event )
           // TODO - restore remembered window size
           m_EnvironmentDisplayRect.set( 0, 0, m_pRenderClass->Width(), m_pRenderClass->Height() );
         }
+        if ( !m_RenderFrame.m_DisplayMode.FullScreen )
+        {
+          if ( m_KeepMouseInsideDuringFullscreen )
+          {
+            if ( m_ClipRect.width() == 0 )
+            {
+              ApplyClipCursor( GR::tRect() );
+            }
+          }
+        }
+
         m_pRenderClass->Canvas( m_EnvironmentDisplayRect );
 
         AdjustCanvas( m_pRenderClass->Width(), m_pRenderClass->Height() );
@@ -1646,7 +1676,7 @@ void XFrameApp::SetCustomMouseCursor( const XTextureSection& TexSec, const GR::t
 {
   m_CustomMouseCursorColor = Color;
   m_tsMouseCursor   = TexSec;
-  m_ptMouseHotSpot  = ptHotSpot;
+  m_MouseHotSpot  = ptHotSpot;
 
   m_CustomMouseCursorSet = ( m_tsMouseCursor.m_Width != 0 ) && ( m_tsMouseCursor.m_Height != 0 );
 
@@ -1670,7 +1700,7 @@ void XFrameApp::RenderCustomCursor( const GR::tPoint& ptMousePos )
   &&   ( m_EnableCursor )
   &&   ( m_pRenderClass ) )
   {
-    GR::tPoint    ptOffset = ptMousePos - m_ptMouseHotSpot;
+    GR::tPoint    ptOffset = ptMousePos - m_MouseHotSpot;
 
     if ( ( m_tsMouseCursor.m_pTexture )
     &&   ( GR::Graphic::ImageData::FormatHasAlpha( m_tsMouseCursor.m_pTexture->m_ImageFormat ) ) )
@@ -1745,7 +1775,7 @@ void XFrameApp::DisplayConsole()
 
         ++it;
       }
-      m_pRenderClass->RenderText2d( m_pConsoleFont, 4, 465, ( m_ConsoleEingabe + "_" ).c_str() );
+      m_pRenderClass->RenderText2d( m_pConsoleFont, 4, m_RenderFrame.m_DisplayMode.Height - 15, ( m_ConsoleEingabe + "_" ).c_str() );
     }
   }
   else
@@ -1783,7 +1813,7 @@ void XFrameApp::DisplayConsole()
       ++it;
     }
 
-    rc.top = 465;
+    rc.top = rc.bottom - 15;
     rc.bottom = rc.top + 14;
     DrawTextA( hdcMain, ( m_ConsoleEingabe + "_" ).c_str(), (int)m_ConsoleEingabe.length() + 1, &rc, DT_LEFT | DT_SINGLELINE );
 
@@ -2109,12 +2139,18 @@ void XFrameApp::AppCursor( HCURSOR hCursor )
 
 
 
-void XFrameApp::ClipCursor( const GR::tRect& rcClipRect )
+void XFrameApp::ClipCursor( const GR::tRect& ClipRect )
 {
-  m_rcClipRect = rcClipRect;
+  m_ClipRect = ClipRect;
+  ApplyClipCursor( ClipRect );
+}
 
+
+
+void XFrameApp::ApplyClipCursor( const GR::tRect& ClipRect )
+{
 #if OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP
-  if ( m_rcClipRect.width() == 0 )
+  if ( ClipRect.width() == 0 )
   {
     ::ClipCursor( NULL );
   }
@@ -2127,11 +2163,13 @@ void XFrameApp::ClipCursor( const GR::tRect& rcClipRect )
 
     ::ClientToScreen( m_RenderFrame.m_hwndMain, &pt );
 
-    m_rcClipRect.offset( pt.x, pt.y );
+    GR::tRect   innerClipRect( ClipRect );
+
+    innerClipRect.offset( pt.x, pt.y );
 
     RECT    rcClip;
 
-    SetRect( &rcClip, m_rcClipRect.Left, m_rcClipRect.Top, m_rcClipRect.Right, m_rcClipRect.Bottom );
+    SetRect( &rcClip, innerClipRect.Left, innerClipRect.Top, innerClipRect.Right, innerClipRect.Bottom );
     ::ClipCursor( &rcClip );
   }
 #endif
@@ -2149,7 +2187,7 @@ void XFrameApp::ResetFrameTime()
 
 
 
-XTextureSection XFrameApp::Section( const GR::String& strName )
+XTextureSection XFrameApp::Section( const GR::String& Name )
 {
   Xtreme::Asset::XAssetLoader* pLoader = (Xtreme::Asset::XAssetLoader*)GR::Service::Environment::Instance().Service( "AssetLoader" );
   if ( pLoader == NULL )
@@ -2157,10 +2195,10 @@ XTextureSection XFrameApp::Section( const GR::String& strName )
     return XTextureSection();
   }
 
-  Xtreme::Asset::XAsset* pSection = pLoader->Asset( Xtreme::Asset::XA_IMAGE_SECTION, strName.c_str() );
+  Xtreme::Asset::XAsset* pSection = pLoader->Asset( Xtreme::Asset::XA_IMAGE_SECTION, Name.c_str() );
   if ( pSection == NULL )
   {
-    dh::Log( "XFrameApp::Section Section (%s) not found", strName.c_str() );
+    dh::Log( "XFrameApp::Section Section (%s) not found", Name.c_str() );
     return XTextureSection();
   }
   return *(XTextureSection*)pSection->Handle( "Section" );
@@ -2168,7 +2206,7 @@ XTextureSection XFrameApp::Section( const GR::String& strName )
 
 
 
-XTexture* XFrameApp::Texture( const GR::String& strName )
+XTexture* XFrameApp::Texture( const GR::String& Name )
 {
   Xtreme::Asset::XAssetLoader* pLoader = (Xtreme::Asset::XAssetLoader*)GR::Service::Environment::Instance().Service( "AssetLoader" );
   if ( pLoader == NULL )
@@ -2177,10 +2215,10 @@ XTexture* XFrameApp::Texture( const GR::String& strName )
     return NULL;
   }
 
-  Xtreme::Asset::XAssetImage* pImage = (Xtreme::Asset::XAssetImage*)pLoader->Asset( Xtreme::Asset::XA_IMAGE, strName.c_str() );
+  Xtreme::Asset::XAssetImage* pImage = (Xtreme::Asset::XAssetImage*)pLoader->Asset( Xtreme::Asset::XA_IMAGE, Name.c_str() );
   if ( pImage == NULL )
   {
-    dh::Log( "XFrameApp::Texture Texture %s not found", strName.c_str() );
+    dh::Log( "XFrameApp::Texture Texture %s not found", Name.c_str() );
     return NULL;
   }
   return pImage->Texture();
@@ -2188,7 +2226,7 @@ XTexture* XFrameApp::Texture( const GR::String& strName )
 
 
 
-XFont* XFrameApp::Font( const GR::String& strName )
+XFont* XFrameApp::Font( const GR::String& Name )
 {
   Xtreme::Asset::XAssetLoader* pLoader = (Xtreme::Asset::XAssetLoader*)GR::Service::Environment::Instance().Service( "AssetLoader" );
   if ( pLoader == NULL )
@@ -2197,10 +2235,10 @@ XFont* XFrameApp::Font( const GR::String& strName )
     return NULL;
   }
 
-  Xtreme::Asset::XAsset* pMesh = pLoader->Asset( Xtreme::Asset::XA_FONT, strName.c_str() );
+  Xtreme::Asset::XAsset* pMesh = pLoader->Asset( Xtreme::Asset::XA_FONT, Name.c_str() );
   if ( pMesh == NULL )
   {
-    dh::Log( "XFrameApp::Font Font %s not found", strName.c_str() );
+    dh::Log( "XFrameApp::Font Font %s not found", Name.c_str() );
     return NULL;
   }
   return (XFont*)pMesh->Handle( "Font" );
@@ -2208,7 +2246,7 @@ XFont* XFrameApp::Font( const GR::String& strName )
 
 
 
-GR::u32 XFrameApp::Sound( const GR::String& strName )
+GR::u32 XFrameApp::Sound( const GR::String& Name )
 {
   Xtreme::Asset::XAssetLoader* pLoader = (Xtreme::Asset::XAssetLoader*)GR::Service::Environment::Instance().Service( "AssetLoader" );
   if ( pLoader == NULL )
@@ -2217,10 +2255,10 @@ GR::u32 XFrameApp::Sound( const GR::String& strName )
     return 0;
   }
 
-  Xtreme::Asset::XAsset* pSound = (Xtreme::Asset::XAsset*)pLoader->Asset( Xtreme::Asset::XA_SOUND, strName.c_str() );
+  Xtreme::Asset::XAsset* pSound = (Xtreme::Asset::XAsset*)pLoader->Asset( Xtreme::Asset::XA_SOUND, Name.c_str() );
   if ( pSound == NULL )
   {
-    dh::Log( "XFrameApp::Sound Sound %s not found", strName.c_str() );
+    dh::Log( "XFrameApp::Sound Sound %s not found", Name.c_str() );
     return 0;
   }
   return (GR::u32)pSound->Handle( "Sound" );
@@ -2228,7 +2266,7 @@ GR::u32 XFrameApp::Sound( const GR::String& strName )
 
 
 
-XVertexBuffer* XFrameApp::VertexBuffer( const GR::String& strName )
+XVertexBuffer* XFrameApp::VertexBuffer( const GR::String& Name )
 {
   Xtreme::Asset::XAssetLoader* pLoader = (Xtreme::Asset::XAssetLoader*)GR::Service::Environment::Instance().Service( "AssetLoader" );
   if ( pLoader == NULL )
@@ -2237,10 +2275,10 @@ XVertexBuffer* XFrameApp::VertexBuffer( const GR::String& strName )
     return NULL;
   }
 
-  Xtreme::Asset::XAsset* pMesh = pLoader->Asset( Xtreme::Asset::XA_MESH, strName.c_str() );
+  Xtreme::Asset::XAsset* pMesh = pLoader->Asset( Xtreme::Asset::XA_MESH, Name.c_str() );
   if ( pMesh == NULL )
   {
-    dh::Log( "XFrameApp::VertexBuffer VertexBuffer %s not found", strName.c_str() );
+    dh::Log( "XFrameApp::VertexBuffer VertexBuffer %s not found", Name.c_str() );
     return NULL;
   }
   return (XVertexBuffer*)pMesh->Handle( "VertexBuffer" );
@@ -2248,7 +2286,7 @@ XVertexBuffer* XFrameApp::VertexBuffer( const GR::String& strName )
 
 
 
-XMesh* XFrameApp::Mesh( const GR::String& strName )
+XMesh* XFrameApp::Mesh( const GR::String& Name )
 {
   Xtreme::Asset::XAssetLoader* pLoader = (Xtreme::Asset::XAssetLoader*)GR::Service::Environment::Instance().Service( "AssetLoader" );
   if ( pLoader == NULL )
@@ -2257,10 +2295,10 @@ XMesh* XFrameApp::Mesh( const GR::String& strName )
     return 0;
   }
 
-  Xtreme::Asset::XAsset* pMesh = pLoader->Asset( Xtreme::Asset::XA_MESH, strName.c_str() );
+  Xtreme::Asset::XAsset* pMesh = pLoader->Asset( Xtreme::Asset::XA_MESH, Name.c_str() );
   if ( pMesh == NULL )
   {
-    dh::Log( "XFrameApp::Mesh Mesh %s not found", strName.c_str() );
+    dh::Log( "XFrameApp::Mesh Mesh %s not found", Name.c_str() );
     return 0;
   }
   return (XMesh*)pMesh->Handle( "Mesh" );
@@ -2268,7 +2306,7 @@ XMesh* XFrameApp::Mesh( const GR::String& strName )
 
 
 
-XBoundingBox XFrameApp::MeshBounds( const GR::String& strName )
+XBoundingBox XFrameApp::MeshBounds( const GR::String& Name )
 {
   Xtreme::Asset::XAssetLoader* pLoader = (Xtreme::Asset::XAssetLoader*)GR::Service::Environment::Instance().Service( "AssetLoader" );
   if ( pLoader == NULL )
@@ -2277,10 +2315,10 @@ XBoundingBox XFrameApp::MeshBounds( const GR::String& strName )
     return XBoundingBox();
   }
 
-  Xtreme::Asset::XAsset* pMesh = pLoader->Asset( Xtreme::Asset::XA_MESH, strName.c_str() );
+  Xtreme::Asset::XAsset* pMesh = pLoader->Asset( Xtreme::Asset::XA_MESH, Name.c_str() );
   if ( pMesh == NULL )
   {
-    dh::Log( "XFrameApp::MeshBounds MeshBounds %s not found", strName.c_str() );
+    dh::Log( "XFrameApp::MeshBounds MeshBounds %s not found", Name.c_str() );
     return XBoundingBox();
   }
   return *(XBoundingBox*)pMesh->Handle( "BoundingBox" );
@@ -2288,7 +2326,7 @@ XBoundingBox XFrameApp::MeshBounds( const GR::String& strName )
 
 
 
-CSpline XFrameApp::Spline( const GR::String& strName )
+CSpline XFrameApp::Spline( const GR::String& Name )
 {
 
   Xtreme::Asset::XAssetLoader* pLoader = (Xtreme::Asset::XAssetLoader*)GR::Service::Environment::Instance().Service( "AssetLoader" );
@@ -2298,10 +2336,10 @@ CSpline XFrameApp::Spline( const GR::String& strName )
     return CSpline();
   }
 
-  Xtreme::Asset::XAssetSpline* pSpline = (Xtreme::Asset::XAssetSpline*)pLoader->Asset( Xtreme::Asset::XA_SPLINE, strName.c_str() );
+  Xtreme::Asset::XAssetSpline* pSpline = (Xtreme::Asset::XAssetSpline*)pLoader->Asset( Xtreme::Asset::XA_SPLINE, Name.c_str() );
   if ( pSpline == NULL )
   {
-    dh::Log( "XFrameApp::Spline Spline %s not found", strName.c_str() );
+    dh::Log( "XFrameApp::Spline Spline %s not found", Name.c_str() );
     return CSpline();
   }
   return pSpline->Spline();
@@ -2644,6 +2682,9 @@ void XFrameApp::ChangeWindowSize( int Width, int Height, int Depth )
       XRendererDisplayMode    mode( Width, Height, GR::Graphic::ImageData::ImageFormatFromDepth( Depth ), true );
       m_pRenderClass->SetMode( mode );
     }
+
+    // adjust window size (does that even work in full screen?)
+    //SetWindowPos( m_RenderFrame.m_hwndMain, NULL, 0, 0, Width, Height, 0 );
   }
   m_RenderFrame.SetSize( Width, Height );
   m_GUI.SetScreenSizes( GR::tPoint( Width, Height ), m_GUI.VirtualSize() );
@@ -2671,8 +2712,8 @@ void XFrameApp::DetermineBestFullscreenMatch( XRendererDisplayMode& Mode )
   }
 
 
-  dh::Log( "fullscreen for %dx%d (startup %dx%d)", Mode.Width, Mode.Height, m_EnvironmentConfig.StartUpWidth, m_EnvironmentConfig.StartUpHeight );
-  dh::Log( "Found %d modes", modeList.size() );
+  //dh::Log( "fullscreen for %dx%d (startup %dx%d)", Mode.Width, Mode.Height, m_EnvironmentConfig.StartUpWidth, m_EnvironmentConfig.StartUpHeight );
+  //dh::Log( "Found %d modes", modeList.size() );
   // is there a a matching mode?
   std::vector<XRendererDisplayMode>::iterator   it( modeList.begin() );
   while ( it != modeList.end() )
@@ -2703,7 +2744,7 @@ void XFrameApp::DetermineBestFullscreenMatch( XRendererDisplayMode& Mode )
 
     float   ratio = (float)mode.Width / mode.Height;
 
-    dh::Log( "check mode %dx%d (fs %d), Ratio %.2f", mode.Width, mode.Height, mode.FullScreen, ratio );
+    //dh::Log( "check mode %dx%d (fs %d), Ratio %.2f", mode.Width, mode.Height, mode.FullScreen, ratio );
     if ( ( mode.Width < Mode.Width )
     ||   ( mode.Height < Mode.Height ) )
     {
@@ -2719,7 +2760,7 @@ void XFrameApp::DetermineBestFullscreenMatch( XRendererDisplayMode& Mode )
     if ( ( curXFactor < factorX )
     &&   ( curYFactor < factorY ) )
     {
-      dh::Log( "next best match: %dx%d", mode.Width, mode.Height );
+      //dh::Log( "next best match: %dx%d", mode.Width, mode.Height );
       factorX = curXFactor;
       factorY = curYFactor;
       bestMode = mode;
@@ -2733,7 +2774,7 @@ void XFrameApp::DetermineBestFullscreenMatch( XRendererDisplayMode& Mode )
   }
   Mode = bestMode;
   Mode.FullScreen = true;
-  dh::Log( "using mode : %dx%d", Mode.Width, Mode.Height );
+  //dh::Log( "using mode : %dx%d", Mode.Width, Mode.Height );
 
   if ( m_EnvironmentConfig.FixedSize )
   {
@@ -2742,6 +2783,16 @@ void XFrameApp::DetermineBestFullscreenMatch( XRendererDisplayMode& Mode )
 
     dh::Log( "Offset %d,%d", xOffset, yOffset );
     m_EnvironmentDisplayRect.set( xOffset, yOffset, m_EnvironmentConfig.StartUpWidth, m_EnvironmentConfig.StartUpHeight );
+  }
+}
+
+
+
+void XFrameApp::KeepMouseInsideDuringFullscreen( bool KeepInside )
+{
+  m_KeepMouseInsideDuringFullscreen = KeepInside;
+  if ( m_pRenderClass->IsFullscreen() )
+  {
   }
 }
 
@@ -2763,7 +2814,6 @@ void XFrameApp::ToggleFullscreen()
   {
     m_StoredWindowedMode = mode;
     m_StoredWindowedMode.FullScreen = false;
-    dh::Log( "called DetermineBestFullscreenMatch from ToggleFullscreen" );
     DetermineBestFullscreenMatch( mode );
   }
   else
@@ -2775,10 +2825,8 @@ void XFrameApp::ToggleFullscreen()
   }
   m_pRenderClass->Canvas( m_EnvironmentDisplayRect );
 
-  dh::Log( "vor setmode" );
   if ( m_pRenderClass->SetMode( mode ) )
   {
-    dh::Log( "-setmode ok" );
     if ( !m_pRenderClass->IsFullscreen() )
     {
       //dh::Log( "calling changewindowsize" );
@@ -2815,8 +2863,8 @@ void XFrameApp::DisplayFrame( XRenderer& Renderer )
 
   int   clipRects = m_GUI.m_ClipRects.size();
 
-  std::list<IGameState<XRenderer>*>::iterator    it( m_StateManager.m_listGameStateStack.begin() );
-  while ( it != m_StateManager.m_listGameStateStack.end() )
+  auto it( m_StateManager.m_GameStateStack.begin() );
+  while ( it != m_StateManager.m_GameStateStack.end() )
   {
     GUIGameState<XRenderer,GUIComponent>*    pGameState = (GUIGameState<XRenderer,GUIComponent>*)*it;
 

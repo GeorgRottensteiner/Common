@@ -354,6 +354,26 @@ XTextureSection GUIComponent::Section( Xtreme::Asset::IAssetLoader* pLoader, con
 
 
 
+void GUIComponent::SetSectionFromAttribute( Xtreme::Asset::IAssetLoader* pLoader, GR::Strings::XMLElement* pElement, const GR::String& Attribute, GUI::eBorderType Border )
+{
+  if ( !pElement->HasAttribute( Attribute ) )
+  {
+    return;
+  }
+  GR::String    attributeValue = pElement->Attribute( Attribute );
+  if ( attributeValue.empty() )
+  {
+    // explicit none!
+    SetTextureSection( Border, XTextureSection() );
+  }
+  else
+  {
+    SetTextureSection( Border, Section( pLoader, attributeValue ) );
+  }
+}
+
+
+
 void GUIComponent::ParseXML( GR::Strings::XMLElement* pElement, GR::IEnvironment& Environment )
 {
   GUI::Component::ParseXML( pElement, Environment );
@@ -380,6 +400,15 @@ void GUIComponent::ParseXML( GR::Strings::XMLElement* pElement, GR::IEnvironment
       }
     }
 
+    SetSectionFromAttribute( pLoader, pElement, "EdgeTopLeft", GUI::BT_EDGE_TOP_LEFT );
+    SetSectionFromAttribute( pLoader, pElement, "EdgeTop", GUI::BT_EDGE_TOP );
+    SetSectionFromAttribute( pLoader, pElement, "EdgeTopRight", GUI::BT_EDGE_TOP_RIGHT );
+    SetSectionFromAttribute( pLoader, pElement, "EdgeLeft", GUI::BT_EDGE_LEFT );
+    SetSectionFromAttribute( pLoader, pElement, "EdgeRight", GUI::BT_EDGE_RIGHT );
+    SetSectionFromAttribute( pLoader, pElement, "EdgeBottomLeft", GUI::BT_EDGE_BOTTOM_LEFT );
+    SetSectionFromAttribute( pLoader, pElement, "EdgeBottom", GUI::BT_EDGE_BOTTOM );
+    SetSectionFromAttribute( pLoader, pElement, "EdgeBottomRight", GUI::BT_EDGE_BOTTOM_RIGHT );
+    /*
     if ( pElement->HasAttribute( "EdgeTopLeft" ) )
     {
       SetTextureSection( GUI::BT_EDGE_TOP_LEFT, Section( pLoader, pElement->Attribute( "EdgeTopLeft" ) ) );
@@ -411,7 +440,7 @@ void GUIComponent::ParseXML( GR::Strings::XMLElement* pElement, GR::IEnvironment
     if ( pElement->HasAttribute( "EdgeBottomRight" ) )
     {
       SetTextureSection( GUI::BT_EDGE_BOTTOM_RIGHT, Section( pLoader, pElement->Attribute( "EdgeBottomRight" ) ) );
-    }
+    }*/
     if ( pElement->HasAttribute( "SunkenEdgeTopLeft" ) )
     {
       SetTextureSection( GUI::BT_SUNKEN_EDGE_TOP_LEFT, Section( pLoader, pElement->Attribute( "SunkenEdgeTopLeft" ) ) );
@@ -517,13 +546,13 @@ void GUIComponent::ParseXML( GR::Strings::XMLElement* pElement, GR::IEnvironment
     {
       SetCustomTextureSection( GUI::CTS_CHECKBOX_CHECK, Section( pLoader, pElement->Attribute( "CustomSection.CheckboxCheck" ) ) );
     }
-    if ( pElement->HasAttribute( "CustomSection.RadioChecked" ) )
+    if ( pElement->HasAttribute( "CustomSection.RadioButtonChecked" ) )
     {
-      SetCustomTextureSection( GUI::CTS_RADIO_CHECKED, Section( pLoader, pElement->Attribute( "CustomSection.RadioChecked" ) ) );
+      SetCustomTextureSection( GUI::CTS_RADIO_CHECKED, Section( pLoader, pElement->Attribute( "CustomSection.RadioButtonChecked" ) ) );
     }
-    if ( pElement->HasAttribute( "CustomSection.RadioUnchecked" ) )
+    if ( pElement->HasAttribute( "CustomSection.RadioButtonUnchecked" ) )
     {
-      SetCustomTextureSection( GUI::CTS_RADIO_UNCHECKED, Section( pLoader, pElement->Attribute( "CustomSection.RadioUnchecked" ) ) );
+      SetCustomTextureSection( GUI::CTS_RADIO_UNCHECKED, Section( pLoader, pElement->Attribute( "CustomSection.RadioButtonUnchecked" ) ) );
     }
   }
 

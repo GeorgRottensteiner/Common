@@ -148,8 +148,6 @@ namespace GR
 
       public:
 
-        static GR::u16          s_FrameworkSettingsChunk;
-
         GR::u32                 m_MusicVolume;
         GR::u32                 m_FXVolume;
         bool                    m_VSyncEnabled;

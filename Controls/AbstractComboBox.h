@@ -93,6 +93,7 @@ template <class BS_, class EC_, class BT_, class LBC_> class AbstractComboBox : 
 
       m_pEdit->ModifyStyle( EDITCLASS::ECS_READ_ONLY, EDITCLASS::ECS_AUTO_H_SCROLL );
       m_pEdit->ModifyFlags( GUI::COMPFT_NOT_SERIALIZABLE );
+      m_pEdit->ModifyVisualStyle( 0, GUI::VFT_RAISED_BORDER | GUI::VFT_SUNKEN_BORDER );
       m_pButtonDropDown->ModifyFlags( GUI::COMPFT_NOT_SERIALIZABLE );
       m_pListBox->ModifyFlags( GUI::COMPFT_NOT_SERIALIZABLE );
 
@@ -128,6 +129,7 @@ template <class BS_, class EC_, class BT_, class LBC_> class AbstractComboBox : 
       m_pButtonDropDown   = new BUTTONCLASS( Width - 20, 0, 20, Height );
       m_pListBox          = new LISTBOXCLASS( 0, 0, 0, 0 );
       m_pEdit->ModifyFlags( GUI::COMPFT_NOT_SERIALIZABLE );
+      m_pEdit->ModifyVisualStyle( 0, GUI::VFT_RAISED_BORDER | GUI::VFT_SUNKEN_BORDER );
       m_pButtonDropDown->ModifyFlags( GUI::COMPFT_NOT_SERIALIZABLE );
       m_pListBox->ModifyFlags( GUI::COMPFT_NOT_SERIALIZABLE );
 
@@ -170,6 +172,7 @@ template <class BS_, class EC_, class BT_, class LBC_> class AbstractComboBox : 
         case CET_SET_CLIENT_SIZE:
           BASECLASS::ProcessEvent( Event );
 
+          m_pEdit->SetLocation( 0, 0 );
           m_pEdit->SetSize( m_ClientRect.width() - m_pButtonDropDown->Width(), m_ClientRect.height() );
           m_pButtonDropDown->SetLocation( m_ClientRect.width() - m_pButtonDropDown->Width(), 0 );
           m_pButtonDropDown->SetSize( m_pButtonDropDown->Width(), m_ClientRect.height() );

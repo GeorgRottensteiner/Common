@@ -29,9 +29,9 @@ class CSSLConnection
     };
 
 
-    Codec::MD5            m_MD5;
+    GR::Codec::MD5        m_MD5;
 
-    Codec::SHA1           m_SHA1;
+    GR::Codec::SHA1       m_SHA1;
 
     eSSLHandshakeStep     m_SSLHandshakeStep;
 

@@ -11,7 +11,7 @@
 
 
 
-class MemoryStream : public IIOStream
+class MemoryStream : public IIOStreamBase
 {
 
   protected:
@@ -36,9 +36,8 @@ class MemoryStream : public IIOStream
     MemoryStream( const ByteBuffer& Target, IIOStream::OpenType oType = OT_DEFAULT );
 
 
-    virtual ~MemoryStream();
-
     virtual bool              IsGood();
+    virtual bool              DataAvailable();
 
 #if OPERATING_SYSTEM == OS_TANDEM
 #pragma nowarn (1319)

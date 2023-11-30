@@ -545,9 +545,8 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
                   m_LastClickTicks = GUI::GetTicks();
                   if ( sendDblClk )
                   {
-                    GenerateEventForParent( OET_LISTBOX_ITEM_DBLCLK, m_SelectedItem );
+                    GenerateEventForParent( OET_LISTBOX_ITEM_DBLCLK, m_SelectedItem, 0 );
                   }
-                  //return true;
                 }
               }
             }

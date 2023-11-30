@@ -7,36 +7,33 @@
 
 
 
-CGUITreeCtrl::CGUITreeCtrl( int iNewX, int iNewY, int iNewWidth, int iNewHeight, GR::u32 lbType, GR::u32 dwId ) :
-  CAbstractTreeCtrl<CGUIComponent,CGUIScrollbar>( iNewX, iNewY, iNewWidth, iNewHeight, lbType, dwId )
+GUITreeCtrl::GUITreeCtrl( int iNewX, int iNewY, int iNewWidth, int iNewHeight, GR::u32 lbType, GR::u32 dwId ) :
+  AbstractTreeCtrl<GUIComponent,GUIScrollbar>( iNewX, iNewY, iNewWidth, iNewHeight, lbType, dwId )
 {
+  m_ItemHeight = 16;
+  m_Offset     = 0;
 
-  m_iItemHeight = 16;
-  m_iOffset     = 0;
+  ModifyVisualStyle( GUI::VFT_SUNKEN_BORDER );
 
-  ModifyEdge( GUI::GET_SUNKEN_BORDER );
-
-  m_pScrollBar->ModifyEdge( GUI::GET_TRANSPARENT_BKGND );
-  m_pScrollBar->GetComponent( CGUIScrollbar::SB_BUTTON_LEFT_UP )->ModifyEdge( GUI::GET_TRANSPARENT_BKGND );
-  m_pScrollBar->GetComponent( CGUIScrollbar::SB_BUTTON_RIGHT_DOWN )->ModifyEdge( GUI::GET_TRANSPARENT_BKGND );
-  m_pScrollBar->GetComponent( CGUIScrollbar::SB_SLIDER )->ModifyEdge( GUI::GET_TRANSPARENT_BKGND );
+  m_pScrollBar->ModifyVisualStyle( GUI::VFT_TRANSPARENT_BKGND );
+  m_pScrollBar->GetComponent( GUIScrollbar::SB_BUTTON_LEFT_UP )->ModifyVisualStyle( GUI::VFT_TRANSPARENT_BKGND );
+  m_pScrollBar->GetComponent( GUIScrollbar::SB_BUTTON_RIGHT_DOWN )->ModifyVisualStyle( GUI::VFT_TRANSPARENT_BKGND );
+  m_pScrollBar->GetComponent( GUIScrollbar::SB_SLIDER )->ModifyVisualStyle( GUI::VFT_TRANSPARENT_BKGND );
 
   m_pScrollBar->SetLocation( m_ClientRect.size().x - m_pScrollBar->Width(), 0 );
   m_pScrollBar->SetSize( m_pScrollBar->Width(), m_ClientRect.size().y );
-
 }
 
 
 
-void CGUITreeCtrl::DisplayOnPage( GR::Graphic::GFXPage* pPage )
+void GUITreeCtrl::DisplayOnPage( GR::Graphic::GFXPage* pPage )
 {
-
   GR::Graphic::ContextDescriptor    cdPage( pPage );
 
   GR::tRect   rectItem;
   
   tTree::iterator    it( m_itFirstVisibleItem );
-  while ( it != m_treeItems.end() )
+  while ( it != m_TreeItems.end() )
   {
     tTreeItem&   Item = *it;
 
@@ -70,12 +67,12 @@ void CGUITreeCtrl::DisplayOnPage( GR::Graphic::GFXPage* pPage )
         }
       }
       GR::tRect   rectExtraIdent;
-      if ( GetExtraIdentRect( it, rectExtraIdent ) )
+      if ( GetExtraIndentRect( it, rectExtraIdent ) )
       {
-        if ( ( it->m_dwCtrlItemData >= 0 )
-        &&   ( it->m_dwCtrlItemData < m_VectImages.size() ) )
+        if ( ( it->CtrlItemData >= 0 )
+        &&   ( it->CtrlItemData < m_VectImages.size() ) )
         {
-          GR::Graphic::Image*    pImage = m_VectImages[it->m_dwCtrlItemData];
+          GR::Graphic::Image*    pImage = m_VectImages[it->CtrlItemData];
 
           if ( pImage )
           {
@@ -94,15 +91,15 @@ void CGUITreeCtrl::DisplayOnPage( GR::Graphic::GFXPage* pPage )
       GR::tRect   rcClient;
 
       GetClientRect( rcClient );
-      LocalToScreen( rcClient, this );
+      GUIComponent::LocalToScreen( rcClient );
 
       GR::tRect   rcTemp( rectItem );
-      LocalToScreen( rcTemp, this );
+      GUIComponent::LocalToScreen( rcTemp );
       rcTemp = rcTemp.intersection( rcClient );
       pPage->SetRange( rcTemp.Left, rcTemp.Top, 
                         rcTemp.Right, rcTemp.Bottom );
 
-      DrawText( pPage, Item.m_strText.c_str(), rectItem, GUI::AF_LEFT | GUI::AF_VCENTER );
+      DrawText( pPage, Item.Text.c_str(), rectItem, GUI::AF_LEFT | GUI::AF_VCENTER );
 
       if ( it == m_itSelectedItem )
       {
@@ -131,91 +128,81 @@ void CGUITreeCtrl::DisplayOnPage( GR::Graphic::GFXPage* pPage )
 
     it = GetNextVisibleItem( it );
   }
-
 }
 
 
 
-size_t CGUITreeCtrl::AddImage( GR::Graphic::Image* pImage )
+size_t GUITreeCtrl::AddImage( GR::Graphic::Image* pImage )
 {
-
   m_VectImages.push_back( pImage );
 
   return m_VectImages.size() - 1;
-
 }
 
 
 
-void CGUITreeCtrl::SetItemImage( TREEITEM hItem, DWORD dwImage )
+void GUITreeCtrl::SetItemImage( TREEITEM hItem, DWORD dwImage )
 {
-
-  if ( hItem == m_treeItems.end() )
+  if ( hItem == m_TreeItems.end() )
   {
     return;
   }
-  hItem->m_dwCtrlItemData = dwImage;
-
+  hItem->CtrlItemData = dwImage;
 }
 
 
 
-GR::u32 CGUITreeCtrl::GetItemImage( TREEITEM hItem ) const
+GR::u32 GUITreeCtrl::GetItemImage( TREEITEM hItem ) const
 {
-
-  if ( hItem == m_treeItems.end() )
+  if ( hItem == m_TreeItems.end() )
   {
     return 0;
   }
-  return hItem->m_dwCtrlItemData;
-
+  return hItem->CtrlItemData;
 }
 
 
 
-TREEITEM CGUITreeCtrl::InsertItem( const char* szString, DWORD dwItemImage, DWORD dwItemData )
+TREEITEM GUITreeCtrl::InsertItem( const char* szString, DWORD dwItemImage, DWORD dwItemData )
 {
-
-  TreeIterator  itNew = m_treeItems.insert( tTreeItem() );
+  TreeIterator  itNew = m_TreeItems.insert( tTreeItem() );
 
   tTreeItem&    newItem = *itNew;
 
-  newItem.m_strText         = szString;
-  newItem.m_dwItemData      = dwItemData;
-  newItem.m_dwCtrlItemData  = dwItemImage;
+  newItem.Text          = szString;
+  newItem.ItemData      = dwItemData;
+  newItem.CtrlItemData  = dwItemImage;
 
-  if ( m_itFirstVisibleItem == m_treeItems.end() )
+  if ( m_itFirstVisibleItem == m_TreeItems.end() )
   {
-    m_itFirstVisibleItem = m_treeItems.begin();
+    m_itFirstVisibleItem = m_TreeItems.begin();
   }
 
   UpdateScrollBar();
 
   return itNew;
-
 }
 
 
 
-TREEITEM CGUITreeCtrl::InsertItem( TREEITEM hItemParent, const char* szString, DWORD dwItemImage, DWORD dwItemData )
+TREEITEM GUITreeCtrl::InsertItem( TREEITEM hItemParent, const char* szString, DWORD dwItemImage, DWORD dwItemData )
 {
-
   if ( hItemParent == TreeIterator() )
   {
     return InsertItem( szString, dwItemData );
   }
 
-  TreeIterator it = m_treeItems.insert_child( hItemParent, tTreeItem() );
+  TreeIterator it = m_TreeItems.insert_child( hItemParent, tTreeItem() );
 
   tTreeItem&   newItem = *it;
 
-  newItem.m_strText         = szString;
-  newItem.m_dwItemData      = dwItemData;
-  newItem.m_dwCtrlItemData  = dwItemImage;
+  newItem.Text          = szString;
+  newItem.ItemData      = dwItemData;
+  newItem.CtrlItemData  = dwItemImage;
 
-  if ( m_itFirstVisibleItem == m_treeItems.end() )
+  if ( m_itFirstVisibleItem == m_TreeItems.end() )
   {
-    m_itFirstVisibleItem = m_treeItems.begin();
+    m_itFirstVisibleItem = m_TreeItems.begin();
   }
 
   UpdateScrollBar();

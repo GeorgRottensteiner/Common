@@ -18,56 +18,57 @@
 
 class LocalRegistry;
 
-class CVar
-{
-
-  protected:
-
-    GR::String       m_Name;
-
-    LocalRegistry*    m_pRegistry;
-
-    bool              m_Temporary;
-
-    GR::String       m_TempValue;
-
-
-
-  public:
-
-    CVar( LocalRegistry& lr, const GR::String& Name = "", const GR::String& Value = "" );
-
-    CVar& operator =( const GR::String& Input );
-    CVar& operator +=( const GR::String& Input );
-    CVar& operator =( const float Input );
-    CVar& operator +=( const float Input );
-    CVar& operator -=( const float Input );
-    CVar& operator *=( const float Input );
-    CVar& operator /=( const float Input );
-    CVar& operator =( const int& Input );
-    CVar& operator +=( const int& Input );
-    CVar& operator -=( const int& Input );
-    CVar& operator *=( const int& Input );
-    CVar& operator /=( const int& Input );
-    CVar& operator ++(); //- pre-inc
-    CVar operator ++(int); //- post-inc
-    CVar& operator --(); //- pre-inc
-    CVar operator --(int); //- post-inc
-
-    operator int();
-    operator float();
-    operator GR::String();
-
-    GR::String ToString() const;
-
-};
-
-
-
 class LocalRegistry : public GR::Service::Service
 {
 
   public:
+
+    class Variable
+    {
+
+      protected:
+
+        GR::String        m_Name;
+
+        LocalRegistry*    m_pRegistry;
+
+        bool              m_Temporary;
+
+        GR::String        m_TempValue;
+
+
+
+      public:
+
+        Variable( LocalRegistry& LR, const GR::String& Name = GR::String(), const GR::String& Value = GR::String() );
+
+        Variable& operator =( const GR::String& Input );
+        Variable& operator +=( const GR::String& Input );
+        Variable& operator =( const float Input );
+        Variable& operator +=( const float Input );
+        Variable& operator -=( const float Input );
+        Variable& operator *=( const float Input );
+        Variable& operator /=( const float Input );
+        Variable& operator =( const int& Input );
+        Variable& operator +=( const int& Input );
+        Variable& operator -=( const int& Input );
+        Variable& operator *=( const int& Input );
+        Variable& operator /=( const int& Input );
+        Variable& operator ++(); //- pre-inc
+        Variable operator ++(int); //- post-inc
+        Variable& operator --(); //- pre-inc
+        Variable operator --(int); //- post-inc
+
+        operator int();
+        operator float();
+        operator GR::String();
+
+        GR::String ToString() const;
+
+    
+
+    
+};
 
     enum LocalRegistryEvent
     {
@@ -134,7 +135,8 @@ class LocalRegistry : public GR::Service::Service
     float                       GetVarF( const GR::String& Name ) const;
     GR::i32                     GetVarI( const GR::String& Name ) const;
     GR::i64                     GetVarI64( const GR::String& Name ) const;
-    GR::String                 GetVar( const GR::String& Name ) const;
+    GR::i64                     GetVarI64( const GR::String& Name, const GR::i64 max ) const;
+    GR::String                  GetVar( const GR::String& Name ) const;
     GR::up                      GetVarUP( const GR::String& Name ) const;
 
     void                        DeleteVar( const GR::String& Name );
@@ -145,9 +147,9 @@ class LocalRegistry : public GR::Service::Service
 
     void                        Merge( const LocalRegistry& Other, bool OverwriteExisting = true );
 
-    CVar                        operator[]( const GR::String& Name )
+    Variable                        operator[]( const GR::String& Name )
     {
-      return CVar( *this, Name, m_Vars[Name] );
+      return Variable( *this, Name, m_Vars[Name] );
     }
 
 };

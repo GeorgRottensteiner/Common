@@ -1,6 +1,6 @@
 #pragma once
 
-#include <XSound/XMusic.h>
+#include <Xtreme/XMusic.h>
 
 #include <Interface/IService.h>
 

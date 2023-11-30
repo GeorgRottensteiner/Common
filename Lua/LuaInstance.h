@@ -1,9 +1,4 @@
-#ifndef LUAINSTANCE_H
-#define LUAINSTANCE_H
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include <list>
 #include <string>
@@ -18,6 +13,8 @@
 struct lua_State;
 
 typedef int (*lua_CFunction) (lua_State *L);
+
+
 
 class LuaInstance  
 {
@@ -52,20 +49,20 @@ class LuaInstance
     void                    LuaInit();
     void                    LuaShutDown();
 
-    void                    Register( lua_CFunction pFunction, const char* szFunctionName );
-    void                    RegisterHandler( tHandlerFunction Function, const GR::String& strFunctionName );
-    void                    UnregisterHandler( const GR::String& strFunctionName );
+    void                    Register( lua_CFunction pFunction, const char* FunctionName );
+    void                    RegisterHandler( tHandlerFunction Function, const GR::String& FunctionName );
+    void                    UnregisterHandler( const GR::String& FunctionName );
 
     static int              HandlerThunk( lua_State* L );
 
-    bool                    DoString( const GR::String& strScript );
-    bool                    DoFile( const GR::String& strFilename );
-    bool                    FunctionExists( const GR::String& strFunction );
+    bool                    DoString( const GR::String& Script );
+    bool                    DoFile( const GR::String& Filename );
+    bool                    FunctionExists( const GR::String& Function );
 
     bool                    StartThread( const GR::String& ThreadName, const GR::String& Function );
     void                    ResumeThreads( const float ElapsedTime );
-    GR::String              StartScriptAsThread( const GR::String& strScript, const GR::String& strThreadname = GR::String(), const GR::String& ThisVariable = GR::String() );
-    bool                    IsThreadRunning( const GR::String& strThreadName );
+    GR::String              StartScriptAsThread( const GR::String& Script, const GR::String& Threadname = GR::String(), const GR::String& ThisVariable = GR::String() );
+    bool                    IsThreadRunning( const GR::String& ThreadName );
 
     int                     GetTop();
     void                    PushNIL();
@@ -89,7 +86,7 @@ class LuaInstance
 
     GR::String              GetGlobal( const GR::String& VarName );
     GR::String              GetVar( const GR::String& VarName );
-    bool                    GetTable( const GR::String& strTableName );
+    bool                    GetTable( const GR::String& TableName );
 
     bool                    SetVar( const GR::String& VarName, const GR::String& Value );
     bool                    SetVar( const GR::String& VarName, const GR::ip Value );
@@ -102,6 +99,9 @@ class LuaInstance
     void                    SetGlobal( const GR::String& VarName, const bool Value );
 
     static int              Alert( lua_State* L );
+
+    // expect either a string (name of function)
+    //            or a function
     static int              CreateThread( lua_State* L );
     static int              KillThread( lua_State* L );
     static int              GetTime( lua_State* L );
@@ -112,4 +112,3 @@ class LuaInstance
 
 };
 
-#endif // LUAINSTANCE_H

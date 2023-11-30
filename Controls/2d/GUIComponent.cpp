@@ -333,7 +333,9 @@ void GUIComponent::DrawText( GR::Graphic::GFXPage* pPage, const char* szText,
   {
     std::vector<GR::String>    vectText;
 
-    GR::Strings::WrapText( m_pFont, m_Caption, rectText, vectText );
+    GR::tRect     origRect( rectText );
+
+    GR::Strings::WrapText( m_pFont, m_Caption, origRect, vectText );
 
     int   iY = rectText.position().y;
 

@@ -93,7 +93,7 @@ template <typename T, typename GUI_BASE_CLASS> class GUIGameStateManager : publi
       
       switch ( Event.Type )
       {
-        case IGameStateManager<T>::GSE_PRE_PUSH:
+        case IGameStateManager<T>::GameStateEventType::GSE_PRE_PUSH:
           if ( pGUI )
           {
             if ( pState->m_pStateScreen == NULL )
@@ -132,7 +132,7 @@ template <typename T, typename GUI_BASE_CLASS> class GUIGameStateManager : publi
             }
           }
           break;
-        case IGameStateManager<T>::GSE_PUSHED:
+        case IGameStateManager<T>::GameStateEventType::GSE_PUSHED:
           if ( pGUI )
           {
             bool    wasReplaced = false;
@@ -184,7 +184,7 @@ template <typename T, typename GUI_BASE_CLASS> class GUIGameStateManager : publi
             }
           }
           break;
-        case IGameStateManager<T>::GSE_POPPED:
+        case IGameStateManager<T>::GameStateEventType::GSE_POPPED:
           if ( pGUI )
           {
             pGUI->Delete( pState->m_pStateScreen );

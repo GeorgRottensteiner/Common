@@ -685,19 +685,30 @@ GR::u32 DXSound::LoadWave( IIOStream& Stream, bool LoadAs3d, const eSoundType Ty
   pSoundInfo->Frequency         = wfDummy.nSamplesPerSec;
   pSoundInfo->Type              = Type;
 
-  Stream.ReadBlock( ucBuffer, 4 );
-  if ( ( ucBuffer[0] != 100 )
-  &&   ( ucBuffer[1] != 97 )
-  &&   ( ucBuffer[2] != 116 )
-  &&   ( ucBuffer[3] != 97 ) )
+  // skip chunks until we find "data"
+  do
   {
-    // kein data
-    delete pSoundInfo;
-    Stream.Close();
-    return 0;
-  }
-  ChunkSize = Stream.ReadU32();
+    if ( Stream.ReadBlock( ucBuffer, 4 ) != 4 )
+    {
+      // no data chunk found
+      delete pSoundInfo;
+      Stream.Close();
+      return 0;
+    }
+    ChunkSize = Stream.ReadU32();
 
+    if ( ( ucBuffer[0] != 100 )
+    ||   ( ucBuffer[1] != 97 )
+    ||   ( ucBuffer[2] != 116 )
+    ||   ( ucBuffer[3] != 97 ) )
+    {
+      Stream.SetPosition( ChunkSize, IIOStream::PT_CURRENT );
+    }
+  }
+  while ( ( ucBuffer[0] != 100 )
+  ||      ( ucBuffer[1] != 97 )
+  ||      ( ucBuffer[2] != 116 )
+  ||      ( ucBuffer[3] != 97 ) );
 
   // DSBUFFERDESC1 füllen
   memset( &dsBufferDesc, 0, sizeof( DSBUFFERDESC1 ) );            // Zero it out.

@@ -23,6 +23,7 @@ class GUIComponent : public GUI::Component
 
     XTextureSection             Section( Xtreme::Asset::IAssetLoader* pLoader, const GR::String& Image );
 
+    void                        SetSectionFromAttribute( Xtreme::Asset::IAssetLoader* pLoader, GR::Strings::XMLElement* pElement, const GR::String& Attribute, GUI::eBorderType Border );
 
 
 

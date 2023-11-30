@@ -37,50 +37,51 @@ namespace Win
       WV_HIGHER_THAN_KNOWN
     };
 
-    std::list<HWND>      EnumWindows();
+    std::list<HWND>       EnumWindows( bool VisibleOnly = true );
+    std::list<HWND>       EnumChildWindows( HWND HwndParent, bool VisibleOnly = true );
 
-    BOOL CALLBACK        EnumWindowProc( HWND hwnd, LPARAM lParam );
+    BOOL CALLBACK         EnumWindowProc( HWND hwnd, LPARAM lParam );
 
-    HWND                 FindWindowWhichContains( const GR::Char* Text );
+    HWND                  FindWindowWhichContains( const GR::Char* Text );
 
-    GR::String       BrowseForFolder( HWND hwndParent, const GR::Char* DisplayText );
+    GR::String            BrowseForFolder( HWND hwndParent, const GR::Char* DisplayText );
 
-    HICON                CreateGrayscaleIcon( HICON hIcon, bool bFlat = false );
+    HICON                 CreateGrayscaleIcon( HICON hIcon, bool bFlat = false );
 
-    GR::u32              InternetExplorerVersion();
+    GR::u32               InternetExplorerVersion();
 
-    GR::u32              GetDXVersion();
+    GR::u32               GetDXVersion();
 
-    eWindowsVersion      GetWindowsVersion();
+    eWindowsVersion       GetWindowsVersion();
 
-    bool                 StartProgram( const GR::Char* CommandLine, int iShowWindowFlags = SW_SHOW );
+    bool                  StartProgram( const GR::Char* CommandLine, int iShowWindowFlags = SW_SHOW );
 
-    bool                 StartAndWaitForProgram( const GR::Char* CommandLine, GR::u32* pExitCode = NULL, int iShowWindowFlags = SW_SHOW );
+    bool                  StartAndWaitForProgram( const GR::Char* CommandLine, GR::u32* pExitCode = NULL, int iShowWindowFlags = SW_SHOW );
 
-    GR::String       LoadStringEx( GR::u32 ResourceId, GR::u16 wLanguage );
+    GR::String            LoadStringEx( GR::u32 ResourceId, GR::u16 wLanguage );
 
-    GR::String       LoadString( GR::u32 ResourceId );
+    GR::String            LoadString( GR::u32 ResourceId );
 
-    bool                 GetVersionInfo( HINSTANCE hInstance, GR::u32 ResourceID, GR::u32& dwMajor, GR::u32& dwMinor, 
-                                         GR::u32& dwBuildNumber, GR::u32& dwSubBuild, const GR::String& VersionType = "FileVersion" );
+    bool                  GetVersionInfo( HINSTANCE hInstance, GR::u32 ResourceID, GR::u32& dwMajor, GR::u32& dwMinor, 
+                                          GR::u32& dwBuildNumber, GR::u32& dwSubBuild, const GR::String& VersionType = "FileVersion" );
 
-    HICON                BitmapToIconEx( HDC hdcRef, HBITMAP hBitmap, COLORREF crTransparent );
+    HICON                 BitmapToIconEx( HDC hdcRef, HBITMAP hBitmap, COLORREF crTransparent );
 
 #if OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP
-    BOOL                 BitmapToIconInfoEx( HDC hdcRef, HBITMAP hBmpSrc, ICONINFO* pii, COLORREF crTransparent );
+    BOOL                  BitmapToIconInfoEx( HDC hdcRef, HBITMAP hBmpSrc, ICONINFO* pii, COLORREF crTransparent );
 #endif
 
-    HRGN                 BitmapToRegion( HBITMAP hBmp, COLORREF cTransparentColor = 0 );
+    HRGN                  BitmapToRegion( HBITMAP hBmp, COLORREF cTransparentColor = 0 );
 
-    MemoryStream         MemoryStreamFromResource( HINSTANCE hInstance, const GR::Char* Resource, const GR::Char* ResourceType );
+    MemoryStream          MemoryStreamFromResource( HINSTANCE hInstance, const GR::Char* Resource, const GR::Char* ResourceType );
 
-    bool                 IsUserAdmin();
+    bool                  IsUserAdmin();
 
-    bool                 SleepMsg( GR::u32 Timeout );
+    bool                  SleepMsg( GR::u32 Timeout );
 
     GR::Graphic::ImageData  CreateImageFromHDIB( HGLOBAL hmem );
 
-    HANDLE               CreateHDIBFromImage( const GR::Graphic::ImageData& Image );
+    HANDLE                CreateHDIBFromImage( const GR::Graphic::ImageData& Image );
 
   }
 }

@@ -23,6 +23,9 @@
 
 #if ( ( OPERATING_SUB_SYSTEM != OS_SUB_WINDOWS_PHONE ) && ( OPERATING_SYSTEM != OS_WINDOWS ) )
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #endif
 
 #if OPERATING_SYSTEM == OS_WINDOWS
@@ -104,7 +107,7 @@ namespace GR
         return GR::Convert::ToUTF8( installLocation );
 #elif ( OPERATING_SYSTEM == OS_WINDOWS )
         GR::WChar*    pBuffer = NULL;
-        DWORD         requiredLength = 0;
+        GR::u32       requiredLength = 0;
         requiredLength = ::GetCurrentDirectoryW( requiredLength, NULL );
 
         pBuffer = new GR::WChar[requiredLength + 2];
@@ -133,7 +136,7 @@ namespace GR
         WIN32_FILE_ATTRIBUTE_DATA   attributes;
         if ( !GetFileAttributesExW( utf16Filename.c_str(), GetFileExInfoStandard, &attributes ) )
         {
-          DWORD   Error = GetLastError();
+          GR::u32   Error = GetLastError();
           if ( ( Error == ERROR_FILE_NOT_FOUND )
           ||   ( Error == ERROR_PATH_NOT_FOUND )
           ||   ( Error == ERROR_INVALID_NAME )
@@ -149,10 +152,10 @@ namespace GR
         return true;
 
         /*
-        DWORD   Attributes = GetFileAttributesW( utf16Filename.c_str() );
+        GR::u32   Attributes = GetFileAttributesW( utf16Filename.c_str() );
         if ( Attributes == INVALID_FILE_ATTRIBUTES )
         {
-          DWORD   Error = GetLastError();
+          GR::u32   Error = GetLastError();
           if ( Error == ERROR_FILE_NOT_FOUND )
           {
             return false;
@@ -170,7 +173,7 @@ namespace GR
         WIN32_FILE_ATTRIBUTE_DATA   attributes;
         if ( !GetFileAttributesExW( utf16Filename.c_str(), GetFileExInfoStandard, &attributes ) )
         {
-          DWORD   Error = GetLastError();
+          GR::u32   Error = GetLastError();
           if ( ( Error == ERROR_FILE_NOT_FOUND )
           ||   ( Error == ERROR_PATH_NOT_FOUND )
           ||   ( Error == ERROR_INVALID_NAME )
@@ -184,10 +187,10 @@ namespace GR
           }
         }
         /*
-        DWORD   Attributes = GetFileAttributesW( utf16Filename.c_str() );
+        GR::u32   Attributes = GetFileAttributesW( utf16Filename.c_str() );
         if ( Attributes == INVALID_FILE_ATTRIBUTES )
         {
-          DWORD   Error = GetLastError();
+          GR::u32   Error = GetLastError();
           if ( Error == ERROR_FILE_NOT_FOUND )
           {
             return false;
@@ -252,10 +255,10 @@ namespace GR
 
 
 #else
-      bool FileExists( const GR::Char* Filename )
+      bool FileExists( const GR::String& Filename )
       {
-        _cc_status Status = FILE_GETINFOBYNAME_( Filename,
-                                                 (short)strlen( Filename ) );
+        _cc_status Status = FILE_GETINFOBYNAME_( Filename.c_str(),
+                                                 (short)Filename.length() );
         if ( Status == 11 )
         {
           // file does not exist
@@ -268,13 +271,13 @@ namespace GR
 
 
 
-#if ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB )
+#if ( OPERATING_SYSTEM == OS_ANDROID ) || ( OPERATING_SYSTEM == OS_WEB ) || ( OPERATING_SYSTEM == OS_LINUX )
       bool FileExists( const GR::String& Filename )
       {
         struct stat sb;
 
         if ( ( stat( Filename.c_str(), &sb ) == 0 )
-             && ( !S_ISDIR( sb.st_mode ) ) )
+        &&   ( !S_ISDIR( sb.st_mode ) ) )
         {
           return true;
         }
@@ -288,7 +291,7 @@ namespace GR
         struct stat sb;
 
         if ( ( stat( Dirname.c_str(), &sb ) == 0 )
-             && ( S_ISDIR( sb.st_mode ) ) )
+        &&   ( S_ISDIR( sb.st_mode ) ) )
         {
           return true;
         }
@@ -530,7 +533,7 @@ namespace GR
         HANDLE hFind = FindFirstFileExW( longFindMask.c_str(), FindExInfoStandard, &wFindData, FindExSearchNameMatch, NULL, 0 );
         if ( hFind == INVALID_HANDLE_VALUE )
         {
-          //DWORD   lastError = GetLastError();
+          //GR::u32   lastError = GetLastError();
           //dh::Log( "FindFirstFileExW returned code %d", lastError );
           return;
         }
@@ -664,7 +667,7 @@ namespace GR
         GR::WString     oldName = MakeSafeWinFilename( OldFilename );
         GR::WString     newName = MakeSafeWinFilename( NewFilename );
 
-        DWORD   Flags = MOVEFILE_COPY_ALLOWED;
+        GR::u32   Flags = MOVEFILE_COPY_ALLOWED;
         if ( OverwriteIfExists )
         {
           Flags |= MOVEFILE_REPLACE_EXISTING;
@@ -1010,6 +1013,7 @@ namespace GR
         }
 
         size_t BytesWritten = ioOut.WriteBlock( Text.data(), (GR::up)Text.length() );
+        ioOut.Flush();
         ioOut.Close();
 
         return BytesWritten == Text.length();
@@ -1027,6 +1031,7 @@ namespace GR
         }
 
         size_t BytesWritten = ioOut.WriteBlock( Buffer.Data(), (GR::up)Buffer.Size() );
+        ioOut.Flush();
         ioOut.Close();
 
         return BytesWritten == Buffer.Size();
@@ -1140,7 +1145,7 @@ namespace GR
         }
         FileSize = ValueList.U64NetworkOrderAt( 0 );
 #else
-        int   CurPos = ftell( ioTemp.GetHandle() );
+        ftell( ioTemp.GetHandle() );
         if ( fseek( ioTemp.GetHandle(), 0, SEEK_END ) == -1 )
         {
           ioTemp.Close();
@@ -1192,6 +1197,11 @@ namespace GR
         GR::String    appPath;
 
         return appPath;
+#elif ( OPERATING_SYSTEM == OS_LINUX )
+        // TODO!
+        GR::String    appPath;
+
+        return appPath;
 #else
         return NOT SUPPORTED
 #endif
@@ -1228,6 +1238,11 @@ namespace GR
 
         return appPath;
 #elif ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_WEB )
+        // TODO!
+        GR::String    appPath;
+
+        return appPath;
+#elif ( OPERATING_SYSTEM == OS_LINUX )
         // TODO!
         GR::String    appPath;
 
@@ -1269,6 +1284,11 @@ namespace GR
 
         return localFolderPath;
 #elif ( OPERATING_SYSTEM == OS_TANDEM ) || ( OPERATING_SYSTEM == OS_WEB )
+        // TODO!
+        GR::String    appPath;
+
+        return appPath;
+#elif ( OPERATING_SYSTEM == OS_LINUX )
         // TODO!
         GR::String    appPath;
 

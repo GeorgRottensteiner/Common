@@ -16,15 +16,15 @@ class GR::Graphic::GFXPage;
 
 
 
-class CGUIImageList : public CAbstractListBox<CGUIComponent,CGUIScrollbar>
+class GUIImageList : public AbstractListBox<GUIComponent,GUIScrollbar>
 {
 
   public:
 
-    DECLARE_CLONEABLE( CGUIImageList, "GUIImageList" )
+    DECLARE_CLONEABLE( GUIImageList, "GUIImageList" )
 
 
-    CGUIImageList( int iNewX = 0, int iNewY = 0, int iNewWidth = 0, int iNewHeight = 0, GR::u32 dwId = 0, GR::u32 lbType = LCS_SINGLE_SELECT | LCS_MULTI_COLUMN );
+    GUIImageList( int iNewX = 0, int iNewY = 0, int iNewWidth = 0, int iNewHeight = 0, GR::u32 dwId = 0, GR::u32 lbType = LCS_SINGLE_SELECT | LCS_MULTI_COLUMN );
 
 
     virtual void        DisplayOnPage( GR::Graphic::GFXPage* pPage );

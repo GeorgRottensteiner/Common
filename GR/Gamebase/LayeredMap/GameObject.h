@@ -161,7 +161,7 @@ namespace GR
 
 
         virtual void                Update( GR::Gamebase::JREngine& JREngine, const GR::f32 ElapsedTime, GR::up UserData );
-        virtual void                UpdateFixed( GR::Gamebase::JREngine& JREngine, GR::up UserData );
+        virtual void                UpdateFixed( GR::Gamebase::JREngine& JREngine, const GR::f32 ElapsedTime, GR::up UserData );
 
         virtual void                OnObjectEvent( JREngine& JREngine, const ObjectEvent& Event );
 

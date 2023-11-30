@@ -69,7 +69,7 @@ void DebugService::LogDirect( const GR::String& System, const GR::String& Text )
 
 
 
-void DebugService::Log( const GR::String& System, const char* Format, ... )
+void DebugService::Log( const GR::String& System, const GR::Char* Format, ... )
 {
   if ( LogEnabled( System ) )
   {

@@ -1723,8 +1723,8 @@ void XFrameApp2d::DisplayFrame( X2dRenderer& Renderer )
 
   std::set<GUIComponent*>   displayedStateScreens;
 
-  std::list<IGameState<X2dRenderer>*>::iterator    it( m_StateManager.m_listGameStateStack.begin() );
-  while ( it != m_StateManager.m_listGameStateStack.end() )
+  std::list<IGameState<X2dRenderer>*>::iterator    it( m_StateManager.m_GameStateStack.begin() );
+  while ( it != m_StateManager.m_GameStateStack.end() )
   {
     GUIGameState<X2dRenderer, GUIComponent>*    pGameState = (GUIGameState<X2dRenderer, GUIComponent>*)*it;
 
@@ -1739,13 +1739,13 @@ void XFrameApp2d::DisplayFrame( X2dRenderer& Renderer )
   while ( itC != m_GUI.m_Components.end() )
   {
     GUIComponent*   pComp = (GUIComponent*)*itC;
+    ++itC;
 
     if ( displayedStateScreens.find( pComp ) == displayedStateScreens.end() )
     {
       Renderer.SetViewport( vp );
       m_GUI.DisplayComponentFromParent( pComp );
     }
-    ++itC;
   }
   Renderer.SetViewport( vp );
 }

@@ -92,6 +92,8 @@ void GUIComponentDisplayer::SetClipping( int X, int Y, int Width, int Height )
 
 void GUIComponentDisplayer::SetOffset( int X, int Y )
 {
+  m_CurrentOffset.set( X, Y );
+
   GR::tPoint      offset = VirtualToScreen( GR::tPoint( X, Y ) );
 
   m_pActualRenderer->Offset( offset );
@@ -108,9 +110,10 @@ GR::tPoint GUIComponentDisplayer::GetOffset()
 
 void GUIComponentDisplayer::PushClipValues()
 {
-  GR::tPoint    viewerOffset = m_pActualRenderer->Offset();
+  //GR::tPoint    viewerOffset = m_pActualRenderer->Offset();
+  //viewerOffset = ScreenToVirtual( viewerOffset );
 
-  viewerOffset = ScreenToVirtual( viewerOffset );
+  GR::tPoint viewerOffset = m_CurrentOffset;
   StoreClipValues( m_Clipping.Left,
                    m_Clipping.Top,
                    m_Clipping.width(),
@@ -123,6 +126,7 @@ void GUIComponentDisplayer::PushClipValues()
 
 void GUIComponentDisplayer::DisplayBackground()
 {
+  m_AlreadyHandledComponentsThisFrame.clear();
   if ( m_Components.empty() )
   {
     return;

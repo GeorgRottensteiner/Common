@@ -1,9 +1,12 @@
-#ifndef RIJNDAEL_H_
-#define RIJNDAEL_H_
+#pragma once
 
 #include <GR/GRTypes.h>
 
 #include <Memory/ByteBuffer.h>
+
+#include <Interface/ICipher.h>
+
+
 
 //
 // File : rijndael.h
@@ -40,186 +43,136 @@
 //
 
 
-/*
-//  Example of usage:
-
-  // Input data
-
-  unsigned char key[32];                       // The key
-  initializeYour256BitKey();                   // Obviously initialized with sth
-  const unsigned char * plainText = getYourPlainText(); // Your plain text
-  int plainTextLen = strlen(plainText);        // Plain text length
-
-  // Encrypting
-
-  Rijndael rin;
-  unsigned char output[plainTextLen + 16];
-
-  rin.init(Rijndael::CBC,Rijndael::Encrypt,key,Rijndael::Key32Bytes);
-
-  int len = rin.padEncrypt(plainText,len,output);
-
-  if(len >= 0) 
-    useYourEncryptedText();
-  else 
-    encryptError(len);
-
-  // Decrypting: we can reuse the same object
-
-  unsigned char output2[len];
-  rin.init(Rijndael::CBC,Rijndael::Decrypt,key,Rijndael::Key32Bytes));
-  
-  len = rin.padDecrypt(output,len,output2);
-
-  if(len >= 0)
-    useYourDecryptedText();
-  else
-    decryptError(len);
-
-*/
-
-
-
-#define _MAX_KEY_COLUMNS (256/32)	// 8
-#define _MAX_ROUNDS      14
-#define MAX_IV_SIZE      16
-
-
 class ByteBuffer;
 
 
 
-namespace Codec
+namespace GR
 {
+  namespace Codec
+  {
+    class Rijndael : public GR::Codec::ICipher
+    {
+      private:
 
-  class Rijndael
-  {	
-    public:
+        const static int MAX_KEY_COLUMNS = ( 256 / 32 );
+        const static int MAX_ROUNDS = 14;
+        const static int MAX_IV_SIZE = 16;
 
-	    enum Direction 
-      { 
-        Encrypt , 
-        Decrypt 
-      };
+      public:
 
-	    enum Mode 
-      { 
-        ECB , 
-        CBC , 
-        CFB1 
-      };
+        enum class Mode
+        {
+          ECB,
+          CBC,
+          CFB1
+        };
 
-	    enum KeyLength 
-      { 
-        Key16Bytes , 
-        Key24Bytes , 
-        Key32Bytes 
-      };
-
-      enum Result
-      {
-        RES_SUCCESS = 0,
-        RES_UNSUPPORTED_MODE = -1,
-        RES_UNSUPPORTED_DIRECTION = -2,
-        RES_UNSUPPORTED_KEY_LENGTH = -3,
-        RES_BAD_KEY = -4,
-        RES_NOT_INITIALIZED = -5,
-        RES_BAD_DIRECTION = -6,
-        RES_CORRUPTED_DATA = -7,
-      };
-
-	    // Creates a Rijndael cipher object
-	    // You have to call init() before you can encrypt or decrypt stuff
-	    //
-	    Rijndael();
-	    ~Rijndael();
-
-    protected:
-
-	    // Internal stuff
-	    enum State 
-      { 
-        Valid , 
-        Invalid 
-      };
-
-	    State     m_state;
-	    Mode      m_mode;
-	    Direction m_direction;
-	    GR::u8     m_initVector[MAX_IV_SIZE];
-  	  GR::u32    m_uRounds;
-	    GR::u8     m_expandedKey[_MAX_ROUNDS+1][4][4];
+        enum Result
+        {
+          RES_SUCCESS = 0,
+          RES_UNSUPPORTED_MODE = -1,
+          RES_UNSUPPORTED_DIRECTION = -2,
+          RES_UNSUPPORTED_KEY_LENGTH = -3,
+          RES_BAD_KEY = -4,
+          RES_NOT_INITIALIZED = -5,
+          RES_BAD_DIRECTION = -6,
+          RES_CORRUPTED_DATA = -7,
+        };
 
 
-    public:
+
+        Rijndael();
 
 
-      static bool             EncryptCBC256( const ByteBuffer& In, const ByteBuffer& Key, ByteBuffer& Encrypted, const ByteBuffer& IV = ByteBuffer() );
-      static bool             DecryptCBC256( const ByteBuffer& In, const ByteBuffer& Key, ByteBuffer& Decrypted, const ByteBuffer& IV = ByteBuffer() );
 
-	    //////////////////////////////////////////////////////////////////////////////////////////
-	    // API
-	    //////////////////////////////////////////////////////////////////////////////////////////
+      protected:
 
-	    // init(): Initializes the crypt session
-	    // Returns RIJNDAEL_SUCCESS or an error code
-	    // mode      : Rijndael::ECB, Rijndael::CBC or Rijndael::CFB1
-	    //             You have to use the same mode for encrypting and decrypting
-	    // dir       : Rijndael::Encrypt or Rijndael::Decrypt
-	    //             A cipher instance works only in one direction
-	    //             (Well , it could be easily modified to work in both
-	    //             directions with a single init() call, but it looks
-	    //             useless to me...anyway , it is a matter of generating
-	    //             two expanded keys)
-	    // key       : array of unsigned octets , it can be 16 , 24 or 32 bytes long
-	    //             this CAN be binary data (it is not expected to be null terminated)
-	    // keyLen    : Rijndael::Key16Bytes , Rijndael::Key24Bytes or Rijndael::Key32Bytes
-	    // initVector: initialization vector, you will usually use 0 here
-
-	    int init( Mode mode, Direction dir, const GR::u8* key, KeyLength keyLen, GR::u8* initVector = 0 );
-
-	    // Encrypts the input array (can be binary data)
-	    // The input array length must be a multiple of 16 bytes, the remaining part
-	    // is DISCARDED.
-	    // so it actually encrypts inputLen / 128 blocks of input and puts it in outBuffer
-	    // Input len is in BITS!
-	    // outBuffer must be at least inputLen / 8 bytes long.
-	    // Returns the encrypted buffer length in BITS or an error code < 0 in case of error
-	    int blockEncrypt(const GR::u8 *input, int inputLen, GR::u8 *outBuffer);
-
-    	
-	    // Encrypts the input array (can be binary data)
-	    // The input array can be any length , it is automatically padded on a 16 byte boundary.
-	    // Input len is in BYTES!
-	    // outBuffer must be at least (inputLen + 16) bytes long
-	    // Returns the encrypted buffer length in BYTES or an error code < 0 in case of error
-	    int padEncrypt(const GR::u8 *input, int inputOctets, GR::u8 *outBuffer);
-
-    	
-    	
-	    // Decrypts the input vector
-	    // Input len is in BITS!
-	    // outBuffer must be at least inputLen / 8 bytes long
-	    // Returns the decrypted buffer length in BITS and an error code < 0 in case of error
-	    int blockDecrypt(const GR::u8 *input, int inputLen, GR::u8 *outBuffer);
-
-    	
-	    // Decrypts the input vector
-	    // Input len is in BYTES!
-	    // outBuffer must be at least inputLen bytes long
-	    // Returns the decrypted buffer length in BYTES and an error code < 0 in case of error
-	    int padDecrypt(const GR::u8 *input, int inputOctets, GR::u8 *outBuffer);
+        bool                    m_StateValid;
+        Mode                    m_Mode;
+        bool                    m_Encrypt;
+        GR::u8                  m_InitVector[MAX_IV_SIZE];
+        GR::u32                 m_NumRounds;
+        GR::u8                  m_ExpandedKey[MAX_ROUNDS + 1][4][4];
+        ByteBuffer              m_CachedInputData;
 
 
-    protected:
+      public:
 
-	    void keySched(GR::u8 key[_MAX_KEY_COLUMNS][4]);
-	    void keyEncToDec();
-	    void encrypt(const GR::u8 a[16], GR::u8 b[16]);
-	    void decrypt(const GR::u8 a[16], GR::u8 b[16]);
 
-  };
+        virtual ByteBuffer      Encrypt( const ByteBuffer& Key, const ByteBuffer& InitialisationVector, const ByteBuffer& Data );
+        virtual ByteBuffer      Decrypt( const ByteBuffer& Key, const ByteBuffer& InitialisationVector, const ByteBuffer& Data );
 
-};
-	
-#endif // RIJNDAEL_H_
+        virtual bool            Initialise( bool Encrypt, const ByteBuffer& Key, const ByteBuffer& InitialisationVector );
+        bool                    Initialise( Mode Mode, bool Encrypt, const ByteBuffer& Key, const ByteBuffer& InitialisationVector );
+
+        virtual bool            TransformBlock( const ByteBuffer& Data, ByteBuffer& Target, GR::u32 NumOfBytes = 0 );
+
+        virtual ByteBuffer      TransformFinalBlock( const ByteBuffer& Data );
+
+
+        static bool             EncryptCBC( const ByteBuffer& In, const ByteBuffer& Key, ByteBuffer& Encrypted, const ByteBuffer& IV = ByteBuffer() );
+        static bool             DecryptCBC( const ByteBuffer& In, const ByteBuffer& Key, ByteBuffer& Decrypted, const ByteBuffer& IV = ByteBuffer() );
+
+        ByteBuffer              EncryptECB( const ByteBuffer& Key, const ByteBuffer& InitialisationVector, const ByteBuffer& Data );
+        ByteBuffer              DecryptECB( const ByteBuffer& Key, const ByteBuffer& InitialisationVector, const ByteBuffer& Data );
+
+
+
+        // init(): Initializes the crypt session
+        // Returns RIJNDAEL_SUCCESS or an error code
+        // mode      : Rijndael::ECB, Rijndael::CBC or Rijndael::CFB1
+        //             You have to use the same mode for encrypting and decrypting
+        // key       : array of unsigned octets , it can be 16 , 24 or 32 bytes long
+        //             this CAN be binary data (it is not expected to be null terminated)
+        // keyLen    : Rijndael::Key16Bytes , Rijndael::Key24Bytes or Rijndael::Key32Bytes
+        // initVector: initialization vector, you will usually use 0 here
+
+        int init( Mode mode, bool Encrypt, const GR::u8* key, int keyLen, GR::u8* initVector = 0 );
+
+        // Encrypts the input array (can be binary data)
+        // The input array length must be a multiple of 16 bytes, the remaining part
+        // is DISCARDED.
+        // so it actually encrypts inputLen / 128 blocks of input and puts it in outBuffer
+        // Input len is in BITS!
+        // outBuffer must be at least inputLen / 8 bytes long.
+        // Returns the encrypted buffer length in BITS or an error code < 0 in case of error
+        int BlockEncrypt( const GR::u8* input, int inputLen, GR::u8* outBuffer );
+
+
+        // Encrypts the input array (can be binary data)
+        // The input array can be any length , it is automatically padded on a 16 byte boundary.
+        // Input len is in BYTES!
+        // outBuffer must be at least (inputLen + 16) bytes long
+        // Returns the encrypted buffer length in BYTES or an error code < 0 in case of error
+        int EncryptPadded( const GR::u8* input, int inputOctets, GR::u8* outBuffer );
+
+
+
+        // Decrypts the input vector
+        // Input len is in BITS!
+        // outBuffer must be at least inputLen / 8 bytes long
+        // Returns the decrypted buffer length in BITS and an error code < 0 in case of error
+        int BlockDecrypt( const GR::u8* input, int inputLen, GR::u8* outBuffer );
+
+
+        // Decrypts the input vector
+        // Input len is in byte!
+        // outBuffer must be at least inputLen bytes long
+        // Returns the decrypted buffer length in BYTES and an error code < 0 in case of error
+        int padDecrypt( const GR::u8* input, int inputOctets, GR::u8* outBuffer );
+
+
+      protected:
+
+        void keySched( GR::u8 key[MAX_KEY_COLUMNS][4] );
+        void keyEncToDec();
+        void encrypt( const GR::u8 a[16], GR::u8 b[16] );
+        void decrypt( const GR::u8 a[16], GR::u8 b[16] );
+
+    };
+
+  }
+
+
+}

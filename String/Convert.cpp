@@ -4,6 +4,11 @@
 #pragma nowarn (262)
 #endif
 
+#if OPERATING_SYSTEM == OS_WINDOWS
+#include <Windows.h>
+#endif
+
+
 #include <String/StringUtil.h>
 
 
@@ -31,6 +36,11 @@ namespace GR
         {
           result += c;
         }
+        else if ( ( GR::u8 )c == 0x80 )
+        {
+          // special case Euro (ISO 8895-1 vs. -15)
+          result += (char)164;
+        }
         else
         {
           // first byte, simplified since our range is only 8-bits
@@ -54,6 +64,11 @@ namespace GR
         unsigned char ch = static_cast<unsigned char>( Input[i] );
         if ( ch <= 0x7f )
         {
+          codepoint = ch;
+        }
+        else if ( ch == 0x80 )
+        {
+          // special case Euro (ISO8895-1 vs. -15)
           codepoint = ch;
         }
         else if ( ch <= 0xbf )
@@ -148,9 +163,9 @@ namespace GR
           codepoint = ch & 0x07;
         }
         ++i;
-        if ( ( ( i < Text.length() )
-        &&     ( ( Text[i] & 0xc0 ) != 0x80 ) )
-        ||   ( i >= Text.length() )
+        if ( ( ( ( i < Text.length() )
+        &&       ( ( Text[i] & 0xc0 ) != 0x80 ) )
+        ||     ( i >= Text.length() ) )
         &&   ( codepoint <= 0x10ffff ) )
         {
           if ( codepoint > 0xffff )
@@ -549,7 +564,7 @@ namespace GR
 
 
 
-    GR::String ToHexA( GR::u64 Value, const GR::u32 Digits )
+    GR::String ToHex( GR::u64 Value, const GR::u32 Digits )
     {
       GR::String    result;
 
@@ -833,7 +848,7 @@ namespace GR
         ||     ( cChar > '9' ) )
         &&   ( cChar != '-' ) )
         {
-          // ungültiges Zeichen zum Anfang
+          // ungÃ¼ltiges Zeichen zum Anfang
           if ( ( iBase == 16 )
           &&   ( ( ( cChar >= 'A' )
           &&       ( cChar <= 'F' ) )
@@ -875,7 +890,7 @@ namespace GR
           }
           else
           {
-            // ungültiges Zeichen
+            // ungÃ¼ltiges Zeichen
             dwValue >>= 4;
             break;
           }
@@ -908,7 +923,7 @@ namespace GR
         }
         else
         {
-          // ungültiges Zeichen
+          // ungÃ¼ltiges Zeichen
           dwValue /= 10;
           break;
         }
@@ -953,7 +968,7 @@ namespace GR
         ||     ( cChar > L'9' ) )
         &&   ( cChar != L'-' ) )
         {
-          // ungültiges Zeichen zum Anfang
+          // ungÃ¼ltiges Zeichen zum Anfang
           if ( ( iBase == 16 )
           &&   ( ( ( cChar >= L'A' )
           &&       ( cChar <= L'F' ) )
@@ -995,7 +1010,7 @@ namespace GR
           }
           else
           {
-            // ungültiges Zeichen
+            // ungÃ¼ltiges Zeichen
             dwValue >>= 4;
             break;
           }
@@ -1028,7 +1043,7 @@ namespace GR
         }
         else
         {
-          // ungültiges Zeichen
+          // ungÃ¼ltiges Zeichen
           dwValue /= 10;
           break;
         }
@@ -1160,6 +1175,10 @@ namespace GR
         &&   ( cChar == '-' ) )
         {
           bNegative = true;
+        }
+        else if ( ( iPos == 0 )
+        &&        ( cChar == '+' ) )
+        {
         }
         else if ( ( cChar >= '0' )
         &&        ( cChar <= '9' ) )
@@ -1314,26 +1333,25 @@ namespace GR
 
 
 
-    ByteBuffer ToBCD( const GR::String& Value, size_t MaxLength, bool FixedLength )
+    ByteBuffer ToBCD( const GR::String& Value, size_t NumDigits, bool FixedLength )
     {
       bool  swallowError = false;
-      return ToBCD( Value, MaxLength, FixedLength, swallowError );
+      return ToBCD( Value, NumDigits, FixedLength, swallowError );
     }
 
 
 
-    ByteBuffer ToBCD( const GR::String& Value, size_t MaxLength, bool FixedLength, bool& HadError )
+    ByteBuffer ToBCD( const GR::String& Value, size_t NumDigits, bool FixedLength, bool& HadError )
     {
-      size_t          length = 0;
       size_t          trueLength = Value.length();
 
       if ( FixedLength )
       {
-        trueLength = MaxLength;
+        trueLength = NumDigits;
       }
-      if ( trueLength > MaxLength )
+      if ( trueLength > NumDigits )
       {
-        trueLength = MaxLength;
+        trueLength = NumDigits;
       }
       if ( trueLength & 1 )
       {
@@ -1344,8 +1362,8 @@ namespace GR
 
       if ( FixedLength )
       {
-        // bei FixedLength wird links mit Nullen aufgefüllt
-        while ( temp.length() < MaxLength )
+        // bei FixedLength wird links mit Nullen aufgef?llt
+        while ( temp.length() < NumDigits )
         {
           temp = "0" + temp;
         }
@@ -1458,7 +1476,7 @@ namespace GR
         result += ( pData[i] & 0xf );
       }
       if ( ( NegativeAllowed )
-           && ( ( pData[0] & 0xf0 ) == 0xD0 ) )
+      &&   ( ( pData[0] & 0xf0 ) == 0xD0 ) )
       {
         result = -result;
       }

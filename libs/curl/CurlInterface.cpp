@@ -1,10 +1,13 @@
 #include <curl/curl.h>
 
-#include <Debug/debugclient.h>
+#include <debug/debugclient.h>
 
 #include ".\CurlInterface.h"
 
+#if OPERATING_SYSTEM == OS_WINDOWS
 #include <WinSys/RegistryHelper.h>
+#endif
+
 #include <Net/ProxyDetect.h>
 
 #include <String/Convert.h>
@@ -149,12 +152,11 @@ namespace CurlInterface
 
 
 
+#if OPERATING_SYSTEM == OS_WINDOWS
   bool CurlImpl::SetProxyFromIE( CURL* curl, const GR::String& URL )
   {
-    GR::String     baseURL;
-
-    char            ProxyArg[MAX_PATH];
-
+    GR::String      baseURL;
+    GR::String      ProxyArg;
     DWORD           ProxyEnable = 0;
 
 
@@ -201,6 +203,7 @@ namespace CurlInterface
     }
     return true;
   }
+#endif
 
 
 

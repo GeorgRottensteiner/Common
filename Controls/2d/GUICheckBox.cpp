@@ -49,7 +49,7 @@ void GUICheckBox::DisplayOnPage( GR::Graphic::GFXPage* pPage )
       rc.Right -= 20;
     }
 
-    DrawText( pPage, m_Caption.c_str(), rc, m_textAlignment );
+    DrawText( pPage, m_Caption.c_str(), rc, m_TextAlignment );
   }
 }
 

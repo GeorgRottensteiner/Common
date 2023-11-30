@@ -21,7 +21,7 @@ namespace GR
   namespace IO
   {
 
-    class AndroidFile : public IIOStream
+    class AndroidFile : public IIOStreamBase
     {
 
       protected:
@@ -77,6 +77,8 @@ namespace GR
         virtual unsigned long     SetPosition( GR::i64 Offset, PositionType = PT_SET );
 
         virtual GR::u64           GetPosition();
+
+        virtual bool              DataAvailable();
 
 
       private:

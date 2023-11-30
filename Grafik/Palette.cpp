@@ -284,7 +284,7 @@ namespace GR
     {
       if ( Index >= m_Entries )
       {
-        dh::Log( "Palette::SetColor Index out of bounds (%d>%d)\n", Index, m_Entries );
+        dh::Log( "Palette::SetColor Index out of bounds (%d>%d)", Index, m_Entries );
         return false;
       }
       if ( m_pData != NULL )

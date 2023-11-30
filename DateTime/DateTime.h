@@ -76,6 +76,7 @@ namespace GR
         GR::i64                     InSeconds() const;
         GR::i64                     InMilliSeconds() const;
         GR::u64                     InMicroSecondsSince01011970() const;
+        GR::u64                     InMicroSecondsSince01014713BC() const;
 
 
         void                        AddDays( GR::i32 Days );
@@ -109,6 +110,7 @@ namespace GR
 
         bool                        FromTime( time_t UTCTime );
         bool                        FromMicrosecondsSince01011970( GR::u64 UTCMicrosecondsSince01011970 );
+        bool                        FromMicrosecondsSince01014713BC( GR::u64 UTCMicrosecondsSince01014713BC );
 
         bool                        ConvertToLocalTime();
         bool                        ConvertToUTC();
@@ -130,6 +132,9 @@ namespace GR
         bool operator!=( const DateTime& RHS ) const;
 
         bool operator< ( const DateTime& RHS ) const;
+        bool operator<= ( const DateTime& RHS ) const;
+        bool operator> ( const DateTime& RHS ) const;
+        bool operator>= ( const DateTime& RHS ) const;
     };
 
   }

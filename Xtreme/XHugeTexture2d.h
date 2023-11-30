@@ -11,6 +11,7 @@
 #include <vector>
 
 
+#undef LoadImage
 
 class XHugeTexture : public EventListener<GR::Gamebase::tXFrameEvent>
 {

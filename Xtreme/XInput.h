@@ -393,13 +393,16 @@ class XInput: public GR::IService,
     virtual GR::u32               DeviceForceFeedbackAxisCount( GR::u32 Device ) const = 0;
     virtual bool                  SetDeviceForce( GR::u32 Device, GR::u32 Axis, GR::i32 Value ) const = 0;
 
-    virtual void                  AddBinding( const GR::u32 Handle, const GR::u32 Key ) = 0;
+    virtual void                  AddBinding( const GR::u32 Handle, const GR::u32 Key, const GR::u32 SecondaryKey = 0 ) = 0;
     virtual void                  RemoveBinding( const GR::u32 Handle ) = 0;
 
     virtual bool                  SaveBindings( IIOStream& Stream ) = 0;
     virtual bool                  LoadBindings( IIOStream& Stream ) = 0;
     virtual void                  ClearAllBindings() = 0;
     virtual GR::u32               BoundKey( const GR::u32 BindHandle ) const = 0;
+    virtual GR::u32               BoundSecondaryKey( const GR::u32 BindHandle ) const = 0;
+    virtual bool                  BoundActionPressed( GR::u32 BindHandle ) const = 0;
+    virtual bool                  ReleasedBoundActionPressed( GR::u32 BindHandle ) const = 0;
 
 
     // und die elementare Poll-Funktion

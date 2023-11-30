@@ -1,4 +1,5 @@
 #include "LayeredMap.h"
+#include "LayeredMap.h"
 #include "TileLayer.h"
 #include "SectionedLayer.h"
 #include "FlagLayer.h"

@@ -105,7 +105,7 @@ namespace GR
   typedef IEventListener<tRenderFrameEvent> IRenderFrameListener;
   typedef EventListener<tRenderFrameEvent> RenderFrameListener;
 
-};  // namespace GR
+}  // namespace GR
 
 #endif// _IUPDATEABLE_H
 

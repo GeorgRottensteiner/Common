@@ -1,0 +1,529 @@
+/*
+ * FILE:  sha2.c
+ * AUTHOR:  Aaron D. Gifford - http://www.aarongifford.com/
+ *
+ * Copyright (c) 2000-2001, Aaron D. Gifford
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTOR(S) ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTOR(S) BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * $Id: sha2.c,v 1.1 2001/11/08 00:01:51 adg Exp adg $
+ */
+
+#include <string.h>
+#include <assert.h>
+#include "SHA384.h"
+
+#include <OS/OS.h>
+
+#include <GR/GRTypes.h>
+#include <Memory/ByteBuffer.h>
+
+
+
+namespace GR
+{
+  namespace Codec
+  {
+
+
+#define SHA384_SHORT_BLOCK_LENGTH (SHA384_BLOCK_LENGTH - 16)
+
+
+#if OS_ENDIAN == OS_ENDIAN_LITTLE
+#define REVERSE32(w,x)  { \
+  GR::u32 tmp = (w); \
+  tmp = (tmp >> 16) | (tmp << 16); \
+  (x) = ((tmp & 0xff00ff00UL) >> 8) | ((tmp & 0x00ff00ffUL) << 8); \
+}
+#define REVERSE64(w,x)  { \
+  GR::u64 tmp = (w); \
+  tmp = (tmp >> 32) | (tmp << 32); \
+  tmp = ((tmp & 0xff00ff00ff00ff00ULL) >> 8) | \
+        ((tmp & 0x00ff00ff00ff00ffULL) << 8); \
+  (x) = ((tmp & 0xffff0000ffff0000ULL) >> 16) | \
+        ((tmp & 0x0000ffff0000ffffULL) << 16); \
+}
+#endif
+
+
+
+// Macro for incrementally adding the unsigned 64-bit integer n to the
+// unsigned 128-bit integer (represented using a two-element array of 64-bit words)
+#define ADDINC128(w,n)  { \
+  (w)[0] += (GR::u64)(n); \
+  if ((w)[0] < (n)) { \
+    (w)[1]++; \
+  } \
+}
+
+
+
+
+// THE SIX LOGICAL FUNCTIONS ****************************************/
+// Bit shifting and rotation (used by the six SHA-XYZ logical functions:
+// NOTE:  The naming of R and S appears backwards here (R is a SHIFT and
+// S is a ROTATION) because the SHA-256/384/512 description document
+// (see http://csrc.nist.gov/cryptval/shs/sha256-384-512.pdf) uses this
+// same "backwards" definition.
+
+// Shift-right (used in SHA-256, SHA-384, and SHA-512)
+#define R(b,x)    ((x) >> (b))
+
+// 32-bit Rotate-right (used in SHA-256)
+#define S32(b,x)  (((x) >> (b)) | ((x) << (32 - (b))))
+
+// 64-bit Rotate-right (used in SHA-384 and SHA-512)
+#define S64(b,x)  (((x) >> (b)) | ((x) << (64 - (b))))
+
+// Two of six logical functions used in SHA-256, SHA-384, and SHA-512
+#define Ch(x,y,z) (((x) & (y)) ^ ((~(x)) & (z)))
+#define Maj(x,y,z)  (((x) & (y)) ^ ((x) & (z)) ^ ((y) & (z)))
+
+// Four of six logical functions used in SHA-256
+#define Sigma0_256(x) (S32(2,  (x)) ^ S32(13, (x)) ^ S32(22, (x)))
+#define Sigma1_256(x) (S32(6,  (x)) ^ S32(11, (x)) ^ S32(25, (x)))
+#define sigma0_256(x) (S32(7,  (x)) ^ S32(18, (x)) ^ R(3 ,   (x)))
+#define sigma1_256(x) (S32(17, (x)) ^ S32(19, (x)) ^ R(10,   (x)))
+
+// Four of six logical functions used in SHA-384 and SHA-512
+#define Sigma0_512(x) (S64(28, (x)) ^ S64(34, (x)) ^ S64(39, (x)))
+#define Sigma1_512(x) (S64(14, (x)) ^ S64(18, (x)) ^ S64(41, (x)))
+#define sigma0_512(x) (S64( 1, (x)) ^ S64( 8, (x)) ^ R( 7,   (x)))
+#define sigma1_512(x) (S64(19, (x)) ^ S64(61, (x)) ^ R( 6,   (x)))
+
+
+    // Hash constant words K for SHA-384 and SHA-512
+    const static GR::u64 K512[80] = 
+    {
+      0x428a2f98d728ae22ULL, 0x7137449123ef65cdULL,
+      0xb5c0fbcfec4d3b2fULL, 0xe9b5dba58189dbbcULL,
+      0x3956c25bf348b538ULL, 0x59f111f1b605d019ULL,
+      0x923f82a4af194f9bULL, 0xab1c5ed5da6d8118ULL,
+      0xd807aa98a3030242ULL, 0x12835b0145706fbeULL,
+      0x243185be4ee4b28cULL, 0x550c7dc3d5ffb4e2ULL,
+      0x72be5d74f27b896fULL, 0x80deb1fe3b1696b1ULL,
+      0x9bdc06a725c71235ULL, 0xc19bf174cf692694ULL,
+      0xe49b69c19ef14ad2ULL, 0xefbe4786384f25e3ULL,
+      0x0fc19dc68b8cd5b5ULL, 0x240ca1cc77ac9c65ULL,
+      0x2de92c6f592b0275ULL, 0x4a7484aa6ea6e483ULL,
+      0x5cb0a9dcbd41fbd4ULL, 0x76f988da831153b5ULL,
+      0x983e5152ee66dfabULL, 0xa831c66d2db43210ULL,
+      0xb00327c898fb213fULL, 0xbf597fc7beef0ee4ULL,
+      0xc6e00bf33da88fc2ULL, 0xd5a79147930aa725ULL,
+      0x06ca6351e003826fULL, 0x142929670a0e6e70ULL,
+      0x27b70a8546d22ffcULL, 0x2e1b21385c26c926ULL,
+      0x4d2c6dfc5ac42aedULL, 0x53380d139d95b3dfULL,
+      0x650a73548baf63deULL, 0x766a0abb3c77b2a8ULL,
+      0x81c2c92e47edaee6ULL, 0x92722c851482353bULL,
+      0xa2bfe8a14cf10364ULL, 0xa81a664bbc423001ULL,
+      0xc24b8b70d0f89791ULL, 0xc76c51a30654be30ULL,
+      0xd192e819d6ef5218ULL, 0xd69906245565a910ULL,
+      0xf40e35855771202aULL, 0x106aa07032bbd1b8ULL,
+      0x19a4c116b8d2d0c8ULL, 0x1e376c085141ab53ULL,
+      0x2748774cdf8eeb99ULL, 0x34b0bcb5e19b48a8ULL,
+      0x391c0cb3c5c95a63ULL, 0x4ed8aa4ae3418acbULL,
+      0x5b9cca4f7763e373ULL, 0x682e6ff3d6b2b8a3ULL,
+      0x748f82ee5defb2fcULL, 0x78a5636f43172f60ULL,
+      0x84c87814a1f0ab72ULL, 0x8cc702081a6439ecULL,
+      0x90befffa23631e28ULL, 0xa4506cebde82bde9ULL,
+      0xbef9a3f7b2c67915ULL, 0xc67178f2e372532bULL,
+      0xca273eceea26619cULL, 0xd186b8c721c0c207ULL,
+      0xeada7dd6cde0eb1eULL, 0xf57d4f7fee6ed178ULL,
+      0x06f067aa72176fbaULL, 0x0a637dc5a2c898a6ULL,
+      0x113f9804bef90daeULL, 0x1b710b35131c471bULL,
+      0x28db77f523047d84ULL, 0x32caab7b40c72493ULL,
+      0x3c9ebe0a15c9bebcULL, 0x431d67c49c100d4cULL,
+      0x4cc5d4becb3e42b6ULL, 0x597f299cfc657e2aULL,
+      0x5fcb6fab3ad6faecULL, 0x6c44198c4a475817ULL
+    };
+
+    // Initial hash value H for SHA-384
+    const static GR::u64 sha384_initial_hash_value[8] = 
+    {
+      0xcbbb9d5dc1059ed8ULL,
+      0x629a292a367cd507ULL,
+      0x9159015a3070dd17ULL,
+      0x152fecd8f70e5939ULL,
+      0x67332667ffc00b31ULL,
+      0x8eb44a8768581511ULL,
+      0xdb0c2e0d64f98fa7ULL,
+      0x47b5481dbefa4fa4ULL
+    };
+
+
+    void SHA384::SHA384_Transform( const GR::u64* data )
+    {
+      GR::u64 a, b, c, d, e, f, g, h, s0, s1;
+      GR::u64 T1, T2, * W512 = (GR::u64*)context.buffer;
+      int   j;
+
+      // Initialize registers with the prev. intermediate value
+      a = context.state[0];
+      b = context.state[1];
+      c = context.state[2];
+      d = context.state[3];
+      e = context.state[4];
+      f = context.state[5];
+      g = context.state[6];
+      h = context.state[7];
+
+      j = 0;
+      do
+      {
+#if OS_ENDIAN == OS_ENDIAN_LITTLE
+      // Convert TO host byte order
+        REVERSE64( *data++, W512[j] );
+        // Apply the SHA-512 compression function to update a..h
+        T1 = h + Sigma1_512( e ) + Ch( e, f, g ) + K512[j] + W512[j];
+#else 
+        // Apply the SHA-512 compression function to update a..h with copy
+        T1 = h + Sigma1_512( e ) + Ch( e, f, g ) + K512[j] + ( W512[j] = *data++ );
+#endif
+        T2 = Sigma0_512( a ) + Maj( a, b, c );
+        h = g;
+        g = f;
+        f = e;
+        e = d + T1;
+        d = c;
+        c = b;
+        b = a;
+        a = T1 + T2;
+
+        j++;
+      }
+      while ( j < 16 );
+
+      do
+      {
+        // Part of the message block expansion
+        s0 = W512[( j + 1 ) & 0x0f];
+        s0 = sigma0_512( s0 );
+        s1 = W512[( j + 14 ) & 0x0f];
+        s1 = sigma1_512( s1 );
+
+        // Apply the SHA-512 compression function to update a..h
+        T1 = h + Sigma1_512( e ) + Ch( e, f, g ) + K512[j] + ( W512[j & 0x0f] += s1 + W512[( j + 9 ) & 0x0f] + s0 );
+        T2 = Sigma0_512( a ) + Maj( a, b, c );
+        h = g;
+        g = f;
+        f = e;
+        e = d + T1;
+        d = c;
+        c = b;
+        b = a;
+        a = T1 + T2;
+
+        j++;
+      }
+      while ( j < 80 );
+
+      // Compute the current intermediate hash value
+      context.state[0] += a;
+      context.state[1] += b;
+      context.state[2] += c;
+      context.state[3] += d;
+      context.state[4] += e;
+      context.state[5] += f;
+      context.state[6] += g;
+      context.state[7] += h;
+
+      // Clean up
+      a = b = c = d = e = f = g = h = T1 = T2 = 0;
+    }
+
+
+
+    void SHA384::SHA384_Update( const GR::u8* data, size_t len )
+    {
+      unsigned int  freespace, usedspace;
+
+      if ( len == 0 )
+      {
+        // Calling with no data is valid - we do nothing
+        return;
+      }
+
+      // Sanity check
+      assert( data != (GR::u8*)0 );
+
+      usedspace = (unsigned int)( ( context.bitcount[0] >> 3 ) % SHA384_BLOCK_LENGTH );
+      if ( usedspace > 0 )
+      {
+        // Calculate how much free space is available in the buffer
+        freespace = SHA384_BLOCK_LENGTH - usedspace;
+
+        if ( len >= freespace )
+        {
+          // Fill the buffer completely and process it
+          memcpy( &context.buffer[usedspace], data, freespace );
+          ADDINC128( context.bitcount, freespace << 3 );
+          len -= freespace;
+          data += freespace;
+          SHA384_Transform( (GR::u64*)context.buffer );
+        }
+        else
+        {
+          // The buffer is not yet full
+          memcpy( &context.buffer[usedspace], data, len );
+          ADDINC128( context.bitcount, len << 3 );
+          // Clean up
+          usedspace = freespace = 0;
+          return;
+        }
+      }
+      while ( len >= SHA384_BLOCK_LENGTH )
+      {
+        // Process as many complete blocks as we can
+        SHA384_Transform( (GR::u64*)data );
+        ADDINC128( context.bitcount, SHA384_BLOCK_LENGTH << 3 );
+        len -= SHA384_BLOCK_LENGTH;
+        data += SHA384_BLOCK_LENGTH;
+      }
+      if ( len > 0 )
+      {
+        // There's left-overs, so save 'em
+        memcpy( context.buffer, data, len );
+        ADDINC128( context.bitcount, len << 3 );
+      }
+      // Clean up
+      usedspace = freespace = 0;
+    }
+
+
+
+    void SHA384::SHA384_Init()
+    {
+      memcpy( context.state, sha384_initial_hash_value, SHA512_DIGEST_LENGTH );// SHA384_DIGEST_LENGTH );
+      memset( context.buffer, 0, SHA384_BLOCK_LENGTH );
+      context.bitcount[0] = context.bitcount[1] = 0;
+    }
+
+
+
+    void SHA384::SHA384_Last()
+    {
+      unsigned int  usedspace;
+
+      usedspace = (unsigned int)( ( context.bitcount[0] >> 3 ) % SHA384_BLOCK_LENGTH );
+#if OS_ENDIAN == OS_ENDIAN_LITTLE
+      // Convert FROM host byte order
+      REVERSE64( context.bitcount[0], context.bitcount[0] );
+      REVERSE64( context.bitcount[1], context.bitcount[1] );
+#endif
+      if ( usedspace > 0 )
+      {
+        // Begin padding with a 1 bit
+        context.buffer[usedspace++] = 0x80;
+
+        if ( usedspace <= SHA384_SHORT_BLOCK_LENGTH )
+        {
+          // Set-up for the last transform
+          memset( &context.buffer[usedspace], 0, SHA384_SHORT_BLOCK_LENGTH - usedspace );
+        }
+        else
+        {
+          if ( usedspace < SHA384_BLOCK_LENGTH )
+          {
+            memset( &context.buffer[usedspace], 0, SHA384_BLOCK_LENGTH - usedspace );
+          }
+          // Do second-to-last transform
+          SHA384_Transform( (GR::u64*)context.buffer );
+
+          // And set-up for the last transform
+          memset( context.buffer, 0, SHA384_BLOCK_LENGTH - 2 );
+        }
+      }
+      else
+      {
+        // Prepare for final transform
+        memset( context.buffer, 0, SHA384_SHORT_BLOCK_LENGTH );
+
+        // Begin padding with a 1 bit
+        *context.buffer = 0x80;
+      }
+      // Store the length of input data (in bits)
+      *(GR::u64*)&context.buffer[SHA384_SHORT_BLOCK_LENGTH] = context.bitcount[1];
+      *(GR::u64*)&context.buffer[SHA384_SHORT_BLOCK_LENGTH + 8] = context.bitcount[0];
+
+      // Final transform
+      SHA384_Transform( (GR::u64*)context.buffer );
+    }
+
+
+
+    void SHA384::SHA384_Final( GR::u8 digest[] )
+    {
+      GR::u64* d = (GR::u64*)digest;
+
+      // If no digest buffer is passed, we don't bother doing this
+      if ( digest != (GR::u8*)0 )
+      {
+        SHA384_Last();
+
+        // Save the hash data for output
+#if OS_ENDIAN == OS_ENDIAN_LITTLE
+        {
+          // Convert TO host byte order
+          for ( int j = 0; j < 6; j++ )
+          {
+            REVERSE64( context.state[j], context.state[j] );
+            *d++ = context.state[j];
+          }
+        }
+#else
+        memcpy( d, context.state, SHA384_DIGEST_LENGTH );
+#endif
+      }
+
+      // Zero out state data
+      memset( &context, 0, sizeof( context ) );
+    }
+
+
+
+    void SHA384::Initialise()
+    {
+      SHA384_Init();
+    }
+
+
+
+    ByteBuffer SHA384::Calculate( const ByteBuffer& Data )
+    {
+      GR::u8        digest[48];
+
+      SHA384_Init();
+      SHA384_Update( (GR::u8*)Data.Data(), Data.Size() );
+      SHA384_Final( digest );
+
+      ByteBuffer    hash( 48 );
+      memcpy( hash.Data(), digest, 48 );
+      return hash;
+    }
+
+
+
+    bool SHA384::Calculate( const ByteBuffer& Data, ByteBuffer& Hash )
+    {
+      GR::u8        digest[48];
+      SHA384        sha384;
+
+      sha384.Initialise();
+      sha384.SHA384_Update( (GR::u8*)Data.Data(), Data.Size() );
+      sha384.SHA384_Final( digest );
+
+      Hash.Resize( 48 );
+      memcpy( Hash.Data(), digest, 48 );
+
+      return true;
+    }
+
+
+
+    bool SHA384::CalcHashKeyed( const ByteBuffer& Data, const ByteBuffer& Key, ByteBuffer& Hash )
+    {
+      GR::u32     blockSize = 128;
+
+      // if key is longer than 64 bytes reset it to key=MD5(key)
+      ByteBuffer    keyToUse = Key;
+      if ( keyToUse.Size() > blockSize )
+      {
+        if ( !Calculate( Key, keyToUse ) )
+        {
+          return false;
+        }
+      }
+
+      // the HMAC_MD5 transform looks like:
+      // MD5(K XOR opad, MD5(K XOR ipad, text))
+      //  where K is an n byte key
+      //  ipad is the byte 0x36 repeated 64 times
+      //  opad is the byte 0x5c repeated 64 times
+      //  and text is the data being protected
+
+      // start out by storing key in pads
+      ByteBuffer    innerPad( blockSize );
+      ByteBuffer    outerPad( blockSize );
+
+      ::memcpy( innerPad.Data(), keyToUse.Data(), keyToUse.Size() );
+      ::memcpy( outerPad.Data(), keyToUse.Data(), keyToUse.Size() );
+
+      // XOR key with ipad and opad values
+      for ( GR::u32 i = 0; i < blockSize; i++ )
+      {
+        innerPad.SetByteAt( i, (GR::u8)( innerPad.ByteAt( i ) ^ 0x36 ) );
+        outerPad.SetByteAt( i, (GR::u8)( outerPad.ByteAt( i ) ^ 0x5c ) );
+      }
+
+      ByteBuffer    innerResult;
+
+      if ( !Calculate( innerPad + Data, innerResult ) )
+      {
+        return false;
+      }
+      return Calculate( outerPad + innerResult, Hash );
+    }
+
+
+
+    bool SHA384::Update( const ByteBuffer& Data, GR::u32 NumOfBytes )
+    {
+      if ( NumOfBytes == 0 )
+      {
+        NumOfBytes = (GR::u32)Data.Size();
+      }
+      SHA384_Update( (GR::u8*)Data.Data(), NumOfBytes );
+      return true;
+    }
+    
+    
+
+    ByteBuffer SHA384::Finalize()
+    {
+      m_Hash.Resize( 48 );
+      SHA384_Final( (GR::u8*)m_Hash.Data() );
+      return m_Hash;
+    }
+    
+    
+    
+    ByteBuffer SHA384::Hash() const
+    {
+      return m_Hash;
+    }
+
+
+
+    int	SHA384::HashSize() const
+    {
+      return 48;
+    }
+
+
+  }
+}
+
+

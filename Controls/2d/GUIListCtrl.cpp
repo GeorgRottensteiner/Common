@@ -7,40 +7,37 @@
 
 
 
-CGUIListCtrl::CGUIListCtrl( int iNewX, int iNewY, int iNewWidth, int iNewHeight, GR::u32 dwType, GR::u32 dwId ) :
-  CAbstractListCtrl<CGUIComponent,CGUIScrollbar>( iNewX, iNewY, iNewWidth, iNewHeight, dwType, dwId ),
+GUIListCtrl::GUIListCtrl( int iNewX, int iNewY, int iNewWidth, int iNewHeight, GR::u32 dwType, GR::u32 dwId ) :
+  AbstractListCtrl<GUIComponent,GUIScrollbar>( iNewX, iNewY, iNewWidth, iNewHeight, dwType, dwId ),
   m_pImageHdrLeft( NULL ),
   m_pImageHdrCenter( NULL ),
   m_pImageHdrRight( NULL )
 {
+  m_ItemHeight     = 16;
+  m_Offset         = 0;
+  m_HeaderHeight   = 20;
 
-  m_iItemHeight     = 16;
-  m_iOffset         = 0;
-  m_iHeaderHeight   = 20;
+  ModifyVisualStyle( GUI::VFT_SUNKEN_BORDER );
 
-  ModifyEdge( GUI::GET_SUNKEN_BORDER );
-
-  m_pScrollBar->ModifyEdge( GUI::GET_TRANSPARENT_BKGND );
+  m_pScrollBar->ModifyVisualStyle( GUI::VFT_TRANSPARENT_BKGND );
   m_pScrollBar->SetLocation( m_ClientRect.size().x - m_pScrollBar->Width(), 0 );
   m_pScrollBar->SetSize( m_pScrollBar->Width(), m_ClientRect.size().y );
-
 }
 
 
 
-void CGUIListCtrl::DisplayOnPage( GR::Graphic::GFXPage* pPage )
+void GUIListCtrl::DisplayOnPage( GR::Graphic::GFXPage* pPage )
 {
-
   GR::Graphic::ContextDescriptor    cdPage( pPage );
   
   if ( m_pFont )
   {
-    int   iYOffset = -(int)m_iOffset * m_iItemHeight;
+    int   iYOffset = -(int)m_Offset * m_ItemHeight;
 
     // Header anzeigen
     if ( Style() & LCS_SHOW_HEADER )
     {
-      iYOffset += m_iHeaderHeight;
+      iYOffset += m_HeaderHeight;
 
       int   iXOffset = 0;
 
@@ -71,15 +68,15 @@ void CGUIListCtrl::DisplayOnPage( GR::Graphic::GFXPage* pPage )
         }
         else
         {
-          DrawEdge( pPage, GUI::GET_RAISED_BORDER, rectHeader );
+          DrawEdge( pPage, GUI::VFT_RAISED_BORDER, rectHeader );
         }
 
         rectHeader.inflate( -4, 0 );
         rectHeader.Top += 2;
 
-        DrawText( pPage, Column.m_strDescription.c_str(), rectHeader, Column.m_TextAlignment );
+        DrawText( pPage, Column.Description.c_str(), rectHeader, Column.TextAlignment );
 
-        iXOffset += Column.m_iCurrentWidth;
+        iXOffset += Column.CurrentWidth;
       }
       // rechts ist noch Platz, leeren Header zeichnen
       if ( iXOffset < m_ClientRect.size().x - m_pScrollBar->Width() )
@@ -87,8 +84,8 @@ void CGUIListCtrl::DisplayOnPage( GR::Graphic::GFXPage* pPage )
         GR::tRect   rectHeader;
 
         rectHeader.position( iXOffset, 0 );
-        rectHeader.size( m_ClientRect.size().x - iXOffset - m_pScrollBar->Width(), m_iHeaderHeight );
-        DrawEdge( pPage, GUI::GET_RAISED_BORDER, rectHeader );
+        rectHeader.size( m_ClientRect.size().x - iXOffset - m_pScrollBar->Width(), m_HeaderHeight );
+        DrawEdge( pPage, GUI::VFT_RAISED_BORDER, rectHeader );
       }
     }
 
@@ -96,12 +93,9 @@ void CGUIListCtrl::DisplayOnPage( GR::Graphic::GFXPage* pPage )
 
     GetListRect( rectList );
 
-    size_t iItem = m_iOffset;
-    tAbstractListCtrlItemList::iterator    it( m_listItems.begin() );
-    std::advance( it, m_iOffset );
-    while ( it != m_listItems.end() )
+    for ( size_t iItem = m_Offset; iItem < m_Items.NumRows(); ++iItem )
     {
-      tVectAbstractListCtrlItemRow&   Row = *it;
+      const auto& Row = m_Items.Row( iItem );
 
       GR::tRect         rcItem;
 
@@ -120,47 +114,44 @@ void CGUIListCtrl::DisplayOnPage( GR::Graphic::GFXPage* pPage )
       GR::tRect   rcClient;
 
       GetClientRect( rcClient );
-      LocalToScreen( rcClient, this );
+      LocalToScreen( rcClient );
 
       int   iXOffset = 0;
       for ( size_t iColumn = 0; iColumn < m_vectColumns.size(); ++iColumn )
       {
-        tListCtrlItem&    Item = Row[iColumn];
+        const tListCtrlItem&    Item = Row.SubItems[iColumn];
 
         if ( GetItemRect( iItem, iColumn, rcItem ) )
         {
           GR::u32   dwColor = 0xffffffff;
-          if ( iItem == m_iSelectedItem )
+          if ( iItem == m_SelectedItem )
           {
             dwColor = 0xffffffff;
           }
-          else if ( iItem == m_iMouseOverItem )
+          else if ( iItem == m_MouseOverItem )
           {
             dwColor = 0xffffa000;
           }
 
 
           GR::tRect   rcTemp( rcItem );
-          LocalToScreen( rcTemp, this );
+          LocalToScreen( rcTemp );
           rcTemp = rcTemp.intersection( rcClient );
           pPage->SetRange( rcTemp.Left, rcTemp.Top, 
                            rcTemp.Right, rcTemp.Bottom );
-          DrawText( pPage, Item.m_strText.c_str(), rcItem, m_vectColumns[iColumn].m_TextAlignment );
+          DrawText( pPage, Item.Text.c_str(), rcItem, m_vectColumns[iColumn].TextAlignment );
         }
 
-        iXOffset += m_vectColumns[iColumn].m_iCurrentWidth;
+        iXOffset += m_vectColumns[iColumn].CurrentWidth;
 
       }
       pPage->SetRange( rcOldClip.Left, rcOldClip.Top, 
                        rcOldClip.Right, rcOldClip.Bottom );
-
-      ++iItem;
-      ++it;
     }
 
     GR::tRect   rcSelectionBox;
 
-    if ( GetItemRect( m_iMouseOverItem, -1, rcSelectionBox ) )
+    if ( GetItemRect( m_MouseOverItem, -1, rcSelectionBox ) )
     {
       cdPage.AlphaBox( rcSelectionBox.Left,
                        rcSelectionBox.Top,
@@ -168,7 +159,7 @@ void CGUIListCtrl::DisplayOnPage( GR::Graphic::GFXPage* pPage )
                        rcSelectionBox.height(),
                        0x3030a0, 128 );
     }
-    if ( GetItemRect( m_iSelectedItem, -1, rcSelectionBox ) )
+    if ( GetItemRect( m_SelectedItem, -1, rcSelectionBox ) )
     {
       cdPage.AlphaBox( rcSelectionBox.Left,
                        rcSelectionBox.Top,
@@ -183,32 +174,30 @@ void CGUIListCtrl::DisplayOnPage( GR::Graphic::GFXPage* pPage )
       DrawFocusRect( pPage, rcSelectionBox );
     }
   }
-
 }
 
 
 
-void CGUIListCtrl::SetHeaderImages( GR::Graphic::Image* pImageHdrLeft, GR::Graphic::Image* pImageHdrCenter, GR::Graphic::Image* pImageHdrRight )
+void GUIListCtrl::SetHeaderImages( GR::Graphic::Image* pImageHdrLeft, GR::Graphic::Image* pImageHdrCenter, GR::Graphic::Image* pImageHdrRight )
 {
-
   m_pImageHdrLeft     = pImageHdrLeft;
   m_pImageHdrCenter   = pImageHdrCenter;
   m_pImageHdrRight    = pImageHdrRight;
 
   if ( ( m_pImageHdrLeft )
-  &&   ( m_pImageHdrLeft->GetHeight() > m_iHeaderHeight ) )
+  &&   ( m_pImageHdrLeft->GetHeight() > m_HeaderHeight ) )
   {
-    m_iHeaderHeight = m_pImageHdrLeft->GetHeight();
+    m_HeaderHeight = m_pImageHdrLeft->GetHeight();
   }
   if ( ( m_pImageHdrCenter )
-  &&   ( m_pImageHdrCenter->GetHeight() > m_iHeaderHeight ) )
+  &&   ( m_pImageHdrCenter->GetHeight() > m_HeaderHeight ) )
   {
-    m_iHeaderHeight = m_pImageHdrCenter->GetHeight();
+    m_HeaderHeight = m_pImageHdrCenter->GetHeight();
   }
   if ( ( m_pImageHdrRight )
-  &&   ( m_pImageHdrRight->GetHeight() > m_iHeaderHeight ) )
+  &&   ( m_pImageHdrRight->GetHeight() > m_HeaderHeight ) )
   {
-    m_iHeaderHeight = m_pImageHdrRight->GetHeight();
+    m_HeaderHeight = m_pImageHdrRight->GetHeight();
   }
 
 }

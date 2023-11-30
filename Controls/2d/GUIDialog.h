@@ -12,17 +12,17 @@ class GR::Graphic::GFXPage;
 
 
 
-class CGUIDialog : public CAbstractDialog<CGUIComponent>
+class GUIDialog : public AbstractDialog<GUIComponent>
 {
 
   public:
 
-    DECLARE_CLONEABLE( CGUIDialog, "Dialog" )
+    DECLARE_CLONEABLE( GUIDialog, "Dialog" )
 
 
-    CGUIDialog( int iNewX = 0, int iNewY = 0, 
+    GUIDialog( int iNewX = 0, int iNewY = 0, 
                 int iNewWidth = 0, int iNewHeight = 0, 
-                const GR::UTF8String& strCaption = GR::UTF8String(),
+                const GR::String& strCaption = GR::String(),
                 GR::u32 dwId = 0, 
                 GR::u32 dfType = DS_CAPTION | DS_CLIPDRAG );
 

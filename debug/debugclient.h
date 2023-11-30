@@ -286,8 +286,8 @@ namespace dh
     {
       return false;
     }
-    static GR::Char    szMiscBuffer[5000];
-    vsprintf_s( szMiscBuffer, 5000, szFormat, (char*)( &szFormat + 1 ) );
+    static GR::Char    szMiscBuffer[25000];
+    vsprintf_s( szMiscBuffer, 25000, szFormat, (char*)( &szFormat + 1 ) );
     return send( szMiscBuffer, 0, DH_DEF_NAME, DH_DEF_WINID );
   }
 

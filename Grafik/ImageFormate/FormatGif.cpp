@@ -9,6 +9,8 @@
 
 #include "FormatGIF.h"
 
+#include <Grafik/ContextDescriptor.h>
+
 
 
 GR::Graphic::FormatGIF    globalGIFPlugin;
@@ -19,44 +21,28 @@ namespace GR
 {
   namespace Graphic
   {
-    FormatGIF::FormatGIF() :
-      m_pImageData( NULL ),
-      GIFStrChr( NULL ),
-      StrNxt( NULL ),
-      StrHsh( NULL )
+    FormatGIF::FormatGIF()
     {
       ImageFormatManager::Instance().RegisterFormat( GetDescription(), this );
-
-      ncodemask[0]  = 0;
-      ncodemask[1]  = 0x0001;
-      ncodemask[2]  = 0x0003;
-      ncodemask[3]  = 0x0007;
-      ncodemask[4]  = 0x000f;
-      ncodemask[5]  = 0x001f;
-      ncodemask[6]  = 0x003f;
-      ncodemask[7]  = 0x007f;
-      ncodemask[8]  = 0x00ff;
-      ncodemask[9]  = 0x01ff;
-      ncodemask[10] = 0x03ff;
-      ncodemask[11] = 0x07ff;
-      ncodemask[12] = 0x0fff;
     }
 
 
 
     bool FormatGIF::IsFileOfType( const GR::String& FileName )
     {
-      size_t   length = FileName.length();
-      if ( length >= 3 )
+      // OPEN FILE
+      GR::IO::FileStream    ioIn;
+
+      if ( !ioIn.Open( FileName ) )
       {
-        if ( ( toupper( FileName[length - 3] ) != 'G' )
-        ||   ( toupper( FileName[length - 2] ) != 'I' )
-        ||   ( toupper( FileName[length - 1] ) != 'F' ) )
-        {
-          return false;
-        }
+        return NULL;
       }
-      else
+
+      // *1* READ HEADER (SIGNATURE + VERSION)
+      char szSignature[6];				// First 6 bytes (GIF87a or GIF89a)
+
+      ioIn.ReadBlock( szSignature, 6 );
+      if ( memcmp( szSignature, "GIF", 2 ) != 0 )
       {
         return false;
       }
@@ -65,107 +51,90 @@ namespace GR
 
 
 
-    int FormatGIF::GetNextByte()
+    int FormatGIF::GetNextByte( IIOStream& IOIn )
     {
-      GR::u8  ucDummy;
+      GR::u8  dummy;
 
-      if ( m_pFile->ReadBlock( &ucDummy, 1 ) )
+      if ( IOIn.ReadBlock( &dummy, 1 ) )
       {
-        return ucDummy;
+        return dummy;
       }
       return -1;
     }
 
 
 
-    size_t FormatGIF::ReadBlobBlock( GR::u8* pData )
+    size_t FormatGIF::ReadBlobBlock( IIOStream& IOIn, GR::u8* pData )
     {
-      size_t          count = 0;
-      unsigned char   block_count = 0;
+      int     count = 0;
 
-      count = GetNextByte();
-      if ( count == 0 )
+      count = GetNextByte( IOIn );
+      if ( count <= 0 )
       {
-        return( 0 );
+        return 0;
       }
-      block_count = (unsigned char)count;
-
-      for ( int i = 0; i < block_count; ++i )
+      for ( int i = 0; i < count; ++i )
       {
-        *pData++ = GetNextByte();
+        *pData++ = GetNextByte( IOIn );
       }
-      return block_count;
+      return (size_t)count;
     }
 
 
 
-    short int FormatGIF::DecodeImage( char* pTarget, const long opacity )
+    short int FormatGIF::DecodeImage( IIOStream& IOIn, char* pTarget, const long opacity )
     {
-    #define MaxStackSize  4096
-    #define NullCode  (-1)
+      const int MAX_STACK_SIZE = 4096;
+      const int NULL_CODE = -1;
 
       int               bits = 0,
-                        code_size,
                         offset = 0,
                         pass = 0;
 
-      long              available,
-                        clear,
-                        code,
-                        code_mask,
-                        end_of_information,
+      long              code,
                         in_code,
-                        old_code,
                         y;
 
       long              x;
 
-      unsigned char*    c = NULL;
+      GR::u8*           pTempData = NULL;
 
       unsigned long     datum = 0;
 
       size_t            count = 0;
 
-      short*            prefix;
-
-      unsigned char     data_size,
-                        first = 0,
+      unsigned char     first = 0,
                         index;
-
-      GR::u8*           packet;
-      GR::u8*           pixel_stack;
-      GR::u8*           suffix;
-      GR::u8*           top_stack;
 
 
 
       // Initialize GIF data stream decoder
-      data_size = GetNextByte();
-      if ( data_size > 8 )
+      GR::u8 dataSize = (GR::u8)GetNextByte( IOIn );
+      if ( dataSize > 8 )
       {
         return false;
       }
 
       // Allocate decoder tables
-      packet      = (GR::u8*)malloc( 256 );
-      prefix      = (GR::i16*)malloc( MaxStackSize * sizeof( short ) );
-      suffix      = (GR::u8*) malloc( MaxStackSize );
-      pixel_stack = (GR::u8*) malloc( MaxStackSize + 1 );
+      ByteBuffer  packet( 256 );
+      ByteBuffer  prefix( MAX_STACK_SIZE * sizeof( GR::i16 ) );
+      ByteBuffer  suffix( MAX_STACK_SIZE );
+      ByteBuffer  pixel_stack( MAX_STACK_SIZE + 1 );
 
-      clear               = 1 << data_size;
-      end_of_information  = clear + 1;
-      available           = clear + 2;
-      old_code            = NullCode;
-      code_size           = data_size + 1;
-      code_mask           = ( 1 << code_size ) - 1;
+      long clear            = 1 << dataSize;
+      long endOfInformation = clear + 1;
+      long available        = clear + 2;
+      long old_code         = NULL_CODE;
+      int code_size         = dataSize + 1;
+      long code_mask        = ( 1 << code_size ) - 1;
       for ( code = 0; code < clear; code++ )
       {
-        prefix[code] = 0;
+        ( (GR::i16*)prefix.Data() )[code] = 0;
         suffix[code] = (GR::u8)code;
       }
 
       // Decode GIF pixel stream
-      top_stack = pixel_stack;
+      GR::u8* pStackTop = (GR::u8*)pixel_stack.Data();
 
       char* pTargetOrig = pTarget;
 
@@ -175,7 +144,7 @@ namespace GR
 
         for ( x = 0; x < (long)nwidth; )
         {
-          if ( top_stack == pixel_stack )
+          if ( pStackTop == (GR::u8*)pixel_stack.Data() )
           {
             if ( bits < code_size )
             {
@@ -183,16 +152,16 @@ namespace GR
               if ( count == 0 )
               {
                 // Read a new data block
-                count = ReadBlobBlock( packet );
+                count = ReadBlobBlock( IOIn, (GR::u8*)packet.Data() );
                 if ( count == 0 )
                 {
                   break;
                 }
-                c = packet;
+                pTempData = (GR::u8*)packet.Data();
               }
-              datum += (unsigned long)( *c ) << bits;
+              datum += (unsigned long)( *pTempData ) << bits;
               bits  += 8;
-              ++c;
+              ++pTempData;
               --count;
               continue;
             }
@@ -204,22 +173,22 @@ namespace GR
 
             // Interpret the code
             if ( ( code > available )
-            ||   ( code == end_of_information ) )
+            ||   ( code == endOfInformation ) )
             {
               break;
             }
             if ( code == clear )
             {
               // Reset decoder
-              code_size = data_size + 1;
+              code_size = dataSize + 1;
               code_mask = ( 1 << code_size ) - 1;
               available = clear + 2;
-              old_code  = NullCode;
+              old_code  = NULL_CODE;
               continue;
             }
-            if ( old_code == NullCode )
+            if ( old_code == NULL_CODE )
             {
-              *top_stack++  = suffix[code];
+              *pStackTop++  = suffix[code];
               old_code      = code;
               first         = (unsigned char)code;
               continue;
@@ -227,27 +196,27 @@ namespace GR
             in_code = code;
             if ( code >= available )
             {
-              *top_stack++  = first;
+              *pStackTop++  = first;
               code          = old_code;
             }
             while ( code >= clear )
             {
-              *top_stack++  = suffix[code];
-              code          = prefix[code];
+              *pStackTop++  = suffix[code];
+              code          = ( (GR::i16*)prefix.Data() )[code];
             }
             first = suffix[code];
 
             // Add a new string to the string table
-            if ( available >= MaxStackSize )
+            if ( available >= MAX_STACK_SIZE )
             {
               break;
             }
-            *top_stack++      = first;
-            prefix[available] = (short)old_code;
+            *pStackTop++      = first;
+            ( (GR::i16*)prefix.Data() )[available] = (short)old_code;
             suffix[available] = first;
             ++available;
             if ( ( ( available & code_mask ) == 0 )
-            &&   ( available < MaxStackSize ) )
+            &&   ( available < MAX_STACK_SIZE ) )
             {
               ++code_size;
               code_mask += available;
@@ -256,8 +225,8 @@ namespace GR
           }
 
           // Pop a pixel off the pixel stack
-          --top_stack;
-          index = *top_stack;
+          --pStackTop;
+          index = *pStackTop;
 
           if ( ( ( m_TempTransparentIndex != -1 )
           &&     ( index != m_TempTransparentIndex ) )
@@ -270,15 +239,7 @@ namespace GR
             pTarget++;
           }
 
-          //ConstrainColormapIndex(image,index);
-          //indexes[x]=index;
-          //*q=image->colormap[index];
-          /*
-          q->opacity=(Quantum)
-            (index == opacity ? TransparentOpacity : OpaqueOpacity);
-            */
           ++x;
-          //q++;
         }
         if ( !m_Interlaced )
         {
@@ -286,36 +247,35 @@ namespace GR
         }
         else
         {
-          if ( GIFPass == 0 )
+          switch ( m_InterlacedPass )
           {
-            offset += 8;
-            if ( offset >= nheight )
-            {
-              offset = 4 - 8;
-              GIFPass = 1;
-            }
-          }
-          if ( GIFPass == 1 )
-          {
-            offset += 8;
-            if ( offset >= nheight )
-            {
-              offset = 2 - 4;
-              GIFPass = 2;
-            }
-          }
-          if ( GIFPass == 2 )
-          {
-            offset += 4;
-            if ( offset >= nheight )
-            {
-              offset = 1 - 2;
-              GIFPass = 3;
-            }
-          }
-          if ( GIFPass == 3 )
-          {
-            offset += 2;
+            case 0:
+              offset += 8;
+              if ( offset >= nheight )
+              {
+                offset = 4 - 8;
+                ++m_InterlacedPass;
+              }
+              break;
+            case 1:
+              offset += 8;
+              if ( offset >= nheight )
+              {
+                offset = 2 - 4;
+                ++m_InterlacedPass;
+              }
+              break;
+            case 2:
+              offset += 4;
+              if ( offset >= nheight )
+              {
+                offset = 1 - 2;
+                ++m_InterlacedPass;
+              }
+              break;
+            case 3:
+              offset += 2;
+              break;
           }
         }
 
@@ -325,11 +285,6 @@ namespace GR
           break;
         }
       }
-      free( pixel_stack );
-      free( suffix );
-      free( prefix );
-      free( packet );
-
       return true;
     }
 
@@ -338,9 +293,9 @@ namespace GR
     ImageSet* FormatGIF::LoadSet( const GR::String& FileName )
     {
       m_TempTransparentIndex = -1;
-      GIFPass = 0;
+      m_InterlacedPass = 0;
 
-      m_pFile = new GR::IO::FileStream();
+      GR::IO::FileStream    ioIn;
 
 	    int       n;
 
@@ -365,16 +320,15 @@ namespace GR
 	    int GraphicExtensionFound = 0;
 
 	    // OPEN FILE
-      if ( !m_pFile->Open( FileName ) )
+      if ( !ioIn.Open( FileName ) )
       {
-        delete m_pFile;
         return NULL;
       }
 
 	    // *1* READ HEADER (SIGNATURE + VERSION)
 	    char szSignature[6];				// First 6 bytes (GIF87a or GIF89a)
 
-      m_pFile->ReadBlock( szSignature, 6 );
+      ioIn.ReadBlock( szSignature, 6 );
 	    if ( memcmp( szSignature, "GIF", 2 ) != 0 )
 	    {
         return NULL;
@@ -401,7 +355,7 @@ namespace GR
 	    } giflsd;
     #pragma pack()
 
-	    m_pFile->ReadBlock( &giflsd, sizeof( giflsd ) );
+      ioIn.ReadBlock( &giflsd, sizeof( giflsd ) );
 
 	    GlobalBPP = ( giflsd.PackedFields & 0x07 ) + 1;
 
@@ -413,15 +367,17 @@ namespace GR
       m_FullWidth     = FrameWidth;
       m_FullHeight    = FrameHeight;
 
+      GR::tRect       previousFrameRect;
+
 	    // *3* READ/GENERATE GLOBAL COLOR MAP
       if ( giflsd.PackedFields & 0x80 )
       {
         // File has global color map?
         for ( n = 0; n < 1 << GlobalBPP; n++ )
         {
-          GlobalColorMap[n * 3 + 0] = m_pFile->ReadU8();
-          GlobalColorMap[n * 3 + 1] = m_pFile->ReadU8();
-          GlobalColorMap[n * 3 + 2] = m_pFile->ReadU8();
+          GlobalColorMap[n * 3 + 0] = ioIn.ReadU8();
+          GlobalColorMap[n * 3 + 1] = ioIn.ReadU8();
+          GlobalColorMap[n * 3 + 2] = ioIn.ReadU8();
         }
       }
       else
@@ -437,35 +393,35 @@ namespace GR
 	    //  4a) Get and Extension Block (Blocks with additional information)
 	    //  4b) Get an Image Separator (Introductor to an image)
 	    //  4c) Get the trailer Char (End of GIF File)
+      int previousDisposalMethod = 0;
 	    do
 	    {
-		    int charGot = m_pFile->ReadU8();
+		    int charGot = ioIn.ReadU8();
 
 		    if ( charGot == 0x21 )		// *A* EXTENSION BLOCK
 		    {
-			    switch ( m_pFile->ReadU8() )
+			    switch ( ioIn.ReadU8() )
 			    {
 			      case 0xF9:
               // Graphic Control Extension
-				      m_pFile->ReadBlock( &gifgce, sizeof( gifgce ) );
-
+              ioIn.ReadBlock( &gifgce, sizeof( gifgce ) );
 				      ++GraphicExtensionFound;
 
               // Block Terminator (always 0)
-				      m_pFile->ReadU8();
+              ioIn.ReadU8();
 				      break;
 			      case 0xFF:			
               // Application Extension: Ignored
               {
-                int nBlockLength = m_pFile->ReadU8();
+                int nBlockLength = ioIn.ReadU8();
 
-                m_pFile->SetPosition( nBlockLength, IIOStream::PT_CURRENT );
+                ioIn.SetPosition( nBlockLength, IIOStream::PT_CURRENT );
 
                 GR::u8    lengthSubBlock = -1;
                 do
                 {
-                  lengthSubBlock = m_pFile->ReadU8();
-                  m_pFile->SetPosition( lengthSubBlock, IIOStream::PT_CURRENT );
+                  lengthSubBlock = ioIn.ReadU8();
+                  ioIn.SetPosition( lengthSubBlock, IIOStream::PT_CURRENT );
                 }
                 while ( lengthSubBlock != 0 );
 
@@ -493,11 +449,11 @@ namespace GR
 			      case 0x01:			// PlainText Extension: Ignored
 			      default:			// Unknown Extension: Ignored
 				      // read (and ignore) data sub-blocks
-              while ( int nBlockLength = m_pFile->ReadU8() )
+              while ( int nBlockLength = ioIn.ReadU8() )
               {
                 for ( n = 0; n < nBlockLength; n++ )
                 {
-                  m_pFile->ReadU8();
+                  ioIn.ReadU8();
                 }
               }
 				      break;
@@ -508,18 +464,18 @@ namespace GR
           // *B* IMAGE (0x2c Image Separator)
 
 			    // Create a new Image Object:
-          m_pImageData  = new GR::Graphic::ImageData();
-          pCurrentFrame = pSet->AddFrame( m_pImageData );
+          auto pImageData  = new GR::Graphic::ImageData();
+          pCurrentFrame = pSet->AddFrame( pImageData );
 
 			    // Read Image Descriptor
           tGIFImageDescriptor   gifID;
 
-			    m_pFile->ReadBlock( &gifID, sizeof( gifID ) );
+          ioIn.ReadBlock( &gifID, sizeof( gifID ) );
 
           int LocalColorMap         = ( gifID.PackedFields & 0x80 ) ? 1 : 0;
           int iLocalColorTableSize  = 1 << ( ( gifID.PackedFields & 0x07 ) + 1 );
 
-          m_pImageData->CreateData( FrameWidth, FrameHeight, GR::Graphic::IF_PALETTED );
+          pImageData->CreateData( FrameWidth, FrameHeight, GR::Graphic::IF_PALETTED );
 
           if ( ( gifID.PackedFields & 0x40 ) == 0x40 )
           {
@@ -542,37 +498,29 @@ namespace GR
 			    if ( GraphicExtensionFound )
 			    {
             // bei GIF-Anis Transparenz berücksichtigen
-            m_TempTransparentIndex = ( gifgce.PackedFields&0x01 ) ? gifgce.Transparent : -1;
+            m_TempTransparentIndex = ( gifgce.PackedFields & 0x01 ) ? gifgce.Transparent : -1;
 
             pCurrentFrame->DelayMS = gifgce.Delay * 10;
 
-            m_pImageData->TransparentColorUsed( true );
-            m_pImageData->TransparentColor( m_TempTransparentIndex );
+            pImageData->TransparentColorUsed( true );
+            pImageData->TransparentColor( m_TempTransparentIndex );
 
-            if ( m_pImageData->TransparentColorUsed() )
+            if ( ( previousDisposalMethod == 0 )
+            &&   ( pImageData->TransparentColorUsed() ) )
             {
-              memset( m_pImageData->Data(), m_TempTransparentIndex, m_pImageData->DataSize() );
+              memset( pImageData->Data(), m_TempTransparentIndex, pImageData->DataSize() );
             }
 
             // für optimierte GIF-Anis den alten Frame einsetzen
             int   disposalMethod = ( ( gifgce.PackedFields & 0x1c ) >> 2 );
 
-            switch ( disposalMethod )
+            switch ( previousDisposalMethod )
             {
               case 0:
-                //dh::Log( "no disposal required\n" );
-                // kein Entfernen, letzen Frame einblenden
-                if ( pSet->Frames.size() >= 2 )
-                {
-                  tImageSetFrame*   pPrevFrame = pSet->Frames[pSet->Frames.size() - 2];
-
-                  memcpy( pCurrentFrame->Layers[0]->pImageData->Data(),
-                          pPrevFrame->Layers[0]->pImageData->Data(),
-                          pCurrentFrame->Layers[0]->pImageData->DataSize() );
-                }
+                //dh::Log( "no disposal required" );
                 break;
               case 1:
-                //dh::Log( "don't dispose\n" );
+                //dh::Log( "using last frame" );
                 if ( pSet->Frames.size() >= 2 )
                 {
                   tImageSetFrame*   pPrevFrame = pSet->Frames[pSet->Frames.size() - 2];
@@ -583,11 +531,24 @@ namespace GR
                 }
                 break;
               case 2:
-                //dh::Log( "restore to background color\n" );
-                memset( pCurrentFrame->Layers[0]->pImageData->Data(), giflsd.Background, pCurrentFrame->Layers[0]->pImageData->DataSize() );
+                //dh::Log( "restore to background color" );
+                if ( pSet->Frames.size() >= 2 )
+                {
+                  tImageSetFrame* pPrevFrame = pSet->Frames[pSet->Frames.size() - 2];
+
+                  memcpy( pCurrentFrame->Layers[0]->pImageData->Data(),
+                    pPrevFrame->Layers[0]->pImageData->Data(),
+                    pCurrentFrame->Layers[0]->pImageData->DataSize() );
+
+                  for ( int y = 0; y < previousFrameRect.height(); ++y )
+                  {
+                    GR::u8* pData = (GR::u8*)pCurrentFrame->Layers[0]->pImageData->GetRowColumnData( previousFrameRect.Left, previousFrameRect.Top + y );
+                    memset( pData, m_TempTransparentIndex, previousFrameRect.width() );
+                  }
+                }
                 break;
               case 3:
-                //dh::Log( "restore to previous\n" );
+                //dh::Log( "using 2nd last frame" );
                 if ( pSet->Frames.size() >= 3 )
                 {
                   tImageSetFrame*   pPrevFrame = pSet->Frames[pSet->Frames.size() - 3];
@@ -596,6 +557,9 @@ namespace GR
                           pPrevFrame->Layers[0]->pImageData->Data(),
                           pCurrentFrame->Layers[0]->pImageData->DataSize() );
                 }
+                break;
+              default:
+                dh::Log( "GIF unsupported disposal mode %d", disposalMethod );
                 break;
             }
             /*
@@ -609,21 +573,25 @@ namespace GR
                   restore the area overwritten by the graphic with
                   what was there prior to rendering the graphic.
                   */
+
+            previousDisposalMethod = disposalMethod;
 			    }
 
-			    if ( LocalColorMap )		// Read Color Map (if descriptor says so)
+          // Read Color Map (if descriptor says so)
+			    if ( LocalColorMap )		
           {
             memset( pCurrentFrame->Layers[0]->pImageData->Palette().Data(), 0, pCurrentFrame->Layers[0]->pImageData->Palette().Entries() * 3 );
             for ( int i = 0; i < iLocalColorTableSize; ++i )
             {
-              int   iR = m_pFile->ReadU8();
-              int   iG = m_pFile->ReadU8();
-              int   iB = m_pFile->ReadU8();
+              int   iR = ioIn.ReadU8();
+              int   iG = ioIn.ReadU8();
+              int   iB = ioIn.ReadU8();
               pCurrentFrame->Layers[0]->pImageData->Palette().SetColor( i, iR, iG, iB );
             }
           }
-			    else					// Otherwise copy Global
+			    else					
           {
+            // Otherwise copy Global
             memset( pCurrentFrame->Layers[0]->pImageData->Palette().Data(), 0, pCurrentFrame->Layers[0]->pImageData->Palette().Entries() * 3 );
 				    memcpy( pCurrentFrame->Layers[0]->pImageData->Palette().Data(), GlobalColorMap,
 					          3 * ( 1 << GlobalBPP ) );
@@ -633,7 +601,8 @@ namespace GR
           nwidth  = gifID.Width;
           nheight = gifID.Height;
 
-          n = DecodeImage( (char*)pCurrentFrame->Layers[0]->pImageData->Data(), m_TempTransparentIndex );
+          n = DecodeImage( ioIn, (char*)pCurrentFrame->Layers[0]->pImageData->Data(), m_TempTransparentIndex );
+          previousFrameRect.set( m_FrameXOffset, m_FrameYOffset, nwidth, nheight );
 
 			    if ( n )
           {
@@ -655,17 +624,12 @@ namespace GR
           // Ok. Standard End.
 			    break;
 		    }
-
-        if ( m_pFile->GetPosition() == m_pFile->GetSize() )
+        if ( ioIn.GetPosition() == ioIn.GetSize() )
         {
           break;
         }
 	    }
-      while ( m_pFile->IsGood() );
-
-      m_pFile->Close();
-      delete m_pFile;
-      m_pFile = NULL;
+      while ( ioIn.IsGood() );
 
       return pSet;
     }
@@ -719,7 +683,6 @@ namespace GR
     {
       GR::u8  tmp;
 
-
       MyFile.WriteU8( id->Separator );
       MyFile.WriteU16( id->LeftPosition );
       MyFile.WriteU16( id->TopPosition );
@@ -772,18 +735,18 @@ namespace GR
      */
     int FormatGIF::InputBYTE()
     {
-      if ( RelPixY >= ImageHeight )
+      if ( m_FrameYOffset >= ImageHeight )
       {
         return -1;
       }
 
       unsigned char ret;
-      memcpy( &ret, (GR::u8*)m_pSavingData->Data() + RelPixX + RelPixY * m_pSavingData->Width(), 1 );
+      memcpy( &ret, (GR::u8*)m_pSavingData->Data() + m_FrameXOffset + m_FrameYOffset * m_pSavingData->Width(), 1 );
 
-      if ( ++RelPixX >= ImageWidth )
+      if ( ++m_FrameXOffset >= ImageWidth )
       {
-        RelPixX = 0;
-        ++RelPixY;
+        m_FrameXOffset = 0;
+        ++m_FrameYOffset;
       }
 
       return ret;
@@ -791,24 +754,6 @@ namespace GR
 
 
 
-    /*========================================================================*
-     =                                                                        =
-     =                      Routines to write a bit-file                      =
-     =                                                                        =
-     *========================================================================*/
-
-    /*-------------------------------------------------------------------------
-     *
-     *  NAME:           InitBitFile()
-     *
-     *  DESCRIPTION:    Initiate for using a bitfile. All output is sent to
-     *                  the current OutFile using the I/O-routines above.
-     *
-     *  PARAMETERS:     None
-     *
-     *  RETURNS:        Nothing
-     *
-     */
     void FormatGIF::InitBitFile()
     {
       Buffer[Index = 0] = 0;
@@ -817,23 +762,9 @@ namespace GR
 
 
 
-
-
-    /*-------------------------------------------------------------------------
-     *
-     *  NAME:           ResetOutBitFile()
-     *
-     *  DESCRIPTION:    Tidy up after using a bitfile
-     *
-     *  PARAMETERS:     None
-     *
-     *  RETURNS:        0 - OK, -1 - error
-     *
-     */
     int FormatGIF::ResetOutBitFile()
     {
       GR::u8      numBYTEs = 0;
-
 
       // Find out how much is in the buffer
       numBYTEs = Index + (BitsLeft == 8 ? 0 : 1);
@@ -857,20 +788,6 @@ namespace GR
 
 
 
-
-
-    /*-------------------------------------------------------------------------
-     *
-     *  NAME:           WriteBits()
-     *
-     *  DESCRIPTION:    Put the given number of bits to the outfile.
-     *
-     *  PARAMETERS:     bits    - bits to write from (right justified)
-     *                  numbits - number of bits to write
-     *
-     *  RETURNS:        bits written, or -1 on error.
-     *
-     */
     int FormatGIF::WriteBits( int bits, int numbits )
     {
       int     bitswritten = 0;
@@ -918,97 +835,6 @@ namespace GR
 
 
 
-    /*-------------------------------------------------------------------------
-     *
-     *  NAME:           FreeStrtab()
-     *
-     *  DESCRIPTION:    Free arrays used in string table routines
-     *
-     *  PARAMETERS:     None
-     *
-     *  RETURNS:        Nothing
-     *
-     */
-    void FormatGIF::FreeStrtab()
-    {
-      if ( StrHsh )
-      {
-        free(StrHsh);
-        StrHsh = NULL;
-      }
-
-      if ( StrNxt )
-      {
-        free( StrNxt );
-        StrNxt = NULL;
-      }
-
-      if ( GIFStrChr )
-      {
-        free( GIFStrChr );
-        GIFStrChr = NULL;
-      }
-    }
-
-
-
-    /*-------------------------------------------------------------------------
-     *
-     *  NAME:           AllocStrtab()
-     *
-     *  DESCRIPTION:    Allocate arrays used in string table routines
-     *
-     *  PARAMETERS:     None
-     *
-     *  RETURNS:        GIF_OK     - OK
-     *                  GIF_OUTMEM - Out of memory
-     *
-     */
-    int FormatGIF::AllocStrtab()
-    {
-      // Just in case . . .
-      FreeStrtab();
-
-      if ( ( GIFStrChr = (GR::u8*)malloc( ( 1 << 12 ) * sizeof( GR::u8 ) ) ) == NULL )
-      {
-        FreeStrtab();
-        return 3;
-      }
-
-      if ( ( StrNxt = (GR::u16*)malloc( ( 1 << 12 ) * sizeof( GR::u16 ) ) ) == NULL )
-      {
-        FreeStrtab();
-        return 3;
-      }
-
-      if ( ( StrHsh = (GR::u16*)malloc( 9973 * sizeof( GR::u16 ) ) ) == 0 )
-      {
-        FreeStrtab();
-        return 3;
-      }
-
-      return 0;
-    }
-
-
-
-    /*-------------------------------------------------------------------------
-     *
-     *  NAME:           AddCharString()
-     *
-     *  DESCRIPTION:    Add a string consisting of the string of index plus
-     *                  the BYTE b.
-     *
-     *                  If a string of length 1 is wanted, the index should
-     *                  be 0xFFFF.
-     *
-     *  PARAMETERS:     index - Index to first part of string, or 0xFFFF is
-     *                          only 1 BYTE is wanted
-     *                  b     - Last BYTE in new string
-     *
-     *  RETURNS:        Index to new string, or 0xFFFF if no more room
-     *
-     */
     GR::u16 FormatGIF::AddCharString( GR::u16 index, GR::u8 b )
     {
       GR::u16 hshidx;
@@ -1024,45 +850,25 @@ namespace GR
       #define HASH( index, lastBYTE )   ( ( ( lastBYTE << 8 ) ^ index ) % 9973 )
 
       hshidx = HASH( index, b );
-      while ( StrHsh[hshidx] != 0xFFFF )
+      while ( StringHash[hshidx] != 0xFFFF )
       {
         hshidx = ( hshidx + 2039 ) % 9973;
       }
 
       // Insert new string
-      StrHsh[hshidx]        = NumStrings;
-      GIFStrChr[NumStrings] = b;
-      StrNxt[NumStrings]    = ( index != 0xFFFF) ? index : 0xffff;
+      StringHash[hshidx]        = NumStrings;
+      StringBuffer[NumStrings]  = b;
+      StringNext[NumStrings]    = ( index != 0xFFFF) ? index : 0xffff;
 
       return NumStrings++;
     }
 
 
 
-
-
-    /*-------------------------------------------------------------------------
-     *
-     *  NAME:           FindCharString()
-     *
-     *  DESCRIPTION:    Find index of string consisting of the string of index
-     *                  plus the BYTE b.
-     *
-     *                  If a string of length 1 is wanted, the index should
-     *                  be 0xFFFF.
-     *
-     *  PARAMETERS:     index - Index to first part of string, or 0xFFFF is
-     *                          only 1 BYTE is wanted
-     *                  b     - Last BYTE in string
-     *
-     *  RETURNS:        Index to string, or 0xFFFF if not found
-     *
-     */
     GR::u16 FormatGIF::FindCharString( GR::u16 index, GR::u8 b )
     {
       GR::u16 hshidx,
               nxtidx;
-
 
       // Check if index is 0xFFFF. In that case we need only return b, since all one-character strings has their BYTEvalue as their index
       if ( index == 0xFFFF )
@@ -1072,12 +878,12 @@ namespace GR
 
       // Search the string table until the string is found, or we find HASH_FREE. In that case the string does not exist.
       hshidx = HASH( index, b );
-      while ( ( nxtidx = StrHsh[hshidx] ) != 0xFFFF )
+      while ( ( nxtidx = StringHash[hshidx] ) != 0xFFFF )
       {
-        if ( ( StrNxt[nxtidx] == index )
-        &&   ( GIFStrChr[nxtidx] == b ) )
+        if ( ( StringNext[nxtidx] == index )
+        &&   ( StringBuffer[nxtidx] == b ) )
         {
-            return nxtidx;
+          return nxtidx;
         }
         hshidx = ( hshidx + 2039 ) % 9973;
       }
@@ -1088,19 +894,6 @@ namespace GR
 
 
 
-    /*-------------------------------------------------------------------------
-     *
-     *  NAME:           ClearStrtab()
-     *
-     *  DESCRIPTION:    Mark the entire table as free, enter the 2**codesize
-     *                  one-BYTE strings, and reserve the RES_CODES reserved
-     *                  codes.
-     *
-     *  PARAMETERS:     codesize - Number of bits to encode one pixel
-     *
-     *  RETURNS:        Nothing
-     *
-     */
     void FormatGIF::ClearStrtab( int codesize )
     {
       int       q,
@@ -1112,7 +905,7 @@ namespace GR
       NumStrings = 0;
 
       // Mark entire hashtable as free
-      wp = StrHsh;
+      wp = StringHash;
       for ( q = 0; q < 9973; q++ )
       {
         *wp++ = 0xffff;
@@ -1128,37 +921,10 @@ namespace GR
 
 
 
-    /*========================================================================*
-     =                                                                        =
-     =                        LZW compression routine                         =
-     =                                                                        =
-     *========================================================================*/
-
-    /*-------------------------------------------------------------------------
-     *
-     *  NAME:           LZW_Compress()
-     *
-     *  DESCRIPTION:    Perform LZW compression as specified in the
-     *                  GIF-standard.
-     *
-     *  PARAMETERS:     codesize  - Number of bits needed to represent
-     *                              one pixelvalue.
-     *                  inputBYTE - Function that fetches each BYTE to compress.
-     *                              Must return -1 when no more BYTEs.
-     *
-     *  RETURNS:        GIF_OK     - OK
-     *                  GIF_OUTMEM - Out of memory
-     *
-     */
-    int FormatGIF::LZW_Compress(int codesize)
+    int FormatGIF::LZW_Compress( int codesize )
     {
       int     c;
       GR::u16 index;
-      int     clearcode,
-              endofinfo,
-              numbits,
-              limit,
-              errcode;
       GR::u16 prefix = 0xFFFF;
 
 
@@ -1166,15 +932,11 @@ namespace GR
       InitBitFile();
 
       // Set up variables and tables
-      clearcode = 1 << codesize;
-      endofinfo = clearcode + 1;
-      numbits   = codesize + 1;
-      limit     = ( 1 << numbits ) - 1;
+      int clearcode = 1 << codesize;
+      int endofinfo = clearcode + 1;
+      int numbits   = codesize + 1;
+      int limit     = ( 1 << numbits ) - 1;
 
-      if ( ( errcode = AllocStrtab() ) != 0 )
-      {
-        return errcode;
-      }
       ClearStrtab( codesize );
 
       // First send a code telling the unpacker to clear the stringtable.
@@ -1220,14 +982,9 @@ namespace GR
         WriteBits( prefix, numbits );
       }
 
-      // Write end of info -mark.
       WriteBits( endofinfo, numbits );
 
-      // Flush the buffer
       ResetOutBitFile();
-
-      // Tidy up
-      FreeStrtab();
 
       return 0;
     }
@@ -1241,17 +998,17 @@ namespace GR
         return false;
       }
 
-    typedef struct
-    {
-      GR::u16         LocalScreenWidth,
-                      LocalScreenHeight;
-      GR::u8          GlobalColorTableSize : 3,
-                      SortFlag             : 1,
-                      ColorResolution      : 3,
-                      GlobalColorTableFlag : 1;
-      GR::u8          BackgroundColorIndex;
-      GR::u8          PixelAspectRatio;
-    } ScreenDescriptor;
+      typedef struct
+      {
+        GR::u16         LocalScreenWidth,
+                        LocalScreenHeight;
+        GR::u8          GlobalColorTableSize : 3,
+                        SortFlag             : 1,
+                        ColorResolution      : 3,
+                        GlobalColorTableFlag : 1;
+        GR::u8          BackgroundColorIndex;
+        GR::u8          PixelAspectRatio;
+      } ScreenDescriptor;
 
 
       int                   q,
@@ -1283,7 +1040,6 @@ namespace GR
 
       // Initiate variables for new GIF-file
       NumColors         = 256;                // Anzahl Farben //numcolors ? ( 1 << BitsNeeded( numcolors ) ) : 0;
-      BitsPrPrimColor   = 8;            // Bits pro Pixel
       ScreenHeight      = iWidth;          // Bildschirm-Breite
       ScreenWidth       = iHeight;          // Bildschirm-Höhe
 
@@ -1431,7 +1187,7 @@ namespace GR
       MyFile.WriteU8( codesize );
 
       // Perform compression
-      RelPixX = RelPixY = 0;
+      m_FrameXOffset = m_FrameYOffset = 0;
       if ( ( errcode = LZW_Compress( codesize ) ) != 0 )
       {
         return FALSE;
@@ -1500,7 +1256,6 @@ namespace GR
 
       // Initiate variables for new GIF-file
       NumColors = 256;                // Anzahl Farben //numcolors ? ( 1 << BitsNeeded( numcolors ) ) : 0;
-      BitsPrPrimColor = 8;            // Bits pro Pixel
       ScreenHeight = iWidth;          // Bildschirm-Breite
       ScreenWidth = iHeight;          // Bildschirm-Höhe
 
@@ -1687,7 +1442,7 @@ namespace GR
         MyFile.WriteU8( codesize );
 
         // Perform compression
-        RelPixX = RelPixY = 0;
+        m_FrameXOffset = m_FrameYOffset = 0;
         if ( ( errcode = LZW_Compress( codesize ) ) != 0 )
         {
           return FALSE;
@@ -1718,47 +1473,46 @@ namespace GR
 
       struct ScreenDescriptor
       {
-        GR::u16         LocalScreenWidth,
-                        LocalScreenHeight;
-        GR::u8          GlobalColorTableSize : 3,
-                        SortFlag : 1,
-                        ColorResolution : 3,
-                        GlobalColorTableFlag : 1;
-        GR::u8          BackgroundColorIndex;
-        GR::u8          PixelAspectRatio;
+        GR::u16             LocalScreenWidth,
+                            LocalScreenHeight;
+        GR::u8              GlobalColorTableSize : 3,
+                            SortFlag : 1,
+                            ColorResolution : 3,
+                            GlobalColorTableFlag : 1;
+        GR::u8              BackgroundColorIndex;
+        GR::u8              PixelAspectRatio;
       };
 
 
       int                   q,
-        tabsize,
-        codesize,
-        errcode,
-        iWidth,
-        iHeight;
+                            tabsize,
+                            codesize,
+                            errcode;
 
       ImageDescriptor       ID;
 
-      BYTE* bp,
-            tmp;
+      GR::u8*               bp,
+                            tmp;
 
       ScreenDescriptor      SD;
 
       long                  maxcolor;
 
-      GR::IO::FileStream             MyFile;
+      GR::IO::FileStream    MyFile;
 
-      BYTE* p;
+      GR::u8*               p;
+
+
 
       m_pSavingFile = &MyFile;
 
-      iWidth = pSet->Image( 0, 0 )->Width();
-      iHeight = pSet->Image( 0, 0 )->Height();
+      int width  = pSet->Image( 0, 0 )->Width();
+      int height = pSet->Image( 0, 0 )->Height();
 
       // Initiate variables for new GIF-file
-      NumColors = 256;                // Anzahl Farben //numcolors ? ( 1 << BitsNeeded( numcolors ) ) : 0;
-      BitsPrPrimColor = 8;            // Bits pro Pixel
-      ScreenHeight = iWidth;          // Bildschirm-Breite
-      ScreenWidth = iHeight;          // Bildschirm-Höhe
+      NumColors     = 256;                // Anzahl Farben //numcolors ? ( 1 << BitsNeeded( numcolors ) ) : 0;
+      ScreenHeight  = width;          // Bildschirm-Breite
+      ScreenWidth   = height;          // Bildschirm-Höhe
 
       // Create file specified
       if ( !MyFile.Open( FileName, GR::IO::FileStream::OT_WRITE_ONLY ) )
@@ -1774,8 +1528,8 @@ namespace GR
       }
 
       // Initiate and write screen descriptor
-      SD.LocalScreenWidth = iWidth;
-      SD.LocalScreenHeight = iHeight;
+      SD.LocalScreenWidth   = width;
+      SD.LocalScreenHeight  = height;
       if ( NumColors )
       {
         SD.GlobalColorTableSize = BitsNeeded( NumColors ) - 1;
@@ -1786,10 +1540,10 @@ namespace GR
         SD.GlobalColorTableSize = 0;
         SD.GlobalColorTableFlag = 0;
       }
-      SD.SortFlag = 0;
-      SD.ColorResolution = 7;   // Bits pro Pixel - 1
+      SD.SortFlag             = 0;
+      SD.ColorResolution      = 7;   // Bits pro Pixel - 1
       SD.BackgroundColorIndex = 0;
-      SD.PixelAspectRatio = 0;
+      SD.PixelAspectRatio     = 0;
 
       MyFile.WriteU16( SD.LocalScreenWidth );
       MyFile.WriteU16( SD.LocalScreenHeight );
@@ -1817,25 +1571,20 @@ namespace GR
       maxcolor = ( 1L << 8 ) - 1L;
       for ( q = 0; q < 256; q++ )
       {
-        // GEORG 10.7.2002
-        // Paletten haben jetzt volle 256-Weite
         p = ColorTable + q * 3;
         *p++ = ( GR::u8 ) ( ( ( pPal->Red( q ) ) * 255L ) / maxcolor );
         *p++ = ( GR::u8 ) ( ( ( pPal->Green( q ) ) * 255L ) / maxcolor );
         *p++ = ( GR::u8 ) ( ( ( pPal->Blue( q ) ) * 255L ) / maxcolor );
       }
 
-      if ( iWidth < 0 )
+      if ( width < 0 )
       {
-        iWidth = ScreenWidth;
-        //iX1 = 0;
+        width = ScreenWidth;
       }
-      if ( iHeight < 0 )
+      if ( height < 0 )
       {
-        iHeight = ScreenHeight;
-        //iY1 = 0;
+        height = ScreenHeight;
       }
-
 
       // Write global colortable if any
       if ( NumColors )
@@ -1850,19 +1599,19 @@ namespace GR
       {
         m_pSavingData = pSet->Image( iFrames, 0 );
 
-        // Initiate and write image descriptor
-        ImageLeft = 0;
-        ImageTop = 0;
-        ID.Separator = ',';
-        ID.LeftPosition = 0;
-        ID.TopPosition = 0;
-        ID.Width = ImageWidth = iWidth;
-        ID.Height = ImageHeight = iHeight;
-        ID.LocalColorTableSize = 7;
-        ID.Reserved = 0;
-        ID.SortFlag = 0;
-        ID.InterlaceFlag = 0;
-        ID.LocalColorTableFlag = 1;
+        // image descriptor
+        ImageLeft               = 0;
+        ImageTop                = 0;
+        ID.Separator            = ',';
+        ID.LeftPosition         = 0;
+        ID.TopPosition          = 0;
+        ID.Width                = ImageWidth  = width;
+        ID.Height               = ImageHeight = height;
+        ID.LocalColorTableSize  = 7;
+        ID.Reserved             = 0;
+        ID.SortFlag             = 0;
+        ID.InterlaceFlag        = 0;
+        ID.LocalColorTableFlag  = 1;
 
         WriteImageDescriptor( MyFile, &ID );
 
@@ -1883,7 +1632,7 @@ namespace GR
         MyFile.WriteU8( codesize );
 
         // Perform compression
-        RelPixX = RelPixY = 0;
+        m_FrameXOffset = m_FrameYOffset = 0;
         if ( ( errcode = LZW_Compress( codesize ) ) != 0 )
         {
           return FALSE;
@@ -1893,11 +1642,10 @@ namespace GR
 
       }
 
-      // Initiate and write ending image descriptor
+      // ending image descriptor
       ID.Separator = ';';
       WriteImageDescriptor( MyFile, &ID );
 
-      // Close file
       MyFile.Close();
 
       return true;

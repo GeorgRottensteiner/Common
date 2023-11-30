@@ -250,6 +250,13 @@ namespace GR
 
     void JREngine::InitMap( const GR::String& MapName, const GR::String& MainLayerName, const GR::String& PlayerObject )
     {
+      InitMapFromFile( MapPath( MapName ), MapName, MainLayerName, PlayerObject );
+    }
+
+
+
+    void JREngine::InitMapFromFile( const GR::String& MapNameFilename, const GR::String& MapName, const GR::String& MainLayerName, const GR::String& PlayerObject )
+    {
       if ( !m_CurrentMap.empty() )
       {
         RaiseJREvent( JREvent( JREvent::JRE_LEAVE_MAP, m_CurrentMap ) );
@@ -257,10 +264,10 @@ namespace GR
 
       ClearMap();
 
-      GR::IO::FileStream    inFile( MapPath( MapName ).c_str() );
+      GR::IO::FileStream    inFile( MapNameFilename );
       if ( !m_Map.Load( inFile ) )
       {
-        dh::Log( "Map Load failed for (%s)", MapPath( MapName ).c_str() );
+        dh::Log( "Map Load failed for (%s)", MapNameFilename.c_str() );
         return;
       }
 
@@ -431,7 +438,6 @@ namespace GR
           {
             GameObject*    pLayerObj( (GameObject*)*itO );
 
-            //dh::Log( "Cleanup %x", pLayerObj );
             delete pLayerObj;
             ++itO;
           }
@@ -1407,6 +1413,13 @@ namespace GR
       if ( m_pFlagLayer )
       {
         flagFields = m_pFlagLayer->Field( X, Y );
+
+        // if flags from flag layer is 0, override from tile
+        if ( ( flagFields == 0 )
+        &&   ( field < m_TileFlags.size() ) )
+        {
+          flagFields = m_TileFlags[field];
+        }
       }
       else
       {
@@ -2316,6 +2329,7 @@ namespace GR
               {
                 ObjectIsDeleted( pLayerObj );
                 m_AwakeObjects.remove( pLayerObj );
+                m_pGameLayer->RemoveObject( pLayerObj );
                 itO = listObj.erase( itO );
               }
               else
@@ -2356,6 +2370,7 @@ namespace GR
 
         if ( pLayerObj->m_ProcessingFlags & ProcessingFlags::DELETE_ME )
         {
+          m_pGameLayer->RemoveObject( pLayerObj );
           ObjectIsDeleted( pLayerObj );
           itO = m_AwakeObjects.erase( itO );
           continue;
@@ -2440,7 +2455,7 @@ namespace GR
         {
           continue;
         }
-        pObj->UpdateFixed( *this, m_ObjectUserData );
+        pObj->UpdateFixed( *this, ElapsedTime, m_ObjectUserData );
       }
 
       ReseatMovedObjectsInSector();

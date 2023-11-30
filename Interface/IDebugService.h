@@ -21,7 +21,7 @@ class IDebugService : public GR::Service::Service
     virtual bool LogToFileEnabled( const GR::String& System ) = 0;
 
     virtual void LogDirect( const GR::String& System, const GR::String& Text ) = 0;
-    virtual void Log( const GR::String& System, const char* Format, ... ) = 0;
+    virtual void Log( const GR::String& System, const GR::Char* Format, ... ) = 0;
 
 };
 

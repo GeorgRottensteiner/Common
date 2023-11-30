@@ -5,97 +5,78 @@
 
 
 MemoryStream::MemoryStream() :
-  IIOStream(),
+  IIOStreamBase(),
   m_pData( NULL ),
   m_Size( 0 ),
   m_CurrentPos( 0 ),
   m_pDataTarget( NULL )
 {
-
 }
 
 
 
 MemoryStream::MemoryStream( const void* pData, size_t Size, IIOStream::OpenType Type ) :
-  IIOStream(),
+  IIOStreamBase(),
   m_pData( NULL ),
   m_Size( 0 ),
   m_CurrentPos( 0 ),
   m_pDataTarget( NULL )
 {
-
   Open( pData, Size, Type );
-
 }
 
 
 
 MemoryStream::MemoryStream( ByteBuffer& Target, IIOStream::OpenType Type ) :
-  IIOStream(),
+  IIOStreamBase(),
   m_pData( NULL ),
   m_Size( 0 ),
   m_CurrentPos( 0 ),
   m_pDataTarget( NULL )
 {
-
   Open( Target, Type );
-
 }
 
 
 
 MemoryStream::MemoryStream( const ByteBuffer& Target, IIOStream::OpenType Type ) :
-  IIOStream(),
+  IIOStreamBase(),
   m_pData( NULL ),
   m_Size( 0 ),
   m_CurrentPos( 0 ),
   m_pDataTarget( NULL )
 {
-
   Open( Target, Type );
-
-}
-
-
-
-MemoryStream::~MemoryStream()
-{
-
 }
 
 
 
 void MemoryStream::Close()
 {
-
   m_pData       = NULL;
   m_Size        = 0;
   m_CurrentPos  = 0;
 
-  IIOStream::Close();
+  IIOStreamBase::Close();
 
   m_OpenType    = OT_CLOSED;
-
 }
 
 
 
 bool MemoryStream::Open( OpenType Type )
 {
-
   if ( Type != IIOStream::OT_WRITE_ONLY )
   {
     return false;
   }
   return Open( NULL, 0, Type );
-
 }
 
 
 
 bool MemoryStream::Open( const void* pData, size_t Size, OpenType Type )
 {
-
   if ( m_pData )
   {
     return false;
@@ -126,14 +107,12 @@ bool MemoryStream::Open( const void* pData, size_t Size, OpenType Type )
   }
 
   return ( !!m_pData );
-
 }
 
 
 
 bool MemoryStream::Open( ByteBuffer& Target, OpenType Type )
 {
-
   if ( m_pData )
   {
     return false;
@@ -165,14 +144,12 @@ bool MemoryStream::Open( ByteBuffer& Target, OpenType Type )
   }
 
   return m_Opened;
-
 }
 
 
 
 bool MemoryStream::Open( const ByteBuffer& Target, OpenType Type )
 {
-
   if ( m_pData )
   {
     return false;
@@ -197,23 +174,19 @@ bool MemoryStream::Open( const ByteBuffer& Target, OpenType Type )
   }
 
   return m_Opened;
-
 }
 
 
 
 GR::u64 MemoryStream::GetSize()
 {
-
   return (GR::u64)m_Size;
-
 }
 
 
 
 unsigned long MemoryStream::ReadBlock( void* pDestination, size_t CountBytes )
 {
-
   if ( ( m_pData == NULL )
   ||   ( !m_Opened ) )
   {
@@ -252,14 +225,12 @@ unsigned long MemoryStream::ReadBlock( void* pDestination, size_t CountBytes )
     ulBytesRead   = (GR::u32)CountBytes;
   }
   return ulBytesRead;
-
 }
 
 
 
 unsigned long MemoryStream::WriteBlock( const void* pSource, size_t CountBytes )
 {
-
   if ( m_OpenType == OT_WRITE_ONLY )
   {
     if ( m_pDataTarget )
@@ -275,14 +246,12 @@ unsigned long MemoryStream::WriteBlock( const void* pSource, size_t CountBytes )
   }
 
   return (GR::u32)CountBytes;
-
 }
 
 
 
 unsigned long MemoryStream::SetPosition( GR::i64 Offset, PositionType Position )
 {
-
   if ( m_pData == NULL )
   {
     return (unsigned long)-1;
@@ -302,14 +271,12 @@ unsigned long MemoryStream::SetPosition( GR::i64 Offset, PositionType Position )
   }
   m_CurrentPos = (size_t)Offset;
   return (unsigned long)m_CurrentPos;
-
 }
 
 
 
 GR::u64 MemoryStream::GetPosition()
 {
-
   if ( ( m_OpenType == OT_WRITE_ONLY )
   &&   ( m_Opened ) )
   {
@@ -324,25 +291,20 @@ GR::u64 MemoryStream::GetPosition()
   {
     return (unsigned long)-1;
   }
-
   return (GR::u64)m_CurrentPos;
-
 }
 
 
 
 bool MemoryStream::Flush()
 {
-
   return true;
-
 }
 
 
 
 bool MemoryStream::IsGood()
 {
-
   if ( ( m_OpenType == OT_WRITE_ONLY )
   &&   ( m_Opened ) )
   {
@@ -359,14 +321,26 @@ bool MemoryStream::IsGood()
     return false;
   }
   return true;
+}
 
+
+
+bool MemoryStream::DataAvailable()
+{
+  if ( ( m_OpenType == OT_CLOSED )
+  ||   ( m_OpenType == OT_WRITE_ONLY )
+  ||   ( m_OpenType == OT_WRITE_APPEND ) )
+  {
+    return false;
+  }
+
+  return m_CurrentPos < m_Size;
 }
 
 
 
 const void* MemoryStream::Data()
 {
-
   if ( ( m_OpenType == OT_WRITE_ONLY )
   &&   ( m_Opened ) )
   {
@@ -376,16 +350,13 @@ const void* MemoryStream::Data()
     }
     return m_Data.Data();
   }
-
   return m_pData;
-
 }
 
 
 
 const void* MemoryStream::CurrentData()
 {
-
   if ( ( m_OpenType == OT_WRITE_ONLY )
   &&   ( m_Opened ) )
   {
@@ -393,14 +364,12 @@ const void* MemoryStream::CurrentData()
   }
 
   return ( (unsigned char*)m_pData ) + m_CurrentPos;
-
 }
 
 
 
 ByteBuffer MemoryStream::Buffer() const
 {
-
   if ( !m_Opened )
   {
     return ByteBuffer();
@@ -411,5 +380,7 @@ ByteBuffer MemoryStream::Buffer() const
     return m_Data;
   }
   return ByteBuffer( m_pData, m_Size );
-
 }
+
+
+

@@ -1,5 +1,4 @@
-#ifndef CLONEFACTORY_H
-#define CLONEFACTORY_H
+#pragma once
 
 
 #include <map>
@@ -45,7 +44,7 @@ class CloneFactory
 
       T   Dummy;
 
-      tClones::iterator    it( m_Clones.find( Dummy.Class() ) );
+      auto it( m_Clones.find( Dummy.Class() ) );
       if ( it == m_Clones.end() )
       {
         return NULL;
@@ -61,5 +60,4 @@ class CloneFactory
 
 };
 
-#endif// _CLONEFACTORY_H
 

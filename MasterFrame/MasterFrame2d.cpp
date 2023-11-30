@@ -255,7 +255,7 @@ bool MasterFrame2d::Create( int NewWidth, int NewHeight, unsigned char Depth, GR
     return false;
   }
 
-  m_SubclassManager.AddHandler( "MasterFrame2d", fastdelegate::MakeDelegate( this, &MasterFrame2d::WindowProc2d ) );
+  m_Window.SubclassManager.AddHandler( "MasterFrame2d", fastdelegate::MakeDelegate( this, &MasterFrame2d::WindowProc2d ) );
 
   if ( !CreatePage() )
   {
@@ -504,7 +504,7 @@ BOOL MasterFrame2d::WindowProc2d( HWND hwnd, UINT message, WPARAM wParam, LPARAM
       break;
   }
 
-  return m_SubclassManager.CallNext( hwnd, message, wParam, lParam );
+  return m_Window.SubclassManager.CallNext( hwnd, message, wParam, lParam );
 }
 
 
@@ -573,7 +573,8 @@ int MasterFrame2d::Run()
     {
       while ( PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE ) )
       {
-        if ( !GetMessage( &msg, NULL, 0, 0 ) )
+        if ( ( !GetMessage( &msg, NULL, 0, 0 ) )
+        ||   ( m_ShutDownRequested ) )
         {
           break;
         }
@@ -612,6 +613,12 @@ int MasterFrame2d::Run()
           }
         }
 
+        GR::f64   ElapsedTime = Time::Timer::Time( Time::Timer::TF_GETELAPSEDTIME );
+        if ( ElapsedTime > 10.0f )
+        {
+          ElapsedTime = 10.0f;
+        }
+
         if ( ( !m_ShutDownRequested )
         &&   ( !IsPaused() ) )
         {
@@ -633,7 +640,7 @@ int MasterFrame2d::Run()
                 ProcessEventQueue();
                 EventQueue::Instance().ProcessQueue();
 
-                m_pInput->Poll();
+                m_pInput->Update( (GR::f32)GetFrameTime() );
                 UpdateFrame();
 
                 SetLastFrameTime( GetLastFrameTime() + GetFrameTime() );
@@ -650,31 +657,20 @@ int MasterFrame2d::Run()
             ProcessEventQueue();
             EventQueue::Instance().ProcessQueue();
 
-            m_pInput->Poll();
+            m_pInput->Update( (GR::f32)ElapsedTime );
             UpdateFrame();
           }
-          /*
-          if ( m_ShutDownRequested )
-          {
-            CleanUp();
-            PostMessage( m_Window.Hwnd, WM_CLOSE, 0, 0 );
-          }*/
         }
         else
         {
           ProcessEventQueue();
-          m_pInput->Poll();
+          m_pInput->Update( (GR::f32)ElapsedTime );
         }
         if ( m_ShutDownRequested )
         {
           continue;
         }
 
-        GR::f64   ElapsedTime = Time::Timer::Time( Time::Timer::TF_GETELAPSEDTIME );
-        if ( ElapsedTime > 10.0f )
-        {
-          ElapsedTime = 10.0f;
-        }
         /*
         if ( m_LockFPS )
         {

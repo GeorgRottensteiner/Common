@@ -50,7 +50,7 @@ namespace GR
     GR::WString       ToHexStringW( const void* pData, size_t dwDataSize );
     GR::String        ToHexString( const void* pData, size_t dwDataSize );
 
-    GR::String        ToHexA( GR::u64 dwValue, const GR::u32 Stellen = 0 );
+    GR::String        ToHex( GR::u64 dwValue, const GR::u32 Stellen = 0 );
     GR::WString       ToHexW( GR::u64 dwValue, const GR::u32 Stellen = 0 );
 
     GR::f32           ToF32( const GR::String& strValue );
@@ -89,9 +89,9 @@ namespace GR
     bool              ToBool( const GR::String& Value );
     bool              ToBool( const GR::WString& Value );
 
-    ByteBuffer        ToBCD( GR::i64 Value, size_t Length, bool FixedLength = true );
-    ByteBuffer        ToBCD( const GR::String& Value, size_t MaxLength, bool FixedLength = false );
-    ByteBuffer        ToBCD( const GR::String& Value, size_t MaxLength, bool FixedLength, bool& HadError );
+    ByteBuffer        ToBCD( GR::i64 Value, size_t NumDigits, bool FixedLength = true );
+    ByteBuffer        ToBCD( const GR::String& Value, size_t NumDigits, bool FixedLength = false );
+    ByteBuffer        ToBCD( const GR::String& Value, size_t NumDigits, bool FixedLength, bool& HadError );
 
     GR::String        BCDToString( const ByteBuffer& Data );
     GR::String        BCDToString( const GR::u8* pData, size_t Length );

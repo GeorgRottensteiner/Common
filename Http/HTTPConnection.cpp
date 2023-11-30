@@ -554,7 +554,7 @@ void CHTTPConnection::ProcessData()
           size_t    iPosCode = m_strTemp.find( " " );
           if ( iPosCode != GR::String::npos )
           {
-            size_t  iPosCodeEnde = m_strTemp.substr( iPosCode + 1 ).find( " " );
+            size_t  iPosCodeEnde = m_strTemp.find( " ", iPosCode + 1 );
             if ( iPosCodeEnde != GR::String::npos )
             {
               m_ReceivedBody.AnswerCode( atoi( m_strTemp.substr( iPosCode + 1, iPosCodeEnde - iPosCode - 1 ).c_str() ) );
@@ -721,7 +721,7 @@ bool CHTTPConnection::IsBodyComplete( const ByteBuffer& bbIncoming )
         size_t    iPosCode = strTemp.find( " " );
         if ( iPosCode != GR::String::npos )
         {
-          size_t  iPosCodeEnde = strTemp.substr( iPosCode + 1 ).find( " " );
+          size_t  iPosCodeEnde = strTemp.find( " ", iPosCode + 1 );
           if ( iPosCodeEnde != GR::String::npos )
           {
             httpTemp.AnswerCode( atoi( strTemp.substr( iPosCode + 1, iPosCodeEnde - iPosCode - 1 ).c_str() ) );

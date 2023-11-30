@@ -36,6 +36,10 @@ namespace XAct
     {
       return false;
     }
+    if ( AssetFile.empty() )
+    {
+      return true;
+    }
     return Xtreme::Asset::XAssetLoader::Instance().LoadAssets( CMisc::AppPath( AssetFile.c_str() ).c_str() );
   }
 

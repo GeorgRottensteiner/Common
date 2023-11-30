@@ -6,31 +6,28 @@
 
 
 
-IMPLEMENT_CLONEABLE( CGUIImageList, "GUIImageList" )
+IMPLEMENT_CLONEABLE( GUIImageList, "GUIImageList" )
 
-CGUIImageList::CGUIImageList( int iNewX, int iNewY, int iNewWidth, int iNewHeight, GR::u32 dwId, GR::u32 lbType ) :
-  CAbstractListBox<CGUIComponent,CGUIScrollbar>( iNewX, iNewY, iNewWidth, iNewHeight, lbType, dwId )
+GUIImageList::GUIImageList( int iNewX, int iNewY, int iNewWidth, int iNewHeight, GR::u32 dwId, GR::u32 lbType ) :
+  AbstractListBox<GUIComponent,GUIScrollbar>( iNewX, iNewY, iNewWidth, iNewHeight, lbType, dwId )
 {
+  m_ItemHeight = 12;
+  m_ItemWidth  = m_Width;
 
-  m_iItemHeight = 12;
-  m_iItemWidth  = m_Width;
+  ModifyVisualStyle( GUI::VFT_SUNKEN_BORDER );
 
-  ModifyEdge( GUI::GET_SUNKEN_BORDER );
-
-  m_pScrollBar->GetComponent( CGUIScrollbar::SB_BUTTON_LEFT_UP )->ModifyEdge( GUI::GET_TRANSPARENT_BKGND );
-  m_pScrollBar->GetComponent( CGUIScrollbar::SB_BUTTON_RIGHT_DOWN )->ModifyEdge( GUI::GET_TRANSPARENT_BKGND );
-  m_pScrollBar->GetComponent( CGUIScrollbar::SB_SLIDER )->ModifyEdge( GUI::GET_TRANSPARENT_BKGND );
+  m_pScrollBar->GetComponent( GUIScrollbar::SB_BUTTON_LEFT_UP )->ModifyVisualStyle( GUI::VFT_TRANSPARENT_BKGND );
+  m_pScrollBar->GetComponent( GUIScrollbar::SB_BUTTON_RIGHT_DOWN )->ModifyVisualStyle( GUI::VFT_TRANSPARENT_BKGND );
+  m_pScrollBar->GetComponent( GUIScrollbar::SB_SLIDER )->ModifyVisualStyle( GUI::VFT_TRANSPARENT_BKGND );
   m_pScrollBar->SetLocation( m_ClientRect.size().x - m_pScrollBar->Width(), 0 );
   m_pScrollBar->SetSize( m_pScrollBar->Width(), m_ClientRect.size().y );
-
 }
 
 
 
-void CGUIImageList::DisplayOnPage( GR::Graphic::GFXPage* pPage )
+void GUIImageList::DisplayOnPage( GR::Graphic::GFXPage* pPage )
 {
-
-  if  ( m_listItems.empty() )
+  if  ( m_Items.empty() )
   {
     return;
   }
@@ -38,12 +35,12 @@ void CGUIImageList::DisplayOnPage( GR::Graphic::GFXPage* pPage )
   int   iPageXOffset = pPage->GetOffsetX();
   int   iPageYOffset = pPage->GetOffsetY();
 
-  size_t     iItemNr = m_iFirstVisibleItem;
-  tAbstractListBoxItemList::iterator    it( m_listItems.begin() );
-  std::advance( it, m_iFirstVisibleItem );
+  size_t     iItemNr = m_FirstVisibleItem;
+  tAbstractListBoxItemList::iterator    it( m_Items.begin() );
+  std::advance( it, m_FirstVisibleItem );
   GR::tRect   rectItem;
 
-  while ( it != m_listItems.end() )
+  while ( it != m_Items.end() )
   {
     tListBoxItem&   Item = *it;
 
@@ -52,13 +49,13 @@ void CGUIImageList::DisplayOnPage( GR::Graphic::GFXPage* pPage )
       break;
     }
 
-    GR::Graphic::Image*    pImage = (GR::Graphic::Image*)_atoi64( Item.m_strText.c_str() );
+    GR::Graphic::Image*    pImage = (GR::Graphic::Image*)_atoi64( Item.Text.c_str() );
     if ( pImage )
     {
       pImage->PutImage( pPage, rectItem.position().x, rectItem.position().y );
     }
 
-    if ( iItemNr == m_iSelectedItem )
+    if ( iItemNr == m_SelectedItem )
     {
       GR::Graphic::ContextDescriptor    cdPage( pPage );
 
@@ -67,7 +64,7 @@ void CGUIImageList::DisplayOnPage( GR::Graphic::GFXPage* pPage )
                         rectItem.size().x, rectItem.size().y,
                         0xffffffff );
     }
-    if ( iItemNr == m_iMouseOverItem )
+    if ( iItemNr == m_MouseOverItem )
     {
       GR::Graphic::ContextDescriptor    cdPage( pPage );
 
@@ -84,22 +81,20 @@ void CGUIImageList::DisplayOnPage( GR::Graphic::GFXPage* pPage )
 
 
 
-void CGUIImageList::AddString( GR::Graphic::Image* pImage, GR::up dwItemData )
+void GUIImageList::AddString( GR::Graphic::Image* pImage, GR::up dwItemData )
 {
+  m_Items.push_back( tListBoxItem() );
 
-  m_listItems.push_back( tListBoxItem() );
-
-  tListBoxItem&   newItem = m_listItems.back();
+  tListBoxItem&   newItem = m_Items.back();
 
   char    szDummy[200];
 
   wsprintf( szDummy, "%d", pImage );
 
-  newItem.m_strText     = szDummy;
-  newItem.m_dwItemData  = dwItemData;
+  newItem.Text      = szDummy;
+  newItem.ItemData  = dwItemData;
 
   UpdateScrollBar();
-
 }
 
 

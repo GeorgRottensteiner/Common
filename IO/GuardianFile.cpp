@@ -21,7 +21,7 @@ static short NULL_HANDLE = -1;
 
 
 GuardianFile::GuardianFile() :
-  IIOStream(),
+  IIOStreamBase(),
   m_Impl( new GuardianFileImpl( NULL_HANDLE ) ),
   m_CacheSize( 0 ),
   m_LastError( 0 )
@@ -32,7 +32,7 @@ GuardianFile::GuardianFile() :
 
 
 GuardianFile::GuardianFile( const GR::Char* szFileName, IIOStream::OpenType oType ) :
-  IIOStream(),
+  IIOStreamBase(),
   m_Impl( new GuardianFileImpl( NULL_HANDLE ) ),
   m_CacheSize( 0 ),
   m_LastError( 0 )
@@ -53,16 +53,14 @@ GuardianFile::~GuardianFile()
 
 void GuardianFile::Close()
 {
-
   if ( m_Impl )
   {
     m_Impl->Close();
   }
 
-  IIOStream::Close();
+  IIOStreamBase::Close();
 
   m_OpenType  = OT_CLOSED;
-
 }
 
 
@@ -697,25 +695,20 @@ unsigned long GuardianFile::ReadBlock( void* pDestination, GR::up CountBytes )
 
 bool GuardianFile::ReadLine( char* pTarget, unsigned long MaxReadLength )
 {
-
-  return IIOStream::ReadLine( pTarget, MaxReadLength );
-
+  return IIOStreamBase::ReadLine( pTarget, MaxReadLength );
 }
 
 
 
 bool GuardianFile::ReadLine( GR::WString& Result )
 {
-
-  return IIOStream::ReadLine( Result );
-
+  return IIOStreamBase::ReadLine( Result );
 }
 
 
 
 bool GuardianFile::ReadLine( GR::String& Result )
 {
-
   if ( m_Impl->m_EditFileOpened )
   {
     static ByteBuffer    temp( 256 );
@@ -738,8 +731,7 @@ bool GuardianFile::ReadLine( GR::String& Result )
     Result.assign( (char*)temp.Data(), bytesRead );
     return true;
   }
-  return IIOStream::ReadLine( Result );
-
+  return IIOStreamBase::ReadLine( Result );
 }
 
 
@@ -954,6 +946,14 @@ void GuardianFile::SetCacheSize( size_t Size )
   m_Impl->m_CacheBytesUsed    = 0;
   m_Impl->m_FilePosAfterCache = m_Impl->m_PseudoFilePos;
 }
+
+
+
+bool GuardianFile::DataAvailable()
+{
+  return GetPosition() < GetSize();
+}
+
 
 
 }

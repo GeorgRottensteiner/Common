@@ -24,11 +24,11 @@ class GUILabel : public AbstractLabel<GUIComponent>
     DECLARE_CLONEABLE( GUILabel, "Label" )
 
 
-    GUILabel( int iNewX = 0, int iNewY = 0, 
-              int iNewWidth = 0, int iNewHeight = 0, 
-              const GR::UTF8String& strCaption = GR::UTF8String(),
-              GR::u32 lfType = GUI::AF_VCENTER,
-              GR::u32 dwId = 0 );
+    GUILabel( int X = 0, int Y = 0, 
+              int Width = 0, int Height = 0, 
+              const GR::String& Caption = GR::String(),
+              GR::u32 Type = GUI::AF_VCENTER,
+              GR::u32 Id = 0 );
 
 
     virtual void        DisplayOnPage( GR::Graphic::GFXPage* pPage );

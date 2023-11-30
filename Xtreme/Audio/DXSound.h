@@ -135,7 +135,7 @@ class DXSound : public XSoundBase
 
     GR::u32                 LoadWave( const char* Name, bool LoadAs3d = false, const eSoundType Type = ST_SOUND_EFFECT );
     GR::u32                 LoadWave( IIOStream& Stream, bool LoadAs3d = false, const eSoundType Type = ST_SOUND_EFFECT );
-    GR::u32                 LoadWave( const GR::String& Name, bool LoadAs3d, const eSoundType Type = ST_SOUND_EFFECT );
+    GR::u32                 LoadWave( const GR::String& Name, bool LoadAs3d = false, const eSoundType Type = ST_SOUND_EFFECT );
     GR::u32                 LoadWaveFromResource( const char* Resource, const char* ResourceType, const eSoundType Type = ST_SOUND_EFFECT );
     virtual GR::u32         CreateBufferFromMemory( int Channels, int SamplesPerSec, int BlockAlign,
                                                     int BitsPerSample, GR::up* pData, GR::up Size,

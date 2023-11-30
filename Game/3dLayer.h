@@ -45,7 +45,7 @@ namespace GR
         }
 
         TileLayer3D( GR::u32 dwWidth, GR::u32 dwHeight, GR::u32 dwDepth, const GR::String& Desc = GR::String() ) :
-          m_strDesc( szDesc ),
+          m_strDesc( Desc ),
           m_pData( NULL ),
           m_iWidth( dwWidth ),
           m_iHeight( dwHeight ),

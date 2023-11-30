@@ -272,7 +272,7 @@ namespace GR
 
 
 
-    bool Image::Load( const GR::Char* FileName )
+    bool Image::Load( const GR::String& FileName )
     {
       unsigned char   ucFileType,
                       Bpp;
@@ -299,7 +299,7 @@ namespace GR
       }
       else
       {
-        dh::Log( "Error: Image.Load Could'nt load %s.", FileName );
+        dh::Log( "Error: Image.Load Could'nt load %s", FileName.c_str() );
       }
       return false;
     }
@@ -367,7 +367,7 @@ namespace GR
 
 
 
-    bool Image::LoadBTN( const GR::Char* FileName, const unsigned char Bpp )
+    bool Image::LoadBTN( const GR::String& FileName, const unsigned char Bpp )
     {
       GR::IO::FileStream    ioIn;
 
@@ -379,7 +379,7 @@ namespace GR
       }
       else
       {
-        dh::Log( "Fehler: Image.LoadBTN Could'nt load %s.", FileName );
+        dh::Log( "Fehler: Image.LoadBTN Could'nt load %s", FileName.c_str() );
       }
       return false;
     }
@@ -419,7 +419,7 @@ namespace GR
 
 
 
-    bool Image::LoadTGA( const GR::Char* FileName )
+    bool Image::LoadTGA( const GR::String& FileName )
     {
       int             i;
 
@@ -454,14 +454,14 @@ namespace GR
       }
       else
       {
-        dh::Log( "Fehler: Image.LoadTGA Could'nt load %s.", FileName );
+        dh::Log( "Fehler: Image.LoadTGA Could'nt load %s", FileName.c_str() );
       }
       return false;
     }
 
 
 
-    bool Image::Save( const GR::Char* FileName, const bool bSaveWithCompressList, GR::Graphic::Palette* pPal ) const
+    bool Image::Save( const GR::String& FileName, const bool bSaveWithCompressList, GR::Graphic::Palette* pPal ) const
     {
       unsigned char   ucFileType      = IGFType::IMAGE,
                       Bpp             = GetDepth();
@@ -509,7 +509,7 @@ namespace GR
       }
       else
       {
-        dh::Log( "Fehler: Image.Save Could'nt save %s.", FileName );
+        dh::Log( "Fehler: Image.Save Couldn't save %s", FileName.c_str() );
       }
       return false;
     }

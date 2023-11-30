@@ -730,6 +730,49 @@ bool CDXInput::SaveBindings( IIOStream& Stream )
     return false;
   }
 
+  Stream.WriteSize( (size_t)0xcdee );
+  Stream.WriteSize( m_Binding2VKey.size() );
+
+  tMapBinding2VKey::iterator    it( m_Binding2VKey.begin() );
+  while ( it != m_Binding2VKey.end() )
+  {
+    GR::u32   dwVKey( it->second.first );
+
+    if ( ( dwVKey >= 0 )
+    &&   ( dwVKey < m_VirtualKeys )
+    &&   ( m_pVirtualKey[dwVKey].m_GlobalIndex < m_Controls.size() )
+    &&   ( m_Controls[m_pVirtualKey[dwVKey].m_GlobalIndex].m_Device < (int)m_Devices.size() ) )
+    {
+      Stream.WriteU32( it->first );
+
+      GR::String     deviceName = m_Devices[m_Controls[m_pVirtualKey[dwVKey].m_GlobalIndex].m_Device].m_Device;
+      Stream.WriteString( deviceName );
+      Stream.WriteString( m_pVirtualKey[dwVKey].m_Name );
+
+      m_pDebugger->Log( "Input.Full", "Saving Binding for Key %d, Device %s, Control Name (%s)", it->first, deviceName.c_str(), m_pVirtualKey[dwVKey].m_Name.c_str() );
+    }
+
+    dwVKey = it->second.second;
+
+    if ( ( dwVKey >= 0 )
+    &&   ( dwVKey < m_VirtualKeys )
+    &&   ( m_pVirtualKey[dwVKey].m_GlobalIndex < m_Controls.size() )
+    &&   ( m_Controls[m_pVirtualKey[dwVKey].m_GlobalIndex].m_Device < (int)m_Devices.size() ) )
+    {
+      Stream.WriteU32( it->first );
+
+      GR::String     deviceName = m_Devices[m_Controls[m_pVirtualKey[dwVKey].m_GlobalIndex].m_Device].m_Device;
+      Stream.WriteString( deviceName );
+      Stream.WriteString( m_pVirtualKey[dwVKey].m_Name );
+
+      m_pDebugger->Log( "Input.Full", "Saving Binding for secondary key %d, Device %s, Control Name (%s)", it->first, deviceName.c_str(), m_pVirtualKey[dwVKey].m_Name.c_str() );
+    }
+
+    ++it;
+  }
+
+  // old version
+  /*
   Stream.WriteSize( m_Binding2VKey.size() );
 
   tMapBinding2VKey::iterator    it( m_Binding2VKey.begin() );
@@ -753,7 +796,7 @@ bool CDXInput::SaveBindings( IIOStream& Stream )
     }
 
     ++it;
-  }
+  }*/
   return true;
 }
 
@@ -770,49 +813,208 @@ bool CDXInput::LoadBindings( IIOStream& Stream )
 
   bool      restoreBindingFailed = false;
 
-  size_t    iEntries = Stream.ReadSize();
-
-  for ( size_t i = 0; i < iEntries; ++i )
+  size_t    entryCount = Stream.ReadSize();
+  if ( entryCount == 0xcdef )
   {
-    GR::u32         bindHandle = Stream.ReadU32();
-    GR::u32         deviceNameLength = Stream.ReadU32();
+    // new version
+    entryCount = Stream.ReadSize();
 
-    char*           pDeviceName = new char[deviceNameLength];
-
-    Stream.ReadBlock( pDeviceName, deviceNameLength );
-
-    GR::String     deviceName;
-    deviceName.append( pDeviceName, deviceNameLength );
-
-    delete[] pDeviceName;
-
-    GR::u32         controlIndex = Stream.ReadU32();
-    bool            bindingPossible = false;
-
-    m_pDebugger->Log( "Input.Full", "Loading Binding for Key %d, Device %s, Device Control Index %d", bindHandle, deviceName.c_str(), controlIndex );
-
-    tVectDevices::iterator    it( m_Devices.begin() );
-    while ( it != m_Devices.end() )
+    for ( size_t i = 0; i < entryCount; ++i )
     {
-      tInputDevice&  Device( *it );
+      GR::u32         bindHandle = Stream.ReadU32();
 
-      if ( ( Device.m_Device == deviceName )
-      &&   ( controlIndex < Device.m_Controls.size() ) )
+      GR::String      deviceName;
+      GR::String      controlName;
+
+      // ugly, isn't it somehow possible to pass a string from .exe FileStream into the .dll heap?
+      GR::u32         deviceNameLength = Stream.ReadU32();
+      char* pDeviceName = new char[deviceNameLength];
+      Stream.ReadBlock( pDeviceName, deviceNameLength );
+      deviceName.append( pDeviceName, deviceNameLength );
+      delete[] pDeviceName;
+
+      GR::u32         controlNameLength = Stream.ReadU32();
+      char* pControlName = new char[controlNameLength];
+      Stream.ReadBlock( pControlName, controlNameLength );
+      controlName.append( pControlName, controlNameLength );
+      delete[] pControlName;
+
+      bool            bindingPossible = false;
+
+      m_pDebugger->Log( "Input.Full", "Loading Binding for Key %d, Device %s, Controld %s", bindHandle, deviceName.c_str(), controlName.c_str() );
+
+      tVectDevices::iterator    it( m_Devices.begin() );
+      while ( it != m_Devices.end() )
       {
-        m_pDebugger->Log( "Input.Full", "Re-bound key to %s (%d)", Device.m_Controls[controlIndex].m_Name.c_str(), Device.m_Controls[controlIndex].m_VirtualIndex );
+        tInputDevice&  Device( *it );
 
-        bindingPossible = true;
+        if ( Device.m_Device == deviceName )
+        {
+          auto itC( Device.m_Controls.begin() );
+          while ( itC != Device.m_Controls.end() )
+          {
+            const auto& control( *itC );
 
-        m_Binding2VKey[bindHandle] = Device.m_Controls[controlIndex].m_VirtualIndex;
-        break;
+            if ( control.m_Name == controlName )
+            {
+              m_pDebugger->Log( "Input.Full", "Re-bound key to %s (%d)", control.m_Name.c_str(), control.m_VirtualIndex );
+              bindingPossible = true;
+              m_Binding2VKey[bindHandle].first = control.m_VirtualIndex;
+              break;
+            }
+            ++itC;
+          }
+        }
+        if ( bindingPossible )
+        {
+          break;
+        }
+
+        ++it;
+      }
+      if ( !bindingPossible )
+      {
+        m_pDebugger->Log( "Input.Full", "Re-bind key failed" );
+        restoreBindingFailed = true;
+      }
+    }
+  }
+  else if ( entryCount == 0xcdee )
+  {
+    // new version
+    entryCount = Stream.ReadSize();
+
+    for ( size_t i = 0; i < entryCount; ++i )
+    {
+      // primary binding
+      GR::u32         bindHandle = Stream.ReadU32();
+
+      GR::String      deviceName;
+      GR::String      controlName;
+
+      // ugly, isn't it somehow possible to pass a string from .exe FileStream into the .dll heap?
+      GR::u32         deviceNameLength = Stream.ReadU32();
+      char* pDeviceName = new char[deviceNameLength];
+      Stream.ReadBlock( pDeviceName, deviceNameLength );
+      deviceName.append( pDeviceName, deviceNameLength );
+      delete[] pDeviceName;
+
+      GR::u32         controlNameLength = Stream.ReadU32();
+      char* pControlName = new char[controlNameLength];
+      Stream.ReadBlock( pControlName, controlNameLength );
+      controlName.append( pControlName, controlNameLength );
+      delete[] pControlName;
+
+      bool            bindingPossible = false;
+
+      m_pDebugger->Log( "Input.Full", "Loading Binding for Key %d, Device %s, Controld %s", bindHandle, deviceName.c_str(), controlName.c_str() );
+
+      for ( int i = 0; i < (int)m_VirtualKeys; ++i )
+      {
+        auto& virtualKey = m_pVirtualKey[i];
+
+        if ( ( virtualKey.m_Name == controlName )
+        &&   ( m_Devices[m_Controls[virtualKey.m_GlobalIndex].m_Device].m_Device == deviceName ) )
+        {
+          m_pDebugger->Log( "Input.Full", "Re-bound key to %s (%d)", controlName.c_str(), i );
+          bindingPossible = true;
+          m_Binding2VKey[bindHandle].first = i;
+          break;
+        }
+      }
+      if ( !bindingPossible )
+      {
+        m_pDebugger->Log( "Input.Full", "Re-bind key failed" );
+        restoreBindingFailed = true;
       }
 
-      ++it;
+      // secondary binding
+      bindHandle = Stream.ReadU32();
+
+      deviceName.clear();
+      controlName.clear();
+
+      // ugly, isn't it somehow possible to pass a string from .exe FileStream into the .dll heap?
+      deviceNameLength = Stream.ReadU32();
+      pDeviceName = new char[deviceNameLength];
+      Stream.ReadBlock( pDeviceName, deviceNameLength );
+      deviceName.append( pDeviceName, deviceNameLength );
+      delete[] pDeviceName;
+
+      controlNameLength = Stream.ReadU32();
+      pControlName = new char[controlNameLength];
+      Stream.ReadBlock( pControlName, controlNameLength );
+      controlName.append( pControlName, controlNameLength );
+      delete[] pControlName;
+
+      bindingPossible = false;
+
+      m_pDebugger->Log( "Input.Full", "Loading Binding for secondary Key %d, Device %s, Controld %s", bindHandle, deviceName.c_str(), controlName.c_str() );
+
+     for ( int i = 0; i < (int)m_VirtualKeys; ++i )
+      {
+        auto& virtualKey = m_pVirtualKey[i];
+
+        if ( ( virtualKey.m_Name == controlName )
+        &&   ( m_Devices[m_Controls[virtualKey.m_GlobalIndex].m_Device].m_Device == deviceName ) )
+        {
+          m_pDebugger->Log( "Input.Full", "Re-bound secondary key to %s (%d)", controlName.c_str(), i );
+          bindingPossible = true;
+          m_Binding2VKey[bindHandle].second = i;
+          break;
+        }
+      }
+      if ( !bindingPossible )
+      {
+        m_pDebugger->Log( "Input.Full", "Re-bind secondary key failed" );
+        restoreBindingFailed = true;
+      }
     }
-    if ( !bindingPossible )
+  }
+  else
+  {
+    for ( size_t i = 0; i < entryCount; ++i )
     {
-      m_pDebugger->Log( "Input.Full", "Re-bind key failed" );
-      restoreBindingFailed = true;
+      GR::u32         bindHandle = Stream.ReadU32();
+      GR::u32         deviceNameLength = Stream.ReadU32();
+
+      char*           pDeviceName = new char[deviceNameLength];
+
+      Stream.ReadBlock( pDeviceName, deviceNameLength );
+
+      GR::String     deviceName;
+      deviceName.append( pDeviceName, deviceNameLength );
+
+      delete[] pDeviceName;
+
+      GR::u32         controlIndex = Stream.ReadU32();
+      bool            bindingPossible = false;
+
+      m_pDebugger->Log( "Input.Full", "Loading Binding for Key %d, Device %s, Device Control Index %d", bindHandle, deviceName.c_str(), controlIndex );
+
+      tVectDevices::iterator    it( m_Devices.begin() );
+      while ( it != m_Devices.end() )
+      {
+        tInputDevice&  Device( *it );
+
+        if ( ( Device.m_Device == deviceName )
+        &&   ( controlIndex < Device.m_Controls.size() ) )
+        {
+          m_pDebugger->Log( "Input.Full", "Re-bound key to %s (%d)", Device.m_Controls[controlIndex].m_Name.c_str(), Device.m_Controls[controlIndex].m_VirtualIndex );
+
+          bindingPossible = true;
+
+          m_Binding2VKey[bindHandle].first = Device.m_Controls[controlIndex].m_VirtualIndex;
+          break;
+        }
+
+        ++it;
+      }
+      if ( !bindingPossible )
+      {
+        m_pDebugger->Log( "Input.Full", "Re-bind key failed" );
+        restoreBindingFailed = true;
+      }
     }
   }
   return restoreBindingFailed;

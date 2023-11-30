@@ -1,5 +1,5 @@
-#include <IO\FileStream.h>
-#include <IO\FileUtil.h>
+#include <IO/FileStream.h>
+#include <IO/FileUtil.h>
 
 #include <String/Convert.h>
 #include <String/StringUtil.h>
@@ -90,14 +90,14 @@ namespace GR
 
 
     FileStream::FileStream() :
-      IIOStream(),
-      m_Impl( new FileStreamImpl( NULL_HANDLE ) ),
+      IIOStreamBase(),
       m_LastError( 0 ),
     #if OPERATING_SUB_SYSTEM == OS_SUB_GUARDIAN
-      m_CacheSize( 256 )
+      m_CacheSize( 256 ),
     #else
-      m_CacheSize( 256 )
+      m_CacheSize( 256 ),
     #endif
+      m_Impl( new FileStreamImpl( NULL_HANDLE ) )
     {
 
     }
@@ -105,14 +105,14 @@ namespace GR
 
 
     FileStream::FileStream( const GR::Char* pFileName, IIOStream::OpenType oType ) :
-      IIOStream(),
-      m_Impl( new FileStreamImpl( NULL_HANDLE ) ),
+      IIOStreamBase(),
       m_LastError( 0 ),
     #if OPERATING_SUB_SYSTEM == OS_SUB_GUARDIAN
-      m_CacheSize( 0 )
+      m_CacheSize( 0 ),
     #else
-      m_CacheSize( 256 )
+      m_CacheSize( 256 ),
     #endif
+      m_Impl( new FileStreamImpl( NULL_HANDLE ) )
     {
       Open( pFileName, oType );
     }
@@ -120,22 +120,16 @@ namespace GR
 
 
     FileStream::FileStream( const GR::String& FileName, IIOStream::OpenType oType ) :
-      IIOStream(),
-      m_Impl( new FileStreamImpl( NULL_HANDLE ) ),
+      IIOStreamBase(),
       m_LastError( 0 ),
     #if OPERATING_SUB_SYSTEM == OS_SUB_GUARDIAN
-      m_CacheSize( 0 )
+      m_CacheSize( 0 ),
     #else
-      m_CacheSize( 256 )
+      m_CacheSize( 256 ),
     #endif
+      m_Impl( new FileStreamImpl( NULL_HANDLE ) )
     {
       Open( FileName, oType );
-    }
-
-
-
-    FileStream::~FileStream()
-    {
     }
 
 
@@ -147,7 +141,7 @@ namespace GR
         m_Impl->Close();
       }
 
-      IIOStream::Close();
+      IIOStreamBase::Close();
 
       m_OpenType  = OT_CLOSED;
     }
@@ -479,22 +473,6 @@ namespace GR
       {
         case OT_READ_ONLY:
           m_LastError = FILE_OPEN_( FileName.c_str(), (short)FileName.length(), &hHandle, 1, 1 );
-          /*
-              { const char *filename |
-              const char *pathname }
-              ,short length
-              ,short *filenum
-              ,[ short access ]
-              ,[ short exclusion ]
-              ,[ short nowait-depth ]
-              ,[ short sync-or-receive-depth ]
-              ,[ short options ]
-              ,[ short seq-block-buffer-id ]
-              ,[ short seq-block-buffer-len ]
-              ,[ short *primary-processhandle ]
-              ,[ __int32_t elections ] );
-              "rb" );
-              */
           break;
         case OT_READ_ONLY_SHARED:
           m_LastError    = FILE_OPEN_( FileName.c_str(), (short)FileName.length(), &hHandle, 1, 0 );
@@ -538,7 +516,7 @@ namespace GR
           m_LastError = FILE_OPEN_( FileName.c_str(), (short)FileName.length(), &hHandle, 0 );
           break;
       }
-      if ( _status_lt( m_LastError ) )
+      if ( hHandle == NULL_HANDLE )
       {
         Close();
         return false;
@@ -720,19 +698,19 @@ namespace GR
 #if OPERATING_SYSTEM == OS_WINDOWS
 
 #if ( OPERATING_SUB_SYSTEM == OS_SUB_UNIVERSAL_APP ) || ( OPERATING_SUB_SYSTEM == OS_SUB_WINDOWS_PHONE )
-  FILE_STANDARD_INFO      fileInfo;
+      FILE_STANDARD_INFO      fileInfo;
 
-  if ( !GetFileInformationByHandleEx( m_Impl->m_Handle, FileStandardInfo, &fileInfo, sizeof( fileInfo ) ) )
-  {
-    m_LastError = GetLastError();
-    return 0;
-  }
-  return fileInfo.EndOfFile.QuadPart;
+      if ( !GetFileInformationByHandleEx( m_Impl->m_Handle, FileStandardInfo, &fileInfo, sizeof( fileInfo ) ) )
+      {
+        m_LastError = GetLastError();
+        return 0;
+      }
+      m_Impl->m_CachedFileSize = fileInfo.EndOfFile.QuadPart;
 #else 
-      return GetFileSize( m_Impl->m_Handle, NULL );
+      m_Impl->m_CachedFileSize = GetFileSize( m_Impl->m_Handle, NULL );
 #endif
     #elif OPERATING_SYSTEM == OS_ANDROID
-      return AAsset_getLength64( m_Impl->m_Handle );
+      m_Impl->m_CachedFileSize = AAsset_getLength64( m_Impl->m_Handle );
     #elif OPERATING_SUB_SYSTEM == OS_SUB_GUARDIAN
 
       ByteBuffer    ItemList;
@@ -756,7 +734,7 @@ namespace GR
         //printf( "FILE_GETINFOLIST_ failed %d\n", m_LastError );
         return false;
       }
-      return ValueList.U64NetworkOrderAt( 0 );
+      m_Impl->m_CachedFileSize = ValueList.U64NetworkOrderAt( 0 );
     #else
       int   CurPos = ftell( m_Impl->m_Handle );
       if ( fseek( m_Impl->m_Handle, 0, SEEK_END ) == -1 )
@@ -768,17 +746,16 @@ namespace GR
       {
         return (GR::u64)-2;
       }
-      return Size;
+      m_Impl->m_CachedFileSize = Size;
     #endif
 
+      return m_Impl->m_CachedFileSize;
     }
 
 
 
     bool FileStream::ReadToBuffer( void* pTarget, unsigned long BytesToRead, unsigned long& BytesRead )
     {
-
-      unsigned long  ulNewBytesRead = 0;
     #if OPERATING_SYSTEM == OS_WINDOWS
       if ( !ReadFile( m_Impl->m_Handle, pTarget, (GR::u32)BytesToRead, &BytesRead, NULL ) )
       {
@@ -852,6 +829,7 @@ namespace GR
       unsigned short BytesToReadNow = 0;
       bool           Fehler = false;
       unsigned short NewBytesRead = 0;
+      unsigned long  ulNewBytesRead = 0;
       while ( BytesToReadTemp > 0 )
       {
         if ( BytesToReadTemp > 57344 )
@@ -890,9 +868,7 @@ namespace GR
       //Log( Misc::Format( "Bytes wanted %1% Bytes got %2%" ) << BytesToRead
       return ( ulNewBytesRead == BytesToRead );
     #else
-      //ulNewBytesRead = (unsigned long)fread( ( (char*)pTarget ) + ulNewBytesRead, 1, BytesToRead, m_Impl->m_Handle );
       BytesRead = (unsigned long)fread( pTarget, 1, BytesToRead, m_Impl->m_Handle );
-      //printf( "Read %d Bytes now from handle %x, wanted %d, %d\n", ulNewBytesRead, m_Impl->m_Handle, BytesToRead, errno );
       return ( BytesRead == BytesToRead );
     #endif
 
@@ -903,14 +879,14 @@ namespace GR
     #if OPERATING_SUB_SYSTEM == OS_SUB_GUARDIAN
     bool FileStream::ReadLine( char* pTarget, unsigned long MaxReadLength )
     {
-      return IIOStream::ReadLine( pTarget, MaxReadLength );
+      return IIOStreamBase::ReadLine( pTarget, MaxReadLength );
     }
 
 
 
     bool FileStream::ReadLine( GR::WString& Result )
     {
-      return IIOStream::ReadLine( Result );
+      return IIOStreamBase::ReadLine( Result );
     }
 
 
@@ -939,8 +915,7 @@ namespace GR
         Result.assign( (char*)temp.Data(), bytesRead );
         return true;
       }
-      return IIOStream::ReadLine( Result );
-
+      return IIOStreamBase::ReadLine( Result );
     }
     #endif
 
@@ -948,7 +923,6 @@ namespace GR
 
     unsigned long FileStream::ReadBlock( void* pDestination, size_t CountBytes )
     {
-
     #if OPERATING_SYSTEM == OS_WINDOWS
       if ( ( m_Impl == INVALID_HANDLE_VALUE )
     #elif OPERATING_SUB_SYSTEM == OS_SUB_GUARDIAN
@@ -1038,9 +1012,6 @@ namespace GR
         {
           m_ReadFailed = true;
         }
-        //dh::Log( "%08x-direct read (want %d got %d)", m_Impl, ulBytesToRead, ulNewBytesRead );
-        //printf( "%08x-direct read (want %d got %d)\n", m_Impl, ulBytesToRead, ulNewBytesRead );
-        //dh::Hex( lpucDestination, ulBytesRead );
         return ulBytesRead;
       }
 
@@ -1090,14 +1061,12 @@ namespace GR
       //printf( "%08x-from cache4 (%d bytes in cache left)\n", m_Impl, m_Impl->m_Cache.Size() );
       //dh::Hex( lpucDestination, ulBytesToRead + ulBytesRead );
       return (unsigned long)ulBytesToRead + ulBytesRead;
-
     }
 
 
 
     unsigned long FileStream::WriteBlock( const void* pSource, size_t CountBytes )
     {
-
       if ( ( !m_Impl.IsObjectValid() )
       ||   ( m_Impl->m_Handle == NULL_HANDLE )
       ||   ( m_OpenType == OT_READ_ONLY ) )
@@ -1168,14 +1137,12 @@ namespace GR
       m_Impl->m_PseudoFilePos     += ulBytesWritten;
 
       return ulBytesWritten;
-
     }
 
 
 
     unsigned long FileStream::SetPosition( GR::i64 Offset, PositionType Position )
     {
-
       if ( m_Impl->m_Handle == NULL_HANDLE )
       {
         return (unsigned long)-1;
@@ -1253,21 +1220,17 @@ namespace GR
       fseek( m_Impl->m_Handle, (long)Offset, (int)Position );
       return ftell( m_Impl->m_Handle );
     #endif
-
     }
 
 
 
     GR::u64 FileStream::GetPosition()
     {
-
       if ( m_Impl->m_Handle == NULL_HANDLE )
       {
         return (GR::u64)-1;
       }
-
       return m_Impl->m_PseudoFilePos;
-
     }
 
 
@@ -1294,13 +1257,11 @@ namespace GR
 
     bool FileStream::IsGood()
     {
-
       if ( m_Impl.ptr() == NULL )
       {
         return false;
       }
       return ( m_Impl->m_Handle != NULL_HANDLE );
-
     }
 
 
@@ -1322,11 +1283,15 @@ namespace GR
 
     GR::i32 FileStream::LastError() const
     {
-
       return m_LastError;
-
     }
 
+
+
+    bool FileStream::DataAvailable()
+    {
+      return m_Impl->m_PseudoFilePos < m_Impl->m_CachedFileSize;
+    }
 
 
 

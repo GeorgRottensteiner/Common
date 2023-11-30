@@ -329,17 +329,29 @@ namespace Xtreme
     soundInfo.Frequency           = soundInfo.WaveFormat.Format.nSamplesPerSec;
     soundInfo.Type                = Type;
 
-    InStream.ReadBlock( ucBuffer, 4 );
-    if ( ( ucBuffer[0] != 100 )
-    &&   ( ucBuffer[1] != 97 )
-    &&   ( ucBuffer[2] != 116 )
-    &&   ( ucBuffer[3] != 97 ) )
+    // skip chunks until we find "data"
+    do
     {
-      // kein data
-      InStream.Close();
-      return 0;
+      if ( InStream.ReadBlock( ucBuffer, 4 ) != 4 )
+      {
+        // no data chunk found
+        InStream.Close();
+        return 0;
+      }
+      chunkSize = InStream.ReadU32();
+
+      if ( ( ucBuffer[0] != 100 )
+      ||   ( ucBuffer[1] != 97 )
+      ||   ( ucBuffer[2] != 116 )
+      ||   ( ucBuffer[3] != 97 ) )
+      {
+        InStream.SetPosition( chunkSize, IIOStream::PT_CURRENT );
+      }
     }
-    chunkSize = InStream.ReadU32();
+    while ( ( ucBuffer[0] != 100 )
+    ||      ( ucBuffer[1] != 97 )
+    ||      ( ucBuffer[2] != 116 )
+    ||      ( ucBuffer[3] != 97 ) );
 
 
     soundInfo.Size = chunkSize;

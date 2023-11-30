@@ -1,5 +1,4 @@
-#ifndef GR_Database_Database_H
-#define GR_Database_Database_H
+#pragma once
 
 #include <GR/GRTypes.h>
 
@@ -38,7 +37,7 @@ namespace GR
 
         size_t                GetTableCount() const;
         Table*                GetTable( size_t Index );
-        GR::String        GetTableName( size_t Index );
+        GR::String            GetTableName( size_t Index );
         Table*                GetTable( const GR::String& Desc );
         void                  GetTableList( std::list<GR::String>& Tables );
         void                  InsertTable( const GR::String& Desc, Table* pTable );
@@ -61,4 +60,3 @@ namespace GR
 
   }
 }
-#endif // GR_Database_Database_H
