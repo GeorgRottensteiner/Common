@@ -133,19 +133,19 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
     {
       if ( m_FullLength == 0 )
       {
-        rc.position( 0, 0 );
-        rc.size( m_Width, m_Height );
+        rc.Position( 0, 0 );
+        rc.Size( m_Width, m_Height );
         return;
       }
       if ( Style() & SFT_HORIZONTAL )
       {
-        rc.position( m_SliderOffset, 0 );
-        rc.size( m_SliderLength, m_Height );
+        rc.Position( m_SliderOffset, 0 );
+        rc.Size( m_SliderLength, m_Height );
       }
       else
       {
-        rc.position( 0, m_SliderOffset );
-        rc.size( m_Width, m_SliderLength );
+        rc.Position( 0, m_SliderOffset );
+        rc.Size( m_Width, m_SliderLength );
       }
     }
 
@@ -325,7 +325,7 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
               GR::tRect   rc;
 
               GetSliderRect( rc );
-              if ( rc.contains( Event.Position ) )
+              if ( rc.Contains( Event.Position ) )
               {
                 SetCapture();
                 ModifyStyle( SFT_DRAGGING );
@@ -347,7 +347,7 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
               }
               else if ( Style() & SFT_HORIZONTAL )
               {
-                if ( Event.Position.x < rc.position().x )
+                if ( Event.Position.x < rc.Left )
                 {
                   // links davon
                   ScrollDelta( -m_PageSteps );
@@ -360,7 +360,7 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
               }
               else
               {
-                if ( Event.Position.y < rc.position().y )
+                if ( Event.Position.y < rc.Top )
                 {
                   // links davon
                   ScrollDelta( -m_PageSteps );

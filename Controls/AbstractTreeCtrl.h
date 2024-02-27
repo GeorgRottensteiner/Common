@@ -80,7 +80,7 @@ template <class BS_, class SB_> class AbstractTreeCtrl : public BS_
 
     virtual void                UpdateScrollBar()
     {
-      int   visibleItems = m_ClientRect.size().y / m_ItemHeight;
+      int   visibleItems = m_ClientRect.Height() / m_ItemHeight;
 
       int   openItems = 0;
       tTree::iterator it( m_TreeItems.begin() );
@@ -102,12 +102,12 @@ template <class BS_, class SB_> class AbstractTreeCtrl : public BS_
       &&   ( openItems <= m_VisibleItems ) )
       {
         m_pScrollBar->SetSize( 0, m_pScrollBar->Height() );
-        m_pScrollBar->SetLocation( m_ClientRect.width(), 0 );
+        m_pScrollBar->SetLocation( m_ClientRect.Width(), 0 );
       }
       else
       {
         m_pScrollBar->SetSize( 20, m_pScrollBar->Height() );
-        m_pScrollBar->SetLocation( m_ClientRect.width() - 20, 0 );
+        m_pScrollBar->SetLocation( m_ClientRect.Width() - 20, 0 );
       }
 
       if ( openItems < visibleItems )
@@ -496,8 +496,8 @@ template <class BS_, class SB_> class AbstractTreeCtrl : public BS_
           break;
         case CET_SET_SIZE:
           BASECLASS::ProcessEvent( Event );
-          m_pScrollBar->SetLocation( m_ClientRect.size().x - m_pScrollBar->Width(), 0 );
-          m_pScrollBar->SetSize( m_pScrollBar->Width(), m_ClientRect.size().y );
+          m_pScrollBar->SetLocation( m_ClientRect.Width() - m_pScrollBar->Width(), 0 );
+          m_pScrollBar->SetSize( m_pScrollBar->Width(), m_ClientRect.Height() );
           UpdateScrollBar();
           return true;
         case CET_MOUSE_WHEEL:
@@ -633,7 +633,7 @@ template <class BS_, class SB_> class AbstractTreeCtrl : public BS_
             
             GR::tRect   rectList;
             GetListRect( rectList );
-            if ( rectList.contains( Event.Position ) )
+            if ( rectList.Contains( Event.Position ) )
             {
               tTree::iterator   it( m_itFirstVisibleItem );
 
@@ -643,7 +643,7 @@ template <class BS_, class SB_> class AbstractTreeCtrl : public BS_
               {
                 if ( GetItemRect( it, rectItem ) )
                 {
-                  if ( rectItem.contains( Event.Position ) )
+                  if ( rectItem.Contains( Event.Position ) )
                   {
                     m_itMouseOverItem = it;
 
@@ -674,7 +674,7 @@ template <class BS_, class SB_> class AbstractTreeCtrl : public BS_
                     }
                     break;
                   }
-                  else if ( rectItem.position().y >= Event.Position.y )
+                  else if ( rectItem.Top >= Event.Position.y )
                   {
                     break;
                   }
@@ -683,7 +683,7 @@ template <class BS_, class SB_> class AbstractTreeCtrl : public BS_
                   {
                     if ( GetToggleButtonRect( it, rectItem ) )
                     {
-                      if ( rectItem.contains( Event.Position ) )
+                      if ( rectItem.Contains( Event.Position ) )
                       {
                         ToggleItem( it );
                         m_ButtonReleased = false;
@@ -1138,28 +1138,28 @@ template <class BS_, class SB_> class AbstractTreeCtrl : public BS_
         return false;
       }
 
-      rectItem.position( iX, itemIndex * m_ItemHeight );
-      rectItem.size( m_ClientRect.size().x - m_pScrollBar->Width() - rectItem.position().x, m_ItemHeight );
+      rectItem.Position( iX, itemIndex * m_ItemHeight );
+      rectItem.Size( m_ClientRect.Width() - m_pScrollBar->Width() - rectItem.Left, m_ItemHeight );
 
-      if ( rectItem.position().y + rectItem.height() < 0 )
+      if ( rectItem.Top + rectItem.Height() < 0 )
       {
-        rectItem.size( 0, 0 );
-        rectItem.position( 0, 0 );
+        rectItem.Size( 0, 0 );
+        rectItem.Position( 0, 0 );
         return false;
       }
-      if ( rectItem.position().y >= m_ClientRect.height() )
+      if ( rectItem.Top >= m_ClientRect.Height() )
       {
-        rectItem.size( 0, 0 );
-        rectItem.position( 0, 0 );
+        rectItem.Size( 0, 0 );
+        rectItem.Position( 0, 0 );
         return false;
       }
-      if ( rectItem.position().y < 0 )
+      if ( rectItem.Top < 0 )
       {
-        rectItem.size( rectItem.size().x, rectItem.size().y + rectItem.position().y );
-        rectItem.position( rectItem.position().x, 0 );
+        rectItem.Size( rectItem.Width(), rectItem.Height() + rectItem.Top );
+        rectItem.Position( rectItem.Left, 0 );
       }
       /*
-      if ( rectItem.position().y + rectItem.size().y >= m_ClientRect.height() )
+      if ( rectItem.Top + rectItem.size().y >= m_ClientRect.height() )
       {
         rectItem.size( rectItem.width(), m_ClientRect.height() - rectItem.position().y );
       }
@@ -1197,8 +1197,8 @@ template <class BS_, class SB_> class AbstractTreeCtrl : public BS_
 
       int   iX = hItem.level() * m_LevelIndent;
 
-      TargetRect.position( iX, itemIndex * m_ItemHeight );
-      TargetRect.size( m_ItemHeight, m_ItemHeight );
+      TargetRect.Position( iX, itemIndex * m_ItemHeight );
+      TargetRect.Size( m_ItemHeight, m_ItemHeight );
       return true;
     }
 
@@ -1237,8 +1237,8 @@ template <class BS_, class SB_> class AbstractTreeCtrl : public BS_
 
       int   iX = hItem.level() * m_LevelIndent + m_ItemHeight;
 
-      TargetRect.position( iX, itemIndex * m_ItemHeight );
-      TargetRect.size( indent, m_ItemHeight );
+      TargetRect.Position( iX, itemIndex * m_ItemHeight );
+      TargetRect.Size( indent, m_ItemHeight );
       return true;
     }
 
@@ -1246,8 +1246,8 @@ template <class BS_, class SB_> class AbstractTreeCtrl : public BS_
 
     virtual void GetListRect( GR::tRect& TargetRect )
     {
-      TargetRect.position( 0, 0 );
-      TargetRect.size( m_ClientRect.width() - m_pScrollBar->Width(), m_ClientRect.height() );
+      TargetRect.Position( 0, 0 );
+      TargetRect.Size( m_ClientRect.Width() - m_pScrollBar->Width(), m_ClientRect.Height() );
     }
 
 

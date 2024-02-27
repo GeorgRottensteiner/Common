@@ -128,6 +128,9 @@ namespace GR
                           m_ClipRight,
                           m_ClipBottom;
 
+        int               m_XOffset;
+        int               m_YOffset;
+
         typedef void (ContextDescriptor::* PUTPIXELPROC)( int, int, GR::u32 );
         PUTPIXELPROC        PutPixelProc;
         typedef void (ContextDescriptor::* HLINEPROC)( int, int, int, GR::u32 );
@@ -186,7 +189,8 @@ namespace GR
         bool                      ConvertSelfTo( unsigned long dwDepth, int LineOffsetInBytes = 0, bool ColorKeying = false, GR::u32 TransparentColor = 0,
                                                  int X1 = 0, int Y1 = 0, int Width = 0, int Height = 0 );
 
-        void SetClipRect( int X1, int Y1, int X2, int Y2 );
+        void                      SetClipRect( int X1, int Y1, int X2, int Y2 );
+        void                      SetOffset( int X, int Y );
 
         // Direkt-Zugriff
         GR::u32                   GetDirectPixel( int X, int Y );

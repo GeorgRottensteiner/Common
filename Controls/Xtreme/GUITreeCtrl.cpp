@@ -142,22 +142,22 @@ void GUITreeCtrl::DisplayOnPage( GUIComponentDisplayer& Displayer )
           }
           else
           {
-            rectButton.inflate( -2, -2 );
+            rectButton.Inflate( -2, -2 );
 
             Displayer.DrawRect( GR::tPoint( rectButton.Left, rectButton.Top ), 
-                                GR::tPoint( rectButton.width(), rectButton.height() ),
+                                GR::tPoint( rectButton.Width(), rectButton.Height() ),
                                 GetSysColor( GUI::COL_WINDOWTEXT ) );
-            Displayer.DrawLine( GR::tPoint( rectButton.position().x + 2, 
-                                            rectButton.position().y + rectButton.height() / 2 ),
-                                GR::tPoint( rectButton.position().x + rectButton.width() - 2,
-                                            rectButton.position().y + rectButton.height() / 2 ),
+            Displayer.DrawLine( GR::tPoint( rectButton.Left + 2, 
+                                            rectButton.Top + rectButton.Height() / 2 ),
+                                GR::tPoint( rectButton.Left + rectButton.Width() - 2,
+                                            rectButton.Top + rectButton.Height() / 2 ),
                                 GetSysColor( GUI::COL_WINDOWTEXT ) );
             if ( IsItemCollapsed( it ) )
             {
-              Displayer.DrawLine( GR::tPoint( rectButton.position().x + rectButton.width() / 2, 
-                                              rectButton.position().y + 2 ),
-                                  GR::tPoint( rectButton.position().x + rectButton.width() / 2,
-                                              rectButton.position().y + rectButton.height() - 2 ),
+              Displayer.DrawLine( GR::tPoint( rectButton.Left + rectButton.Width() / 2,
+                                              rectButton.Top + 2 ),
+                                  GR::tPoint( rectButton.Left + rectButton.Width() / 2,
+                                              rectButton.Top + rectButton.Height() - 2 ),
                                   GetSysColor( GUI::COL_WINDOWTEXT ) );
             }
           }
@@ -173,20 +173,20 @@ void GUITreeCtrl::DisplayOnPage( GUIComponentDisplayer& Displayer )
       {
         Displayer.m_pActualRenderer->SetShader( XRenderer::ST_ALPHA_BLEND );
 
-        Displayer.DrawQuad( rectItem.position().x, 
-                            rectItem.position().y,
-                            rectItem.width(), 
-                            rectItem.height(),
+        Displayer.DrawQuad( rectItem.Left, 
+                            rectItem.Top,
+                            rectItem.Width(), 
+                            rectItem.Height(),
                             0x80ffffff );
       }
       else if ( it == m_itMouseOverItem )
       {
         Displayer.m_pActualRenderer->SetShader( XRenderer::ST_ALPHA_BLEND );
 
-        Displayer.DrawQuad( rectItem.position().x, 
-                            rectItem.position().y,
-                            rectItem.width(), 
-                            rectItem.height(),
+        Displayer.DrawQuad( rectItem.Left, 
+                            rectItem.Top,
+                            rectItem.Width(), 
+                            rectItem.Height(),
                             0x803030a0 );
       }
     }

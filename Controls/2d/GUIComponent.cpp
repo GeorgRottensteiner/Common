@@ -90,10 +90,10 @@ void GUIComponent::DisplayNonClientOnPage( GR::Graphic::GFXPage* pPage )
 
 void GUIComponent::DrawEdge( GR::Graphic::GFXPage* pPage, GR::u32 edgeType, GR::tRect& rectEdge )
 {
-  int   iX1 = rectEdge.position().x,
-        iY1 = rectEdge.position().y,
-        iX2 = iX1 + rectEdge.width() - 1,
-        iY2 = iY1 + rectEdge.height() - 1;
+  int   iX1 = rectEdge.Left,
+        iY1 = rectEdge.Top,
+        iX2 = iX1 + rectEdge.Width() - 1,
+        iY2 = iY1 + rectEdge.Height() - 1;
 
   GR::Graphic::ContextDescriptor    cdPage( pPage );
 
@@ -337,11 +337,11 @@ void GUIComponent::DrawText( GR::Graphic::GFXPage* pPage, const char* szText,
 
     GR::Strings::WrapText( m_pFont, m_Caption, origRect, vectText );
 
-    int   iY = rectText.position().y;
+    int   iY = rectText.Top;
 
     if ( ( tatType & GUI::AF_VCENTER ) == GUI::AF_VCENTER )
     {
-      iY += ( rectText.height() - 20 * (int)vectText.size() ) / 2;
+      iY += ( rectText.Height() - 20 * (int)vectText.size() ) / 2;
     }
     else if ( tatType & GUI::AF_BOTTOM )
     {
@@ -359,7 +359,7 @@ void GUIComponent::DrawText( GR::Graphic::GFXPage* pPage, const char* szText,
 
       if ( tatType & GUI::AF_CENTER )
       {
-        iX += ( rectText.width() - iLength ) / 2;
+        iX += ( rectText.Width() - iLength ) / 2;
       }
       else if ( tatType & GUI::AF_RIGHT )
       {
@@ -381,20 +381,20 @@ void GUIComponent::DrawText( GR::Graphic::GFXPage* pPage, const char* szText,
 
   if ( ( tatType & GUI::AF_CENTER ) == GUI::AF_CENTER )
   {
-    iX = ( rectText.width() - iTextWidth ) / 2;
+    iX = ( rectText.Width() - iTextWidth ) / 2;
   }
   else if ( tatType & GUI::AF_RIGHT )
   {
-    iX = rectText.width() - iTextWidth;
+    iX = rectText.Width() - iTextWidth;
   }
 
   if ( ( tatType & GUI::AF_VCENTER ) == GUI::AF_VCENTER )
   {
-    iY = ( rectText.height() - iTextHeight ) / 2;
+    iY = ( rectText.Height() - iTextHeight ) / 2;
   }
   else if ( tatType & GUI::AF_BOTTOM )
   {
-    iY = rectText.height() - iTextHeight;
+    iY = rectText.Height() - iTextHeight;
   }
 
   ( (GR::Font*)m_pFont )->PrintFont( pPage,

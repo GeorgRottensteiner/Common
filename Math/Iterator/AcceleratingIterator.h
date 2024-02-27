@@ -16,74 +16,81 @@ namespace math
 
       protected:
 
-        float       m_fStartValue,
-                    m_fEndValue,
-                    m_fElapsedTime;
+        float       m_StartValue,
+                    m_EndValue,
+                    m_ElapsedTime;
 
 
       public:
 
-        AcceleratingIterator() :
-          m_fStartValue( 0.0f ),
-          m_fEndValue( 1.0f ),
-          m_fElapsedTime( 0.0f )
+
+
+        AcceleratingIterator( float Start = 0.0f, float End = 1.0f, float Length = 1.0f ) :
+          m_StartValue( Start ),
+          m_EndValue( End ),
+          m_ElapsedTime( 0.0f )
         {
-          m_IteratorLength = 1.0f;
+          m_IteratorLength = Length;
         }
 
-        AcceleratingIterator( float fStart, float fEnd, float fLength ) :
-          m_fStartValue( fStart ),
-          m_fEndValue( fEnd ),
-          m_fElapsedTime( 0.0f )
-        {
-          m_IteratorLength = fLength;
-        }
 
-        void SetValues( float fStart, float fEnd, float fLength )
+
+        void SetValues( float Start, float End, float Length )
         {
-          m_fStartValue     = fStart;
-          m_fEndValue       = fEnd;
-          m_IteratorLength  = fLength;
+          m_StartValue      = Start;
+          m_EndValue        = End;
+          m_IteratorLength  = Length;
           Reset();
         }
 
-        float NextValue( const float fElapsedTime = 1.0f )
+
+
+        float NextValue( const float ElapsedTime = 1.0f )
         {
-          m_fElapsedTime += fElapsedTime;
+          m_ElapsedTime += ElapsedTime;
           return Value();
         }
+
+
 
         float Reset()
         {
-          m_fElapsedTime = 0.0f;
+          m_ElapsedTime = 0.0f;
           return Value();
         }
 
+
+
         float Value()
         {
-          if ( m_fElapsedTime >= m_IteratorLength )
+          if ( m_ElapsedTime >= m_IteratorLength )
           {
-            return m_fEndValue;
+            return m_EndValue;
           }
-          else if ( m_fElapsedTime <= 0.0f )
+          else if ( m_ElapsedTime <= 0.0f )
           {
-            return m_fStartValue;
+            return m_StartValue;
           }
 
-          return m_fStartValue + ( m_fEndValue - m_fStartValue ) * ( 1.0f - cosf( m_fElapsedTime / m_IteratorLength * 3.1415926f * 0.5f ) );
+          return m_StartValue + ( m_EndValue - m_StartValue ) * ( 1.0f - cosf( m_ElapsedTime / m_IteratorLength * 3.1415926f * 0.5f ) );
         }
+
+
 
         virtual bool Done()
         {
-          return ( m_fElapsedTime >= m_IteratorLength );
+          return ( m_ElapsedTime >= m_IteratorLength );
         }
 
     };
-  };
-};
 
 
-#endif // ACCELERATING_ITERATOR_H
+
+  }
+}
+
+
+#endif 
 
 
 

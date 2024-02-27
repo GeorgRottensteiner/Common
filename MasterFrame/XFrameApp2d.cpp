@@ -376,7 +376,7 @@ int XFrameApp2d::PreLoopRun()
   GR::IO::FileStream  ioIn( UserAppDataPath( "xtreme.cfg" ).c_str() );
   Load( ioIn );
 
-  m_EnvironmentDisplayRect.set( 0, 0, m_EnvironmentConfig.StartUpWidth, m_EnvironmentConfig.StartUpHeight );
+  m_EnvironmentDisplayRect.Set( 0, 0, m_EnvironmentConfig.StartUpWidth, m_EnvironmentConfig.StartUpHeight );
   if ( m_EnvironmentConfig.FixedSize )
   {
     // can't override resolution from previous save, reset to startup size
@@ -385,7 +385,7 @@ int XFrameApp2d::PreLoopRun()
   else
   {
     m_RenderFrame.SetSize( m_RenderFrame.m_DisplayMode.Width, m_RenderFrame.m_DisplayMode.Height );
-    m_EnvironmentDisplayRect.set( 0, 0, m_RenderFrame.m_DisplayMode.Width, m_RenderFrame.m_DisplayMode.Height );
+    m_EnvironmentDisplayRect.Set( 0, 0, m_RenderFrame.m_DisplayMode.Width, m_RenderFrame.m_DisplayMode.Height );
   }
   std::list<GR::String>::iterator    itCL( m_StartParameter.begin() );
   while ( itCL != m_StartParameter.end() )

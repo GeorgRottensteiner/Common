@@ -47,7 +47,7 @@ GR::String CProgramGroups::GetSystemFolder( const GR::Char* FolderName )
   {
     return GR::String();
   }
-  return Path::AddBackslash( systemFolder );
+  return Path::AddSeparator( systemFolder );
 }
 
 

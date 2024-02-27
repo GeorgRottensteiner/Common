@@ -27,7 +27,7 @@ void GUIComponentDisplayer::SetClipping( int X, int Y, int Width, int Height )
   {
     return;
   }
-  m_Clipping.set( X, Y, Width, Height );
+  m_Clipping.Set( X, Y, Width, Height );
 
   XViewport     viewPort = m_pActualRenderer->Viewport();
 
@@ -92,7 +92,7 @@ void GUIComponentDisplayer::SetClipping( int X, int Y, int Width, int Height )
 
 void GUIComponentDisplayer::SetOffset( int X, int Y )
 {
-  m_CurrentOffset.set( X, Y );
+  m_CurrentOffset.Set( X, Y );
 
   GR::tPoint      offset = VirtualToScreen( GR::tPoint( X, Y ) );
 
@@ -110,14 +110,11 @@ GR::tPoint GUIComponentDisplayer::GetOffset()
 
 void GUIComponentDisplayer::PushClipValues()
 {
-  //GR::tPoint    viewerOffset = m_pActualRenderer->Offset();
-  //viewerOffset = ScreenToVirtual( viewerOffset );
-
   GR::tPoint viewerOffset = m_CurrentOffset;
   StoreClipValues( m_Clipping.Left,
                    m_Clipping.Top,
-                   m_Clipping.width(),
-                   m_Clipping.height(),
+                   m_Clipping.Width(),
+                   m_Clipping.Height(),
                    viewerOffset.x,
                    viewerOffset.y );
 }
@@ -263,10 +260,10 @@ void GUIComponentDisplayer::DrawEdge( GR::u32 VisualStyle, const GR::tRect& rect
   {
     return;
   }
-  int   X1 = rectEdge.position().x,
-        Y1 = rectEdge.position().y,
-        X2 = X1 + rectEdge.size().x,
-        Y2 = Y1 + rectEdge.size().y;
+  int   X1 = rectEdge.Left,
+        Y1 = rectEdge.Top,
+        X2 = X1 + rectEdge.Width(),
+        Y2 = Y1 + rectEdge.Height();
 
   m_pActualRenderer->SetShader( XRenderer::ST_ALPHA_BLEND_AND_TEST );
 
@@ -319,10 +316,10 @@ void GUIComponentDisplayer::DrawEdge( GR::u32 VisualStyle,
   {
     return;
   }
-  int   X1 = rectEdge.position().x,
-    Y1 = rectEdge.position().y,
-    X2 = X1 + rectEdge.size().x,
-    Y2 = Y1 + rectEdge.size().y;
+  int   X1 = rectEdge.Left,
+        Y1 = rectEdge.Top,
+        X2 = X1 + rectEdge.Width(),
+        Y2 = Y1 + rectEdge.Height();
 
   m_pActualRenderer->SetShader( XRenderer::ST_ALPHA_BLEND_AND_TEST );
 
@@ -352,7 +349,7 @@ void GUIComponentDisplayer::DrawEdge( GR::u32 VisualStyle,
       {
         DrawTextureSectionHRepeat( X1 + Sections[GUI::BT_EDGE_TOP_LEFT].first.VisualWidth(),
                                    Y1,
-                                   rectEdge.size().x - Sections[GUI::BT_EDGE_TOP_LEFT].first.VisualWidth() - Sections[GUI::BT_EDGE_TOP_RIGHT].first.VisualWidth(),
+                                   rectEdge.Width() - Sections[GUI::BT_EDGE_TOP_LEFT].first.VisualWidth() - Sections[GUI::BT_EDGE_TOP_RIGHT].first.VisualWidth(),
                                    Sections[GUI::BT_EDGE_TOP].first,
                                    NCColor );
       }
@@ -361,7 +358,7 @@ void GUIComponentDisplayer::DrawEdge( GR::u32 VisualStyle,
         DrawTextureSection( X1 + Sections[GUI::BT_EDGE_TOP_LEFT].first.m_Width,
                             Y1, Sections[GUI::BT_EDGE_TOP].first,
                             NCColor,
-                            rectEdge.size().x - Sections[GUI::BT_EDGE_TOP_LEFT].first.VisualWidth() - Sections[GUI::BT_EDGE_TOP_RIGHT].first.VisualWidth() );
+                            rectEdge.Width() - Sections[GUI::BT_EDGE_TOP_LEFT].first.VisualWidth() - Sections[GUI::BT_EDGE_TOP_RIGHT].first.VisualWidth() );
       }
       DrawTextureSection( X2 - Sections[GUI::BT_EDGE_TOP_RIGHT].first.VisualWidth(),
                           Y1,
@@ -370,7 +367,7 @@ void GUIComponentDisplayer::DrawEdge( GR::u32 VisualStyle,
       {
         DrawTextureSectionVRepeat( X1,
                                    Y1 + Sections[GUI::BT_EDGE_TOP_LEFT].first.VisualHeight(),
-                                   rectEdge.size().y - 2 * Sections[GUI::BT_EDGE_TOP].first.VisualHeight(),
+                                   rectEdge.Height() - 2 * Sections[GUI::BT_EDGE_TOP].first.VisualHeight(),
                                    Sections[GUI::BT_EDGE_LEFT].first,
                                    NCColor );
       }
@@ -381,13 +378,13 @@ void GUIComponentDisplayer::DrawEdge( GR::u32 VisualStyle,
                             Sections[GUI::BT_EDGE_LEFT].first,
                             NCColor,
                             -1,
-                            rectEdge.size().y - 2 * Sections[GUI::BT_EDGE_TOP].first.VisualHeight() );
+                            rectEdge.Height() - 2 * Sections[GUI::BT_EDGE_TOP].first.VisualHeight() );
       }
       if ( VisualStyle & GUI::VFT_REPEAT_BORDER )
       {
         DrawTextureSectionVRepeat( X2 - Sections[GUI::BT_EDGE_RIGHT].first.VisualWidth(),
                                    Y1 + Sections[GUI::BT_EDGE_TOP_LEFT].first.VisualHeight(),
-                                   rectEdge.size().y - 2 * Sections[GUI::BT_EDGE_TOP].first.VisualHeight(),
+                                   rectEdge.Height() - 2 * Sections[GUI::BT_EDGE_TOP].first.VisualHeight(),
                                    Sections[GUI::BT_EDGE_RIGHT].first,
                                    NCColor );
       }
@@ -398,7 +395,7 @@ void GUIComponentDisplayer::DrawEdge( GR::u32 VisualStyle,
                             Sections[GUI::BT_EDGE_RIGHT].first,
                             NCColor,
                             -1,
-                            rectEdge.size().y - 2 * Sections[GUI::BT_EDGE_TOP].first.VisualHeight() );
+                            rectEdge.Height() - 2 * Sections[GUI::BT_EDGE_TOP].first.VisualHeight() );
       }
       DrawTextureSection( X1, Y2 - Sections[GUI::BT_EDGE_BOTTOM_LEFT].first.m_Height,
                           Sections[GUI::BT_EDGE_BOTTOM_LEFT].first, NCColor );
@@ -406,7 +403,7 @@ void GUIComponentDisplayer::DrawEdge( GR::u32 VisualStyle,
       {
         DrawTextureSectionHRepeat( X1 + Sections[GUI::BT_EDGE_TOP_LEFT].first.VisualWidth(),
                                    Y2 - Sections[GUI::BT_EDGE_BOTTOM].first.VisualHeight(),
-                                   rectEdge.size().x - Sections[GUI::BT_EDGE_TOP_LEFT].first.VisualWidth() - Sections[GUI::BT_EDGE_TOP_RIGHT].first.VisualWidth(),
+                                   rectEdge.Width() - Sections[GUI::BT_EDGE_TOP_LEFT].first.VisualWidth() - Sections[GUI::BT_EDGE_TOP_RIGHT].first.VisualWidth(),
                                    Sections[GUI::BT_EDGE_BOTTOM].first,
                                    NCColor );
       }
@@ -416,7 +413,7 @@ void GUIComponentDisplayer::DrawEdge( GR::u32 VisualStyle,
                             Y2 - Sections[GUI::BT_EDGE_BOTTOM].first.VisualHeight(),
                             Sections[GUI::BT_EDGE_BOTTOM].first,
                             NCColor,
-                            rectEdge.width() - Sections[GUI::BT_EDGE_BOTTOM_LEFT].first.VisualWidth() - Sections[GUI::BT_EDGE_BOTTOM_RIGHT].first.VisualWidth() );
+                            rectEdge.Width() - Sections[GUI::BT_EDGE_BOTTOM_LEFT].first.VisualWidth() - Sections[GUI::BT_EDGE_BOTTOM_RIGHT].first.VisualWidth() );
       }
       DrawTextureSection( X2 - Sections[GUI::BT_EDGE_BOTTOM_RIGHT].first.VisualWidth(),
                           Y2 - Sections[GUI::BT_EDGE_BOTTOM_RIGHT].first.VisualHeight(),
@@ -447,7 +444,7 @@ void GUIComponentDisplayer::DrawEdge( GR::u32 VisualStyle,
       DrawTextureSection( X1 + Sections[GUI::BT_SUNKEN_EDGE_TOP_LEFT].first.VisualWidth(),
                           Y1,
                           Sections[GUI::BT_SUNKEN_EDGE_TOP].first, NCColor,
-                          rectEdge.size().x - Sections[GUI::BT_SUNKEN_EDGE_TOP_LEFT].first.VisualWidth() - Sections[GUI::BT_SUNKEN_EDGE_TOP_RIGHT].first.VisualWidth() );
+                          rectEdge.Width() - Sections[GUI::BT_SUNKEN_EDGE_TOP_LEFT].first.VisualWidth() - Sections[GUI::BT_SUNKEN_EDGE_TOP_RIGHT].first.VisualWidth() );
       DrawTextureSection( X2 - Sections[GUI::BT_SUNKEN_EDGE_TOP_RIGHT].first.VisualWidth(),
                           Y1,
                           Sections[GUI::BT_SUNKEN_EDGE_TOP_RIGHT].first, NCColor );
@@ -455,16 +452,16 @@ void GUIComponentDisplayer::DrawEdge( GR::u32 VisualStyle,
                           Y1 + Sections[GUI::BT_SUNKEN_EDGE_TOP_LEFT].first.VisualHeight(),
                           Sections[GUI::BT_SUNKEN_EDGE_LEFT].first,
                           NCColor, -1,
-                          rectEdge.size().y - 2 * Sections[GUI::BT_SUNKEN_EDGE_TOP].first.VisualHeight() );
+                          rectEdge.Height() - 2 * Sections[GUI::BT_SUNKEN_EDGE_TOP].first.VisualHeight() );
       DrawTextureSection( X2 - Sections[GUI::BT_SUNKEN_EDGE_RIGHT].first.VisualWidth(),
                           Y1 + Sections[GUI::BT_SUNKEN_EDGE_TOP_LEFT].first.VisualHeight(),
-                          Sections[GUI::BT_SUNKEN_EDGE_RIGHT].first, NCColor, -1, rectEdge.size().y - 2 * Sections[GUI::BT_SUNKEN_EDGE_TOP].first.VisualHeight() );
+                          Sections[GUI::BT_SUNKEN_EDGE_RIGHT].first, NCColor, -1, rectEdge.Height() - 2 * Sections[GUI::BT_SUNKEN_EDGE_TOP].first.VisualHeight() );
       DrawTextureSection( X1, Y2 - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_LEFT].first.VisualHeight(),
                           Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_LEFT].first, NCColor );
       DrawTextureSection( X1 + Sections[GUI::BT_SUNKEN_EDGE_TOP_LEFT].first.VisualWidth(),
                           Y2 - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM].first.VisualHeight(),
                           Sections[GUI::BT_SUNKEN_EDGE_BOTTOM].first, NCColor,
-                          rectEdge.size().x - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_LEFT].first.VisualWidth() - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_RIGHT].first.VisualWidth() );
+                          rectEdge.Width() - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_LEFT].first.VisualWidth() - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_RIGHT].first.VisualWidth() );
       DrawTextureSection( X2 - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_RIGHT].first.VisualWidth(),
                           Y2 - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_RIGHT].first.VisualHeight(),
                           Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_RIGHT].first, NCColor );
@@ -527,11 +524,11 @@ void GUIComponentDisplayer::DrawText( Interface::IFont* pFontA,
       GUI::BreakText( pFont, Text, emptyRect, vectText );
     }
 
-    int   y = rectText.position().y;
+    int   y = rectText.Top;
 
     if ( ( TextAlignment & GUI::AF_VCENTER ) == GUI::AF_VCENTER )
     {
-      y += ( rectText.height() - 20 * (int)vectText.size() ) / 2;
+      y += ( rectText.Height() - 20 * (int)vectText.size() ) / 2;
     }
     else if ( TextAlignment & GUI::AF_BOTTOM )
     {
@@ -541,19 +538,17 @@ void GUIComponentDisplayer::DrawText( Interface::IFont* pFontA,
     std::vector<GR::String>::iterator    it( vectText.begin() );
     while ( it != vectText.end() )
     {
-      GR::String&    strText = *it;
-
-      int     x = rectText.Left;
-
-      int     iLength = pFont->TextLength( strText );
+      GR::String& text = *it;
+      int         x = rectText.Left;
+      int         length = pFont->TextLength( text );
 
       if ( ( TextAlignment & GUI::AF_CENTER ) == GUI::AF_CENTER )
       {
-        x += ( rectText.width() - iLength ) / 2;
+        x += ( rectText.Width() - length ) / 2;
       }
       else if ( TextAlignment & GUI::AF_RIGHT )
       {
-        x = rectText.Right - iLength;
+        x = rectText.Right - length;
       }
 
       GR::tPoint    textPos( XOffset + x, YOffset + y );
@@ -567,24 +562,24 @@ void GUIComponentDisplayer::DrawText( Interface::IFont* pFontA,
         {
           GR::tPoint    shadowPos( textPos );
 
-          shadowPos.offset( 1, 1 );
+          shadowPos.Offset( 1, 1 );
           shadowPos = VirtualToScreen( shadowPos );
-          m_pActualRenderer->RenderText2d( (XFont*)pFont, shadowPos.x, shadowPos.y, strText, scaleX, scaleY, 0xff000000 );
+          m_pActualRenderer->RenderText2d( (XFont*)pFont, shadowPos.x, shadowPos.y, text, scaleX, scaleY, 0xff000000 );
         }
         textPos = VirtualToScreen( textPos );
-        m_pActualRenderer->RenderText2d( (XFont*)pFont, textPos.x, textPos.y, strText, scaleX, scaleY, Color );
+        m_pActualRenderer->RenderText2d( (XFont*)pFont, textPos.x, textPos.y, text, scaleX, scaleY, Color );
       }
       else
       {
         if ( TextAlignment & GUI::AF_SHADOW_OFFSET )
         {
           GR::tPoint    shadowPos( textPos );
-          shadowPos.offset( 1, 1 );
+          shadowPos.Offset( 1, 1 );
           shadowPos = VirtualToScreen( shadowPos );
-          m_pActualRenderer->RenderText2d( (XFont*)pFont, shadowPos.x, shadowPos.y, strText, 0xff000000 );
+          m_pActualRenderer->RenderText2d( (XFont*)pFont, shadowPos.x, shadowPos.y, text, 0xff000000 );
         }
         textPos = VirtualToScreen( textPos );
-        m_pActualRenderer->RenderText2d( (XFont*)pFont, textPos.x, textPos.y, strText, Color );
+        m_pActualRenderer->RenderText2d( (XFont*)pFont, textPos.x, textPos.y, text, Color );
       }
       
       ++it;
@@ -612,10 +607,10 @@ void GUIComponentDisplayer::DrawText( Interface::IFont* pFontA,
 
   if ( TextAlignment & GUI::AF_SHADOW_OFFSET )
   {
-    ptShadow.offset( 1, 1 );
-    ptShadow.offset( XOffset, YOffset );
+    ptShadow.Offset( 1, 1 );
+    ptShadow.Offset( XOffset, YOffset );
   }
-  ptText.offset( XOffset, YOffset );
+  ptText.Offset( XOffset, YOffset );
   ptText = VirtualToScreen( ptText );
 
   if ( m_VirtualSize.x != 0 )
@@ -668,25 +663,25 @@ void GUIComponentDisplayer::DrawFocusRect( const GUIComponent& Component, const 
 
   m_pActualRenderer->SetTexture( 0, NULL );
   m_pActualRenderer->RenderQuad2d( displayRect.Left,
-                           displayRect.Top,
-                           1,
-                           displayRect.height(),
-                           Component.GetColor( GUI::COL_BACKGROUND ) );
+                                   displayRect.Top,
+                                   1,
+                                   displayRect.Height(),
+                                    Component.GetColor( GUI::COL_BACKGROUND ) );
   m_pActualRenderer->RenderQuad2d( displayRect.Left,
-                           displayRect.Top,
-                           displayRect.width(),
-                           1,
-                           Component.GetColor( GUI::COL_BACKGROUND ) );
-  m_pActualRenderer->RenderQuad2d( displayRect.Left + displayRect.width() - 1,
-                           displayRect.Top,
-                           1,
-                           rc.height(),
-                           Component.GetColor( GUI::COL_BACKGROUND ) );
+                                   displayRect.Top,
+                                   displayRect.Width(),
+                                   1,
+                                   Component.GetColor( GUI::COL_BACKGROUND ) );
+  m_pActualRenderer->RenderQuad2d( displayRect.Left + displayRect.Width() - 1,
+                                   displayRect.Top,
+                                   1,
+                                   rc.Height(),
+                                   Component.GetColor( GUI::COL_BACKGROUND ) );
   m_pActualRenderer->RenderQuad2d( displayRect.Left,
-                           displayRect.Top + displayRect.height() - 1,
-                           displayRect.width(),
-                           1,
-                           Component.GetColor( GUI::COL_BACKGROUND ) );
+                                   displayRect.Top + displayRect.Height() - 1,
+                                   displayRect.Width(),
+                                   1,
+                                   Component.GetColor( GUI::COL_BACKGROUND ) );
 }
 
 
@@ -726,11 +721,11 @@ void GUIComponentDisplayer::DrawTextScaled( Interface::IFont* pFontA,
 
     GUI::WrapText( pFont, Text, rectText, vectText );
 
-    int   iY = rectText.position().y;
+    int   iY = rectText.Top;
 
     if ( ( TextAlignment & GUI::AF_VCENTER ) == GUI::AF_VCENTER )
     {
-      iY += (int)( ( ( rectText.height() - 20 * (int)vectText.size() ) / 2 ) * ScaleFaktor );
+      iY += (int)( ( ( rectText.Height() - 20 * (int)vectText.size() ) / 2 ) * ScaleFaktor );
     }
     else if ( TextAlignment & GUI::AF_BOTTOM )
     {
@@ -740,22 +735,21 @@ void GUIComponentDisplayer::DrawTextScaled( Interface::IFont* pFontA,
     std::vector<GR::String>::iterator    it( vectText.begin() );
     while ( it != vectText.end() )
     {
-      GR::String&    strText = *it;
+      GR::String&    text = *it;
 
-      int     iX = rectText.Left;
-
-      int     iLength = pFont->TextLength( strText );
+      int     x = rectText.Left;
+      int     length = pFont->TextLength( text );
 
       if ( TextAlignment & GUI::AF_CENTER )
       {
-        iX += (int)( ( ( rectText.width() - iLength ) / 2 ) * ScaleFaktor );
+        x += (int)( ( ( rectText.Width() - length ) / 2 ) * ScaleFaktor );
       }
       else if ( TextAlignment & GUI::AF_RIGHT )
       {
-        iX = (int)( rectText.Right - iLength * ScaleFaktor );
+        x = (int)( rectText.Right - length * ScaleFaktor );
       }
 
-      m_pActualRenderer->RenderText2d( pFont, XOffset + iX, YOffset + iY, strText, ScaleFaktor, ScaleFaktor, Color );
+      m_pActualRenderer->RenderText2d( pFont, XOffset + x, YOffset + iY, text, ScaleFaktor, ScaleFaktor, Color );
       ++it;
       iY += (int)( ( pFont->TextHeight() ) * ScaleFaktor );
     }
@@ -805,12 +799,12 @@ void GUIComponentDisplayer::DrawTiled( int OffsetX, int OffsetY, const GR::tRect
   {
     return;
   }
-  int     xRest = Rect.width() % Section.m_Width;
-  int     yRest = Rect.height() % Section.m_Height;
+  int     xRest = Rect.Width() % Section.m_Width;
+  int     yRest = Rect.Height() % Section.m_Height;
 
-  for ( int i = 0; i < Rect.width() / Section.m_Width; ++i )
+  for ( int i = 0; i < Rect.Width() / Section.m_Width; ++i )
   {
-    for ( int j = 0; j < Rect.height() / Section.m_Height; ++j )
+    for ( int j = 0; j < Rect.Height() / Section.m_Height; ++j )
     {
       m_pActualRenderer->RenderTextureSection2d( OffsetX + Rect.Left + i * Section.m_Width,
                                        OffsetY + Rect.Top + j * Section.m_Height,
@@ -819,7 +813,7 @@ void GUIComponentDisplayer::DrawTiled( int OffsetX, int OffsetY, const GR::tRect
       if ( xRest != 0 )
       {
         XTextureSection   xSection( Section.m_pTexture, Section.m_XOffset, Section.m_YOffset, xRest, Section.m_Height, Section.m_Flags );
-        m_pActualRenderer->RenderTextureSection2d( OffsetX + Rect.Left + ( Rect.width() / Section.m_Width ) * Section.m_Width,
+        m_pActualRenderer->RenderTextureSection2d( OffsetX + Rect.Left + ( Rect.Width() / Section.m_Width ) * Section.m_Width,
                                            OffsetY + Rect.Top + j * Section.m_Height,
                                            xSection,
                                            Color );
@@ -829,7 +823,7 @@ void GUIComponentDisplayer::DrawTiled( int OffsetX, int OffsetY, const GR::tRect
     {
       XTextureSection   ySection( Section.m_pTexture, Section.m_XOffset, Section.m_YOffset, Section.m_Width, yRest, Section.m_Flags );
       m_pActualRenderer->RenderTextureSection2d( OffsetX + Rect.Left + i * Section.m_Width,
-                                       OffsetY + Rect.Top + ( Rect.height() / Section.m_Height ) * Section.m_Height,
+                                       OffsetY + Rect.Top + ( Rect.Height() / Section.m_Height ) * Section.m_Height,
                                        ySection,
                                        Color );
     }
@@ -838,8 +832,8 @@ void GUIComponentDisplayer::DrawTiled( int OffsetX, int OffsetY, const GR::tRect
   &&   ( yRest != 0 ) )
   {
     XTextureSection   restSection( Section.m_pTexture, Section.m_XOffset, Section.m_YOffset, xRest, yRest, Section.m_Flags );
-    m_pActualRenderer->RenderTextureSection2d( OffsetX + Rect.Left + ( Rect.width() / Section.m_Width ) * Section.m_Width,
-                                     OffsetY + Rect.Top + ( Rect.height() / Section.m_Height ) * Section.m_Height,
+    m_pActualRenderer->RenderTextureSection2d( OffsetX + Rect.Left + ( Rect.Width() / Section.m_Width ) * Section.m_Width,
+                                     OffsetY + Rect.Top + ( Rect.Height() / Section.m_Height ) * Section.m_Height,
                                      restSection,
                                      Color );
   }

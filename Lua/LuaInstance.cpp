@@ -50,23 +50,26 @@ void LuaInstance::LuaInit()
   Pop();    // remove lib
   luaL_requiref( m_LuaInstance, "table", luaopen_table, 1 );
   Pop();    // remove lib
-
+  luaL_requiref( m_LuaInstance, "math", luaopen_math, 1 );
+  Pop();    // remove lib
 
   Pop( GetTop() );
 
   DoString( CMisc::printf( "LuaHandler = %d", this ) );
 
-  DoString( "function LuaCreateThread( Func )\n"
+  DoString( "function LuaCreateThread( Func, UserData )\n"
             "  if ( Func == nil ) then\n"
             "    return 1;\n"
             "  end\n"
-            "  if ( globalCounter == nil ) then"
-            "    globalCounter = 0;"
-            "  end"
-            "  local newName = \"threadFuncglob\" .. globalCounter;"
+            "  if ( globalCounter == nil ) then\n"
+            "    globalCounter = 0;\n"
+            "  else\n"
+            "    globalCounter = globalCounter + 1;\n"
+            "  end\n"
+            "  local newName = \"threadFuncglob\" .. globalCounter;\n"
             "  newThread = coroutine.create( Func );\n"
             "  _G[newName] = newThread;\n"
-            "  local rresult, second_value = coroutine.resume( newThread, 0 );\n"
+            "  local rresult, second_value = coroutine.resume( newThread, 0, UserData );\n"
             "  if ( not rresult ) then\n"
             "    --Ein Fehler!\n"
             "    _ALERT( second_value );\n"
@@ -77,7 +80,7 @@ void LuaInstance::LuaInit()
             "    newThread = nil;\n"
             "    return 1;\n"
             "  end\n"
-            "  LuaAddThread( newName );\n"
+            "  LuaAddThread( newName, UserData );\n"
             "  return 0;\n"
             "end\n" );
 
@@ -258,9 +261,19 @@ void LuaInstance::LuaShutDown()
 
 bool LuaInstance::StartThread( const GR::String& ThreadName, const GR::String& Function )
 {
+  static int      threadCounter2 = 0;
+  GR::String      threadName = ThreadName;
+  int             newValue = ++threadCounter2;
+
+  if ( threadName.empty() )
+  {
+    threadName = Misc::Format( "TempThreadFunc2_%1%" ) << threadCounter2;
+  }
+
+
   GR::String     varName = "Thread";
   
-  varName += ThreadName;
+  varName += threadName;
 
   DoString( GR::String( "function LuaStartThread( Func )\n"
             "  if ( Func == nil ) then\n"
@@ -282,7 +295,7 @@ bool LuaInstance::StartThread( const GR::String& ThreadName, const GR::String& F
             "  return 0;\n"
             "end\n" ).c_str() );
 
-  return DoString( "LuaStartThread( " + Function + ");" );
+  return DoString( "LuaStartThread( " + Function + " );" );
 }
 
 
@@ -351,6 +364,10 @@ GR::String LuaInstance::StartScriptAsThread( const GR::String& Script, const GR:
 
   if ( !ThisVariable.empty() )
   {
+    if ( m_ThreadThis.find( threadName ) != m_ThreadThis.end() )
+    {
+      dh::Log( "StartScriptAsThread duplicate thread name %s", threadName.c_str() );
+    }
     m_ThreadThis[threadName] = ThisVariable;
   }
 
@@ -361,16 +378,17 @@ GR::String LuaInstance::StartScriptAsThread( const GR::String& Script, const GR:
 
 int LuaInstance::AddThread( lua_State* L )
 {
-  if ( !lua_isstring( L, -1 ) )
+  int     top = lua_gettop( L );
+
+  if ( !lua_isstring( L, -top ) )
   {
-    dh::Log( "AddThread, expected string with function name (got %s instead)", lua_typename( L, lua_type( L, -1 ) ) );
-    lua_pop( L, 1 );
+    dh::Log( "AddThread, expected string with function name (got %s instead)", lua_typename( L, lua_type( L, -top ) ) );
+    lua_pop( L, top );
     return 0;
   }
 
-  GR::String     threadName = lua_tostring( L, -1 );
-
-  lua_pop( L, 1 );
+  GR::String     threadName = lua_tostring( L, -top );
+  lua_pop( L, lua_gettop( L ) );
 
   lua_getglobal( L, "LuaHandler" );
   LuaInstance*   pLuaHandler = (LuaInstance*)(GR::up)lua_tonumber( L, -1 );
@@ -441,13 +459,10 @@ void LuaInstance::ResumeThreads( const float ElapsedTime )
     lua_pushnumber( m_LuaInstance, ElapsedTime );
 
     int error = lua_pcall( m_LuaInstance, 2, 1, 0 );
-
     if ( error )
     {
       GR::String   errorMsg = lua_tostring( m_LuaInstance, -1 );
       lua_pop( m_LuaInstance, 1 );
-      
-      dh::Log( "Thread (%s) error %s\n", threadName.c_str(), errorMsg.c_str() );
 
       // Thread ist kaputt
       it = m_Threads.erase( it );
@@ -604,6 +619,13 @@ bool LuaInstance::ToBoolean( int Index )
 
 
 
+bool LuaInstance::IsFunction( int Index )
+{
+  return lua_isfunction( m_LuaInstance, Index );
+}
+
+
+
 GR::String LuaInstance::GetGlobal( const GR::String& VarName )
 {
   lua_getglobal( m_LuaInstance, VarName.c_str() );
@@ -611,6 +633,66 @@ GR::String LuaInstance::GetGlobal( const GR::String& VarName )
   lua_pop( m_LuaInstance, 1 );
 
   return strResult;
+}
+
+
+
+bool LuaInstance::VariableExists( const GR::String& VarName )
+{
+  size_t      oldPos = 0;
+  int         truePushedParamCount = 0;
+  GR::String  lastTable;
+
+  while ( true )
+  {
+    size_t      dotPos = VarName.find( '.', oldPos );
+
+    if ( dotPos == GR::String::npos )
+    {
+      // reine Variable
+      if ( truePushedParamCount == 0 )
+      {
+        lua_getglobal( m_LuaInstance, VarName.c_str() );
+
+        bool  exists = !IsNil( -1 );
+
+        PopAll();
+
+        return exists;
+      }
+      PushString( VarName.substr( oldPos ) );
+      ++truePushedParamCount;
+
+      lua_rawget( m_LuaInstance, -2 );
+
+      bool  exists = !IsNil( -1 );
+
+      PopAll();
+
+      return exists;
+    }
+
+    lastTable = VarName.substr( oldPos, dotPos - oldPos );
+    ++truePushedParamCount;
+    if ( truePushedParamCount == 1 )
+    {
+      // fetch from the global table
+      lua_getglobal( m_LuaInstance, lastTable.c_str() );
+    }
+    else
+    {
+      PushString( lastTable );
+      lua_rawget( m_LuaInstance, -2 );
+    }
+    if ( !lua_istable( m_LuaInstance, -1 ) )
+    {
+      PopAll();
+      dh::Log( "LuaInstance:GetVar - no table %s", VarName.substr( 0, dotPos ).c_str() );
+      return false;
+    }
+
+    oldPos = dotPos + 1;
+  }
 }
 
 
@@ -1009,3 +1091,30 @@ void LuaInstance::DumpStack()
     dh::Log( "Type: (%s)", lua_typename( m_LuaInstance, lua_type( m_LuaInstance, -1 - i ) ) );
   }
 }
+
+
+
+bool LuaInstance::CallFunction( const GR::String& FunctionName )
+{
+  lua_getglobal( m_LuaInstance, FunctionName.c_str() );
+  if ( !lua_isfunction( m_LuaInstance, -1 ) )
+  {
+    dh::Log( "Variable '%s' does either not exist or is not a function", FunctionName.c_str() );
+    PopAll();
+    return false;
+  }
+
+  int error = lua_pcall( m_LuaInstance, 0, LUA_MULTRET, 0 );
+  if ( error )
+  {
+    GR::String   errorMessage = ToString( -1 );
+    PopAll();
+
+    dh::Log( "CallFunction '%s', error %s", FunctionName.c_str(), errorMessage.c_str() );
+    return false;
+  }
+  int   numTop = GetTop();
+  return true;
+}
+
+

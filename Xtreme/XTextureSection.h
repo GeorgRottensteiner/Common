@@ -76,10 +76,10 @@ struct XTextureSection
   {
     if ( m_pTexture == NULL )
     {
-      UV1.set( 0.0f, 0.0f );
-      UV2.set( 0.0f, 0.0f );
-      UV3.set( 0.0f, 0.0f );
-      UV4.set( 0.0f, 0.0f );
+      UV1.Set( 0.0f, 0.0f );
+      UV2.Set( 0.0f, 0.0f );
+      UV3.Set( 0.0f, 0.0f );
+      UV4.Set( 0.0f, 0.0f );
       return;
     }
 

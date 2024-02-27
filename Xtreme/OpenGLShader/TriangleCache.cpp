@@ -61,13 +61,13 @@ void TriangleCache::AddEntry( XTexture* pTexture,
   auto&   v3 = Vertices[m_UsedVertices + 2];
 
   v1.Pos      = Pos1;
-  v1.TextureCoord.set( TU1, TV1 );
+  v1.TextureCoord.Set( TU1, TV1 );
   v1.SetColor( Color1 );
   v2.Pos = Pos2;
-  v2.TextureCoord.set( TU2, TV2 );
+  v2.TextureCoord.Set( TU2, TV2 );
   v2.SetColor( Color2 );
   v3.Pos = Pos3;
-  v3.TextureCoord.set( TU3, TV3 );
+  v3.TextureCoord.Set( TU3, TV3 );
   v3.SetColor( Color3 );
 
   math::vector3     vectDummy1,

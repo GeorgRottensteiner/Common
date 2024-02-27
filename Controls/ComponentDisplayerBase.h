@@ -187,6 +187,8 @@ namespace GUI
       bool IsVisible( Component* pComponent );
       virtual bool ProcessEvent( const GUI::ComponentEvent& Event );
 
+      virtual void Invalidate( Component* pComponent );
+
       void SetDefaultFont( Interface::IFont* pFont );
       Interface::IFont* DefaultFont() const;
 

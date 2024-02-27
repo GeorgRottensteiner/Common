@@ -50,8 +50,8 @@ namespace math
             return pChild[1]->Insert( NewSectionID, ptSize );
           }
           // if we're too small, return
-          if ( ( ptSize.x > Rectangle.width() )
-          ||   ( ptSize.y > Rectangle.height() ) )
+          if ( ( ptSize.x > Rectangle.Width() )
+          ||   ( ptSize.y > Rectangle.Height() ) )
           {
             // img doesn't fit in pnode->rect
             return NULL;
@@ -62,8 +62,8 @@ namespace math
           {
             return NULL;
           }
-          if ( ( ptSize.x == Rectangle.width() )
-          &&   ( ptSize.y == Rectangle.height() ) )
+          if ( ( ptSize.x == Rectangle.Width() )
+          &&   ( ptSize.y == Rectangle.Height() ) )
           {
             // if we're just right, accept
             // if img fits perfectly in pnode->rect
@@ -76,20 +76,20 @@ namespace math
           pChild[1] = new Node();
           
           // decide which way to split
-          int dw = Rectangle.width() - ptSize.x;
-          int dh = Rectangle.height() - ptSize.y;
+          int dw = Rectangle.Width() - ptSize.x;
+          int dh = Rectangle.Height() - ptSize.y;
           
           if ( dw > dh )
           {
-            pChild[0]->Rectangle.set( Rectangle.Left, Rectangle.Top, ptSize.x, Rectangle.height() );
-            pChild[1]->Rectangle.set( Rectangle.Left + ptSize.x, Rectangle.Top, 
-                                      Rectangle.width() - ptSize.x, Rectangle.height() );
+            pChild[0]->Rectangle.Set( Rectangle.Left, Rectangle.Top, ptSize.x, Rectangle.Height() );
+            pChild[1]->Rectangle.Set( Rectangle.Left + ptSize.x, Rectangle.Top, 
+                                      Rectangle.Width() - ptSize.x, Rectangle.Height() );
           }
           else
           {
-            pChild[0]->Rectangle.set( Rectangle.Left, Rectangle.Top, Rectangle.width(), ptSize.y );
-            pChild[1]->Rectangle.set( Rectangle.Left, Rectangle.Top + ptSize.y, 
-                                      Rectangle.width(), Rectangle.height() - ptSize.y );
+            pChild[0]->Rectangle.Set( Rectangle.Left, Rectangle.Top, Rectangle.Width(), ptSize.y );
+            pChild[1]->Rectangle.Set( Rectangle.Left, Rectangle.Top + ptSize.y, 
+                                      Rectangle.Width(), Rectangle.Height() - ptSize.y );
           }
           
           // insert into first child we created

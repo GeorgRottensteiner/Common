@@ -29,11 +29,11 @@ void GUIImage::DisplayOnPage( GUIComponentDisplayer& Displayer )
     if ( ( ( m_Image.m_Flags & XTextureSection::TSF_ROTATE_270 ) != 0 )
     &&   ( ( m_Image.m_Flags & XTextureSection::TSF_ROTATE_270 ) != XTextureSection::TSF_ROTATE_180 ) )
     {
-      Displayer.DrawTextureSection( 0, 0, m_Image, GetColor( GUI::COL_BTNFACE ), rcClient.height(), rcClient.width(), m_Image.m_Flags );
+      Displayer.DrawTextureSection( 0, 0, m_Image, GetColor( GUI::COL_BTNFACE ), rcClient.Height(), rcClient.Width(), m_Image.m_Flags );
     }
     else
     {
-      Displayer.DrawTextureSection( 0, 0, m_Image, GetColor( GUI::COL_BTNFACE ), rcClient.width(), rcClient.height() );
+      Displayer.DrawTextureSection( 0, 0, m_Image, GetColor( GUI::COL_BTNFACE ), rcClient.Width(), rcClient.Height() );
     }
   }
 }

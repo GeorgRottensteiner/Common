@@ -91,7 +91,7 @@ void GUIButton::DisplayOnPage( GUIComponentDisplayer& Displayer )
   {
     if ( IsPushed() )
     {
-      rc.offset( m_PushedTextOffset );
+      rc.Offset( m_PushedTextOffset );
     }
     GR::u32       Color = GetColor( GUI::COL_BTNTEXT );
     if ( ( IsMouseInside() )
@@ -123,7 +123,7 @@ void GUIButton::DisplayOnPage( GUIComponentDisplayer& Displayer )
   if ( IsFocused() )
   {
     GetClientRect( rc );
-    rc.inflate( -1, -1 );
+    rc.Inflate( -1, -1 );
     Displayer.DrawFocusRect( VisualStyle(), rc );
   }
 }

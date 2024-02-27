@@ -83,6 +83,8 @@ namespace Win
 
     HANDLE                CreateHDIBFromImage( const GR::Graphic::ImageData& Image );
 
+    bool                  IsRemoteDesktopSession();
+
   }
 }
 

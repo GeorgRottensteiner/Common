@@ -7,8 +7,8 @@ GUI_IMPLEMENT_CLONEABLE( GUIEdit, "Edit" )
 
 
 
-GUIEdit::GUIEdit( int iNewX, int iNewY, int iNewWidth, int iNewHeight, GR::u32 efType, GR::u32 dwId ) :
-  AbstractEdit<GUIComponent, GUIScrollBar, GUISlider, GUIButton>( iNewX, iNewY, iNewWidth, iNewHeight, efType, dwId )
+GUIEdit::GUIEdit( int NewX, int NewY, int NewWidth, int NewHeight, GR::u32 EditFlags, GR::u32 Id ) :
+  AbstractEdit<GUIComponent, GUIScrollBar, GUISlider, GUIButton>( NewX, NewY, NewWidth, NewHeight, EditFlags, Id )
 {
   m_TextAlignment = GUI::AF_LEFT | GUI::AF_VCENTER;
 
@@ -32,64 +32,63 @@ void GUIEdit::DisplayOnPage( GUIComponentDisplayer& Displayer )
   {
     if ( IsEnabled() )
     {
-      Displayer.DrawQuad( rc.Left, rc.Top, rc.width(), rc.height(), GetColor( GUI::COL_WINDOW ) );
+      Displayer.DrawQuad( rc.Left, rc.Top, rc.Width(), rc.Height(), GetColor( GUI::COL_WINDOW ) );
     }
     else
     {
-      Displayer.DrawQuad( rc.Left, rc.Top, rc.width(), rc.height(), GetColor( GUI::COL_BTNFACE ) );
+      Displayer.DrawQuad( rc.Left, rc.Top, rc.Width(), rc.Height(), GetColor( GUI::COL_BTNFACE ) );
     }
   }
 
   // Cursor
   if ( GetCursorRect( rc ) )
   {
-    Displayer.DrawQuad( rc.Left, rc.Top, rc.width(), rc.height(), GetColor( GUI::COL_CURSOR ) );
+    Displayer.DrawQuad( rc.Left, rc.Top, rc.Width(), rc.Height(), GetColor( GUI::COL_CURSOR ) );
   }
 
-  size_t    iVisibleLines = 1;
+  size_t    visibleLines = 1;
 
   if ( m_pFont )
   {
-    int   TextHeight = m_pFont->TextHeight();
-    if ( TextHeight )
+    int   textHeight = m_pFont->TextHeight();
+    if ( textHeight )
     {
-      iVisibleLines = m_ClientRect.height() / m_pFont->TextHeight();
+      visibleLines = m_ClientRect.Height() / m_pFont->TextHeight();
     }
-    if ( iVisibleLines == 0 )
+    if ( visibleLines == 0 )
     {
-      iVisibleLines = 1;
+      visibleLines = 1;
     }
   }
 
   // Selektionshintergrund
-  int   iTextStartY = 0;
+  int   textStartY = 0;
 
-  int     iTextHeight = Height();
+  int     textHeight = Height();
 
   if ( m_pFont )
   {
-    iTextHeight = m_pFont->TextHeight();
+    textHeight = m_pFont->TextHeight();
   }
   if ( Style() & ECS_MULTILINE )
   {
-    //iTextStartY = (int)( m_iCursorLine - m_iTextOffsetLine ) * iTextHeight;
-    iTextStartY = 0;
+    textStartY = 0;
   }
   else
   {
-    iTextStartY = ( m_ClientRect.height() - iTextHeight ) / 2;
+    textStartY = ( m_ClientRect.Height() - textHeight ) / 2;
   }
 
-  int       iY = iTextStartY;
+  int       y = textStartY;
   if ( HasSelection() )
   {
-    for ( size_t iLine = 0; iLine < iVisibleLines; ++iLine )
+    for ( size_t lineIndex = 0; lineIndex < visibleLines; ++lineIndex )
     {
-      if ( iLine >= m_Text.size() )
+      if ( lineIndex >= m_Text.size() )
       {
         break;
       }
-      GR::String&   strLine = m_Text[m_TextOffsetLine + iLine];
+      GR::String&   line = m_Text[m_TextOffsetLine + lineIndex];
 
       GR::tPoint    ptSelStart( m_SelectionAnchor, m_SelectionAnchorLine );
       GR::tPoint    ptSelEnd( (int)m_CursorPosInText, (int)m_CursorLine );
@@ -103,114 +102,114 @@ void GUIEdit::DisplayOnPage( GUIComponentDisplayer& Displayer )
         ptSelEnd = ptTemp;
       }
 
-      int    iCurLine = (int)( m_TextOffsetLine + iLine );
+      int    curLine = (int)( m_TextOffsetLine + lineIndex );
 
-      if ( ( iCurLine < ptSelStart.y )
-      ||   ( iCurLine > ptSelEnd.y ) )
+      if ( ( curLine < ptSelStart.y )
+      ||   ( curLine > ptSelEnd.y ) )
       {
         // ausserhalb der Selection
       }
-      else if ( ( iCurLine > ptSelStart.y )
-      &&        ( iCurLine < ptSelEnd.y ) )
+      else if ( ( curLine > ptSelStart.y )
+      &&        ( curLine < ptSelEnd.y ) )
       {
         // komplett innerhalb der Selection
-        Displayer.DrawQuad( 0, iY, m_pFont->TextLength( strLine.substr( m_TextOffset ).c_str() ),
+        Displayer.DrawQuad( 0, y, m_pFont->TextLength( line.substr( m_TextOffset ).c_str() ),
                                  m_pFont->TextHeight(),
                                  GetColor( GUI::COL_HIGHLIGHT ) );
       }
       else
       {
-        if ( ( iCurLine == ptSelStart.y )
-        &&   ( iCurLine == ptSelEnd.y ) )
+        if ( ( curLine == ptSelStart.y )
+        &&   ( curLine == ptSelEnd.y ) )
         {
           // Selektion komplett innerhalb einer Zeile
           if ( ptSelEnd.x >= (int)m_TextOffset )
           {
-            int     iX1 = ptSelStart.x;
-            if ( iX1 < (int)m_TextOffset )
+            int     x1 = ptSelStart.x;
+            if ( x1 < (int)m_TextOffset )
             {
-              iX1 = (int)m_TextOffset;
+              x1 = (int)m_TextOffset;
             }
-            int   iDeltaX = 0;
+            int   deltaX = 0;
             if ( m_pFont )
             {
-              iDeltaX += m_pFont->TextLength( strLine.substr( m_TextOffset, iX1 - m_TextOffset ).c_str() );
-              if ( iDeltaX )
+              deltaX += m_pFont->TextLength( line.substr( m_TextOffset, x1 - m_TextOffset ).c_str() );
+              if ( deltaX )
               {
-                iDeltaX += m_pFont->FontSpacing();
+                deltaX += m_pFont->FontSpacing();
               }
-              Displayer.DrawQuad( iDeltaX, iY,
-                                   m_pFont->TextLength( strLine.substr( iX1, ptSelEnd.x - iX1 ).c_str() ),
+              Displayer.DrawQuad( deltaX, y,
+                                   m_pFont->TextLength( line.substr( x1, ptSelEnd.x - x1 ).c_str() ),
                                    m_pFont->TextHeight(),
                                    GetColor( GUI::COL_HIGHLIGHT ) );
             }
           }
         }
-        else if ( iCurLine == ptSelStart.y )
+        else if ( curLine == ptSelStart.y )
         {
           // Selektion beginnt hier
-          int   iDeltaX = 0;
+          int   deltaX = 0;
           if ( ptSelStart.x > (int)m_TextOffset )
           {
-            iDeltaX = m_pFont->TextLength( strLine.substr( m_TextOffset, ptSelStart.x - m_TextOffset ).c_str() );
-            if ( iDeltaX )
+            deltaX = m_pFont->TextLength( line.substr( m_TextOffset, ptSelStart.x - m_TextOffset ).c_str() );
+            if ( deltaX )
             {
-              iDeltaX += m_pFont->FontSpacing();
+              deltaX += m_pFont->FontSpacing();
             }
           }
-          if ( ptSelStart.x < (int)strLine.length() )
+          if ( ptSelStart.x < (int)line.length() )
           {
-            Displayer.DrawQuad( iDeltaX, iY,
-                                    m_pFont->TextLength( strLine.substr( ptSelStart.x, strLine.length() - ptSelStart.x ).c_str() ),
+            Displayer.DrawQuad( deltaX, y,
+                                    m_pFont->TextLength( line.substr( ptSelStart.x, line.length() - ptSelStart.x ).c_str() ),
                                     m_pFont->TextHeight(),
                                     GetColor( GUI::COL_HIGHLIGHT ) );
           }
         }
-        else if ( iCurLine == ptSelEnd.y )
+        else if ( curLine == ptSelEnd.y )
         {
           // Selektion endet hier
           if ( ( ptSelEnd.x > (int)m_TextOffset )
-          &&   ( m_TextOffset < strLine.length() ) )
+          &&   ( m_TextOffset < line.length() ) )
           {
-            int   iDeltaX = m_pFont->TextLength( strLine.substr( m_TextOffset, ptSelEnd.x - m_TextOffset ).c_str() );
-            if ( iDeltaX )
+            int   deltaX = m_pFont->TextLength( line.substr( m_TextOffset, ptSelEnd.x - m_TextOffset ).c_str() );
+            if ( deltaX )
             {
-              iDeltaX += m_pFont->FontSpacing();
+              deltaX += m_pFont->FontSpacing();
             }
 
-            Displayer.DrawQuad( 0, iY,
-                                    iDeltaX, m_pFont->TextHeight(),
+            Displayer.DrawQuad( 0, y,
+                                    deltaX, m_pFont->TextHeight(),
                                     GetColor( GUI::COL_HIGHLIGHT ) );
           }
         }
       }
-      iY += m_pFont->TextHeight();
+      y += m_pFont->TextHeight();
     }
   }
 
-  iY = 0;
+  y = 0;
   if ( Style() & ECS_MULTILINE )
   {
-    iTextStartY = (int)( m_CursorLine - m_TextOffsetLine ) * iTextHeight;
+    textStartY = (int)( m_CursorLine - m_TextOffsetLine ) * textHeight;
   }
 
-  for ( size_t iLine = 0; iLine < iVisibleLines; ++iLine )
+  for ( size_t lineIndex = 0; lineIndex < visibleLines; ++lineIndex )
   {
-    if ( m_TextOffsetLine + iLine >= m_Text.size() )
+    if ( m_TextOffsetLine + lineIndex >= m_Text.size() )
     {
       break;
     }
-    GR::String&   strLine = m_Text[m_TextOffsetLine + iLine];
+    GR::String&   strLine = m_Text[m_TextOffsetLine + lineIndex];
 
     if ( m_TextOffset >= strLine.length() )
     {
       if ( m_pFont )
       {
-        iY += m_pFont->TextHeight();
+        y += m_pFont->TextHeight();
       }
       else
       {
-        iY += 12;
+        y += 12;
       }
       continue;
     }
@@ -222,106 +221,106 @@ void GUIEdit::DisplayOnPage( GUIComponentDisplayer& Displayer )
     {
       if ( m_TextOffset < strLine.length() )
       {
-        Displayer.DrawText( m_pFont, 0, iY, strLine.substr( m_TextOffset ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_WINDOWTEXT ), &m_ClientRect );
+        Displayer.DrawText( m_pFont, 0, y, strLine.substr( m_TextOffset ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_WINDOWTEXT ), &m_ClientRect );
       }
     }
     else
     {
-      int    iCurLine = (int)( m_TextOffsetLine + iLine );
+      int    curLine = (int)( m_TextOffsetLine + lineIndex );
 
-      if ( ( iCurLine < ptSelStart.y )
-      ||   ( iCurLine > ptSelEnd.y ) )
+      if ( ( curLine < ptSelStart.y )
+      ||   ( curLine > ptSelEnd.y ) )
       {
         // ausserhalb der Selection
-        Displayer.DrawText( m_pFont, 0, iY, strLine.substr( m_TextOffset ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_WINDOWTEXT ), &m_ClientRect );
+        Displayer.DrawText( m_pFont, 0, y, strLine.substr( m_TextOffset ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_WINDOWTEXT ), &m_ClientRect );
       }
-      else if ( ( iCurLine > ptSelStart.y )
-      &&        ( iCurLine < ptSelEnd.y ) )
+      else if ( ( curLine > ptSelStart.y )
+      &&        ( curLine < ptSelEnd.y ) )
       {
         // komplett innerhalb der Selection
-        Displayer.DrawText( m_pFont, 0, iY, strLine.substr( m_TextOffset ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_HIGHLIGHTTEXT ), &m_ClientRect );
+        Displayer.DrawText( m_pFont, 0, y, strLine.substr( m_TextOffset ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_HIGHLIGHTTEXT ), &m_ClientRect );
       }
       else
       {
-        if ( ( iCurLine == ptSelStart.y )
-        &&   ( iCurLine == ptSelEnd.y ) )
+        if ( ( curLine == ptSelStart.y )
+        &&   ( curLine == ptSelEnd.y ) )
         {
           if ( ptSelEnd.x >= (int)m_TextOffset )
           {
-            int     iX1 = ptSelStart.x;
-            if ( iX1 < (int)m_TextOffset )
+            int     x1 = ptSelStart.x;
+            if ( x1 < (int)m_TextOffset )
             {
-              iX1 = (int)m_TextOffset;
+              x1 = (int)m_TextOffset;
             }
             // Selektion komplett innerhalb einer Zeile
-            Displayer.DrawText( m_pFont, 0, iY, strLine.substr( m_TextOffset, iX1 - m_TextOffset ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_WINDOWTEXT ), &m_ClientRect );
+            Displayer.DrawText( m_pFont, 0, y, strLine.substr( m_TextOffset, x1 - m_TextOffset ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_WINDOWTEXT ), &m_ClientRect );
 
-            int   iDeltaX = m_pFont->TextLength( strLine.substr( m_TextOffset, iX1 - m_TextOffset ) );
-            if ( iDeltaX )
+            int   deltaX = m_pFont->TextLength( strLine.substr( m_TextOffset, x1 - m_TextOffset ) );
+            if ( deltaX )
             {
-              iDeltaX += m_pFont->FontSpacing();
+              deltaX += m_pFont->FontSpacing();
             }
-            Displayer.DrawText( m_pFont, iDeltaX, iY, strLine.substr( iX1, ptSelEnd.x - iX1 ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_HIGHLIGHTTEXT ), &m_ClientRect );
-            int iDeltaX2 = m_pFont->TextLength( strLine.substr( iX1, ptSelEnd.x - iX1 ) );
-            if ( iDeltaX2 )
+            Displayer.DrawText( m_pFont, deltaX, y, strLine.substr( x1, ptSelEnd.x - x1 ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_HIGHLIGHTTEXT ), &m_ClientRect );
+            int deltaX2 = m_pFont->TextLength( strLine.substr( x1, ptSelEnd.x - x1 ) );
+            if ( deltaX2 )
             {
-              iDeltaX2 += m_pFont->FontSpacing();
+              deltaX2 += m_pFont->FontSpacing();
             }
-            iDeltaX += iDeltaX2;
+            deltaX += deltaX2;
 
-            Displayer.DrawText( m_pFont, iDeltaX, iY, strLine.substr( ptSelEnd.x ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_WINDOWTEXT ), &m_ClientRect );
+            Displayer.DrawText( m_pFont, deltaX, y, strLine.substr( ptSelEnd.x ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_WINDOWTEXT ), &m_ClientRect );
           }
         }
-        else if ( iCurLine == ptSelStart.y )
+        else if ( curLine == ptSelStart.y )
         {
           // Selektion beginnt hier
-          int     iX1 = ptSelStart.x;
-          if ( iX1 < (int)m_TextOffset )
+          int     x1 = ptSelStart.x;
+          if ( x1 < (int)m_TextOffset )
           {
-            iX1 = (int)m_TextOffset;
+            x1 = (int)m_TextOffset;
           }
 
-          int   iDeltaX = 0;
+          int   deltaX = 0;
           if ( ptSelStart.x > (int)m_TextOffset )
           {
-            Displayer.DrawText( m_pFont, 0, iY, strLine.substr( m_TextOffset, iX1 - m_TextOffset ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_WINDOWTEXT ), &m_ClientRect );
-            iDeltaX = m_pFont->TextLength( strLine.substr( m_TextOffset, iX1 - m_TextOffset ) );
-            if ( iDeltaX )
+            Displayer.DrawText( m_pFont, 0, y, strLine.substr( m_TextOffset, x1 - m_TextOffset ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_WINDOWTEXT ), &m_ClientRect );
+            deltaX = m_pFont->TextLength( strLine.substr( m_TextOffset, x1 - m_TextOffset ) );
+            if ( deltaX )
             {
-              iDeltaX += m_pFont->FontSpacing();
+              deltaX += m_pFont->FontSpacing();
             }
           }
-          if ( iX1 < (int)strLine.length() )
+          if ( x1 < (int)strLine.length() )
           {
-            Displayer.DrawText( m_pFont, iDeltaX, iY, strLine.substr( iX1, strLine.length() - iX1 ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_HIGHLIGHTTEXT ), &m_ClientRect );
+            Displayer.DrawText( m_pFont, deltaX, y, strLine.substr( x1, strLine.length() - x1 ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_HIGHLIGHTTEXT ), &m_ClientRect );
           }
         }
-        else if ( iCurLine == ptSelEnd.y )
+        else if ( curLine == ptSelEnd.y )
         {
           // Selektion endet hier
-          int iDeltaX = 0;
+          int deltaX = 0;
           if ( ptSelEnd.x > (int)m_TextOffset )
           {
-            Displayer.DrawText( m_pFont, 0, iY, strLine.substr( m_TextOffset, ptSelEnd.x - m_TextOffset ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_HIGHLIGHTTEXT ), &m_ClientRect );
-            iDeltaX = m_pFont->TextLength( strLine.substr( m_TextOffset, ptSelEnd.x - m_TextOffset ) );
-            if ( iDeltaX )
+            Displayer.DrawText( m_pFont, 0, y, strLine.substr( m_TextOffset, ptSelEnd.x - m_TextOffset ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_HIGHLIGHTTEXT ), &m_ClientRect );
+            deltaX = m_pFont->TextLength( strLine.substr( m_TextOffset, ptSelEnd.x - m_TextOffset ) );
+            if ( deltaX )
             {
-              iDeltaX += m_pFont->FontSpacing();
+              deltaX += m_pFont->FontSpacing();
             }
           }
 
-          Displayer.DrawText( m_pFont, iDeltaX, iY, strLine.substr( ptSelEnd.x ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_WINDOWTEXT ), &m_ClientRect );
+          Displayer.DrawText( m_pFont, deltaX, y, strLine.substr( ptSelEnd.x ), m_TextAlignment & ~GUI::AF_MULTILINE, GetColor( GUI::COL_WINDOWTEXT ), &m_ClientRect );
         }
       }
     }
 
     if ( m_pFont )
     {
-      iY += m_pFont->TextHeight();
+      y += m_pFont->TextHeight();
     }
     else
     {
-      iY += 12;
+      y += 12;
     }
   }
 }

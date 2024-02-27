@@ -28,7 +28,7 @@ void GUIPullIn::DisplayNonClientOnPage( GUIComponentDisplayer& Displayer )
     GR::u32 col1 = GetSysColor( GUI::COL_ACTIVECAPTION );
     GR::u32 col2 = GetSysColor( GUI::COL_GRADIENTACTIVECAPTION );
 
-    Displayer.DrawQuad( rc.Left, rc.Top, rc.width(), rc.height(), 
+    Displayer.DrawQuad( rc.Left, rc.Top, rc.Width(), rc.Height(), 
                         col1, col2, col1, col2 );
   }
 

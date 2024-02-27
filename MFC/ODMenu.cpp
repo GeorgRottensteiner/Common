@@ -77,6 +77,12 @@ ODMenu::ODMenu( eODMenuStyle odStyle ) :
   // kein Windows-Schatten, also selber machen
   m_DrawShadow = !m_DropShadowEnabled;
 
+  // do not attempt to self draw shadow in remote session
+  if ( Win::Util::IsRemoteDesktopSession() )
+  {
+    m_DrawShadow = false;
+  }
+
   switch ( m_odStyle )
   {
     case ODMS_XP:

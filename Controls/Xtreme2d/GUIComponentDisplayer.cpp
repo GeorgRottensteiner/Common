@@ -8,8 +8,8 @@
 
 GUIComponentDisplayer::GUIComponentDisplayer() :
   m_pEventProducer( NULL ),
-  m_iOffsetX( 0 ),
-  m_iOffsetY( 0 ),
+  m_OffsetX( 0 ),
+  m_OffsetY( 0 ),
   m_pActualRenderer( NULL )
 {
   GR::Service::Environment::Instance().SetService( "GUI", this );
@@ -63,7 +63,6 @@ void GUIComponentDisplayer::DisplayBackground()
               {
                 m_Background.Clear();
                 m_Background.LoadImage( pTexture->m_LoadedFromFile.c_str() );
-                //dh::Log( "reload hugetexture %s", pTexture->m_LoadedFromFile.c_str() );
               }
             }
           }
@@ -76,48 +75,48 @@ void GUIComponentDisplayer::DisplayBackground()
 
 
 
-void GUIComponentDisplayer::SetClipping( int iX, int iY, int iWidth, int iHeight )
+void GUIComponentDisplayer::SetClipping( int X, int Y, int Width, int Height )
 {
   if ( m_pActualRenderer == NULL )
   {
     return;
   }
-  if ( ( iX >= (int)m_pActualRenderer->Width() )
-  ||   ( iX + iWidth <= 0 )
-  ||   ( iY >= (int)m_pActualRenderer->Height() )
-  ||   ( iY + iHeight <= 0 )
-  ||   ( iWidth <= 0 )
-  ||   ( iHeight <= 0 ) )
+  if ( ( X >= (int)m_pActualRenderer->Width() )
+  ||   ( X + Width <= 0 )
+  ||   ( Y >= (int)m_pActualRenderer->Height() )
+  ||   ( Y + Height <= 0 )
+  ||   ( Width <= 0 )
+  ||   ( Height <= 0 ) )
   {
     m_NothingIsVisible = true;
     return;
   }
   m_NothingIsVisible = false;
-  if ( iX < 0 )
+  if ( X < 0 )
   {
-    iWidth += iX;
-    iX = 0;
+    Width += X;
+    X = 0;
   }
-  if ( iX + iWidth > (int)m_pActualRenderer->Width() )
+  if ( X + Width > (int)m_pActualRenderer->Width() )
   {
-    iWidth = m_pActualRenderer->Width() - iX;
+    Width = m_pActualRenderer->Width() - X;
   }
-  if ( iY < 0 )
+  if ( Y < 0 )
   {
-    iHeight += iY;
-    iY = 0;
+    Height += Y;
+    Y = 0;
   }
-  if ( iY + iHeight > (int)m_pActualRenderer->Height() )
+  if ( Y + Height > (int)m_pActualRenderer->Height() )
   {
-    iHeight = m_pActualRenderer->Height() - iY;
+    Height = m_pActualRenderer->Height() - Y;
   }
 
   XViewport   Viewport;
 
-  Viewport.X      = iX;
-  Viewport.Y      = iY;
-  Viewport.Width  = iWidth;
-  Viewport.Height = iHeight;
+  Viewport.X      = X;
+  Viewport.Y      = Y;
+  Viewport.Width  = Width;
+  Viewport.Height = Height;
 
   ScreenToVirtual( Viewport.X, Viewport.Y, Viewport.Width, Viewport.Height );
 
@@ -137,13 +136,13 @@ GR::tPoint GUIComponentDisplayer::GetOffset()
 
 
 
-void GUIComponentDisplayer::SetOffset( int iX, int iY )
+void GUIComponentDisplayer::SetOffset( int X, int Y )
 {
   if ( m_pActualRenderer == NULL )
   {
     return;
   }
-  m_pActualRenderer->Offset( GR::tPoint( iX, iY ) );
+  m_pActualRenderer->Offset( GR::tPoint( X, Y ) );
 }
 
 
@@ -251,6 +250,43 @@ void GUIComponentDisplayer::DrawTextureSection( int X, int Y, const XTextureSect
 
 
 
+void GUIComponentDisplayer::DrawTextureSectionColorKeyed( int X, int Y, const XTextureSection& TexSection, 
+                                                          GR::u32 ColorKey,
+                                                          GR::u32 Color, 
+                                                          int AlternativeWidth, int AlternativeHeight, GR::u32 AlternativeFlags )
+{
+  if ( m_pActualRenderer == NULL )
+  {
+    return;
+  }
+  if ( m_VirtualSize.x == 0 )
+  {
+    // TODO!
+    //m_pActualRenderer->RenderTextureSectionColorized( X, Y, TexSection, Color, AlternativeWidth, AlternativeHeight, AlternativeFlags, 0.000000f );
+    m_pActualRenderer->RenderTextureSectionColorKeyedColorized( X, Y, TexSection, ColorKey, Color );
+  }
+  else
+  {
+    GR::tPoint    alternativePos = VirtualToScreen( GR::tPoint( X, Y ) );
+    GR::tPoint    alternativeEndPos( X + TexSection.m_Width, Y + TexSection.m_Height );
+    if ( AlternativeWidth != -1 )
+    {
+      alternativeEndPos.x = X + AlternativeWidth;
+    }
+    if ( AlternativeHeight != -1 )
+    {
+      alternativeEndPos.y = Y + AlternativeHeight;
+    }
+    alternativeEndPos = VirtualToScreen( alternativeEndPos );
+
+    // TODO!
+    //m_pActualRenderer->RenderTextureSectionColorized( alternativePos.x, alternativePos.y, TexSection, Color, alternativeEndPos.x - alternativePos.x, alternativeEndPos.y - alternativePos.y, AlternativeFlags, 0.000000f );
+    m_pActualRenderer->RenderTextureSectionColorKeyedColorized( alternativePos.x, alternativePos.y, TexSection, ColorKey, Color );
+  }
+}
+
+
+
 void GUIComponentDisplayer::DrawText( Interface::IFont* pFont,
                                       const GR::String& Text,
                                       const GR::tRect& Rect,
@@ -304,11 +340,11 @@ void GUIComponentDisplayer::DrawText( Interface::IFont* pFontA,
       GUI::BreakText( pFont, Text, emptyRect, vectText );
     }
 
-    int   y = rectText.position().y;
+    int   y = rectText.Top;
 
     if ( ( TextAlignment & GUI::AF_VCENTER ) == GUI::AF_VCENTER )
     {
-      y += ( rectText.height() - 20 * (int)vectText.size() ) / 2;
+      y += ( rectText.Height() - 20 * (int)vectText.size() ) / 2;
     }
     else if ( TextAlignment & GUI::AF_BOTTOM )
     {
@@ -326,7 +362,7 @@ void GUIComponentDisplayer::DrawText( Interface::IFont* pFontA,
 
       if ( ( TextAlignment & GUI::AF_CENTER ) == GUI::AF_CENTER )
       {
-        x += ( rectText.width() - iLength ) / 2;
+        x += ( rectText.Width() - iLength ) / 2;
       }
       else if ( TextAlignment & GUI::AF_RIGHT )
       {
@@ -344,7 +380,7 @@ void GUIComponentDisplayer::DrawText( Interface::IFont* pFontA,
         {
           GR::tPoint    shadowPos( textPos );
 
-          shadowPos.offset( 1, 1 );
+          shadowPos.Offset( 1, 1 );
           shadowPos = VirtualToScreen( shadowPos );
           m_pActualRenderer->RenderText( (X2dFont*)pFont, shadowPos.x, shadowPos.y, strText, scaleX, scaleY, 0xff000000 );
         }
@@ -356,7 +392,7 @@ void GUIComponentDisplayer::DrawText( Interface::IFont* pFontA,
         if ( TextAlignment & GUI::AF_SHADOW_OFFSET )
         {
           GR::tPoint    shadowPos( textPos );
-          shadowPos.offset( 1, 1 );
+          shadowPos.Offset( 1, 1 );
           shadowPos = VirtualToScreen( shadowPos );
           m_pActualRenderer->RenderText( (X2dFont*)pFont, shadowPos.x, shadowPos.y, strText, 0xff000000 );
         }
@@ -371,28 +407,15 @@ void GUIComponentDisplayer::DrawText( Interface::IFont* pFontA,
     }
     return;
   }
-  /*
-  int   iY = rectText.position().y;
-
-  if ( ( textAlignment & GUI::AF_VCENTER ) == GUI::AF_VCENTER )
-  {
-    iY += ( rectText.height() - 20 * (int)vectText.size() ) / 2;
-  }
-  else if ( textAlignment & GUI::AF_BOTTOM )
-  {
-    iY = rectText.Bottom - 20 * (int)vectText.size();
-  }
-  */
-
   GR::tPoint    ptText = GUI::TextOffset( pFont, Text, TextAlignment, rectText );
   GR::tPoint    ptShadow( ptText );
 
   if ( TextAlignment & GUI::AF_SHADOW_OFFSET )
   {
-    ptShadow.offset( 1, 1 );
-    ptShadow.offset( XOffset, YOffset );
+    ptShadow.Offset( 1, 1 );
+    ptShadow.Offset( XOffset, YOffset );
   }
-  ptText.offset( XOffset, YOffset );
+  ptText.Offset( XOffset, YOffset );
   ptText = VirtualToScreen( ptText );
 
   if ( m_VirtualSize.x != 0 )
@@ -425,66 +448,66 @@ void GUIComponentDisplayer::DrawLine( const GR::tPoint& Pos1, const GR::tPoint& 
 
 
 
-void GUIComponentDisplayer::DrawEdge( GR::u32 VisualStyle, const GR::tRect& rectEdge )
+void GUIComponentDisplayer::DrawEdge( GR::u32 VisualStyle, const GR::tRect& Rect )
 {
-  int   iX1 = rectEdge.position().x,
-    iY1 = rectEdge.position().y,
-    iX2 = iX1 + rectEdge.width() - 1,
-    iY2 = iY1 + rectEdge.height() - 1;
+  int   X1 = Rect.Left,
+        Y1 = Rect.Top,
+        X2 = X1 + Rect.Width() - 1,
+        Y2 = Y1 + Rect.Height() - 1;
 
 
-  GR::u32 dwColorLight = GetSysColor( GUI::COL_3DLIGHT ),
-          dwColorHiLight = GetSysColor( GUI::COL_BTNHIGHLIGHT ),
-          dwColorDark = GetSysColor( GUI::COL_BTNSHADOW ),
-          dwColorVeryDark = GetSysColor( GUI::COL_3DDKSHADOW );
+  GR::u32 ColorLight = GetSysColor( GUI::COL_3DLIGHT ),
+          ColorHiLight = GetSysColor( GUI::COL_BTNHIGHLIGHT ),
+          ColorDark = GetSysColor( GUI::COL_BTNSHADOW ),
+          ColorVeryDark = GetSysColor( GUI::COL_3DDKSHADOW );
 
 
   if ( VisualStyle & GUI::VFT_FLAT_BORDER )
   {
-    DrawLine( GR::tPoint( iX1, iY1 ), GR::tPoint( iX2 - 1, iY1 ), dwColorVeryDark );
-    DrawLine( GR::tPoint( iX1, iY1 ), GR::tPoint( iX1, iY2 - 1 ), dwColorVeryDark );
+    DrawLine( GR::tPoint( X1, Y1 ), GR::tPoint( X2 - 1, Y1 ), ColorVeryDark );
+    DrawLine( GR::tPoint( X1, Y1 ), GR::tPoint( X1, Y2 - 1 ), ColorVeryDark );
 
-    DrawLine( GR::tPoint( iX2, iY1 + 1 ), GR::tPoint( iX2, iY2 ), dwColorVeryDark );
-    DrawLine( GR::tPoint( iX1 + 1, iY2 ), GR::tPoint( iX2, iY2 ), dwColorVeryDark );
+    DrawLine( GR::tPoint( X2, Y1 + 1 ), GR::tPoint( X2, Y2 ), ColorVeryDark );
+    DrawLine( GR::tPoint( X1 + 1, Y2 ), GR::tPoint( X2, Y2 ), ColorVeryDark );
   }
   else if ( VisualStyle & GUI::VFT_RAISED_BORDER )
   {
-    DrawLine( GR::tPoint( iX1 + 1, iY1 + 1 ), GR::tPoint( iX2 - 2, iY1 + 1 ), dwColorLight );
-    DrawLine( GR::tPoint( iX1 + 1, iY1 + 1 ), GR::tPoint( iX1 + 1, iY2 - 2 ), dwColorLight );
+    DrawLine( GR::tPoint( X1 + 1, Y1 + 1 ), GR::tPoint( X2 - 2, Y1 + 1 ), ColorLight );
+    DrawLine( GR::tPoint( X1 + 1, Y1 + 1 ), GR::tPoint( X1 + 1, Y2 - 2 ), ColorLight );
 
-    DrawLine( GR::tPoint( iX1, iY1 ), GR::tPoint( iX2 - 1, iY1 ), dwColorHiLight );
-    DrawLine( GR::tPoint( iX1, iY1 ), GR::tPoint( iX1, iY2 - 1 ), dwColorHiLight );
+    DrawLine( GR::tPoint( X1, Y1 ), GR::tPoint( X2 - 1, Y1 ), ColorHiLight );
+    DrawLine( GR::tPoint( X1, Y1 ), GR::tPoint( X1, Y2 - 1 ), ColorHiLight );
 
-    DrawLine( GR::tPoint( iX2, iY1 + 1 ), GR::tPoint( iX2, iY2 ), dwColorVeryDark );
-    DrawLine( GR::tPoint( iX1 + 1, iY2 ), GR::tPoint( iX2, iY2 ), dwColorVeryDark );
+    DrawLine( GR::tPoint( X2, Y1 + 1 ), GR::tPoint( X2, Y2 ), ColorVeryDark );
+    DrawLine( GR::tPoint( X1 + 1, Y2 ), GR::tPoint( X2, Y2 ), ColorVeryDark );
 
-    DrawLine( GR::tPoint( iX2 - 1, iY1 + 2 ), GR::tPoint( iX2 - 1, iY2 - 1 ), dwColorDark );
-    DrawLine( GR::tPoint( iX1 + 2, iY2 - 1 ), GR::tPoint( iX2 - 1, iY2 - 1 ), dwColorDark );
+    DrawLine( GR::tPoint( X2 - 1, Y1 + 2 ), GR::tPoint( X2 - 1, Y2 - 1 ), ColorDark );
+    DrawLine( GR::tPoint( X1 + 2, Y2 - 1 ), GR::tPoint( X2 - 1, Y2 - 1 ), ColorDark );
   }
   else if ( VisualStyle & GUI::VFT_SUNKEN_BORDER )
   {
-    DrawLine( GR::tPoint( iX1, iY1 ), GR::tPoint( iX2 - 1, iY1 ), dwColorDark );
-    DrawLine( GR::tPoint( iX1, iY1 ), GR::tPoint( iX1, iY2 - 1 ), dwColorDark );
+    DrawLine( GR::tPoint( X1, Y1 ), GR::tPoint( X2 - 1, Y1 ), ColorDark );
+    DrawLine( GR::tPoint( X1, Y1 ), GR::tPoint( X1, Y2 - 1 ), ColorDark );
 
-    DrawLine( GR::tPoint( iX1 + 1, iY1 + 1 ), GR::tPoint( iX2 - 2, iY1 + 1 ), dwColorVeryDark );
-    DrawLine( GR::tPoint( iX1 + 1, iY1 + 1 ), GR::tPoint( iX1 + 1, iY2 - 2 ), dwColorVeryDark );
+    DrawLine( GR::tPoint( X1 + 1, Y1 + 1 ), GR::tPoint( X2 - 2, Y1 + 1 ), ColorVeryDark );
+    DrawLine( GR::tPoint( X1 + 1, Y1 + 1 ), GR::tPoint( X1 + 1, Y2 - 2 ), ColorVeryDark );
 
-    DrawLine( GR::tPoint( iX2, iY1 + 1 ), GR::tPoint( iX2, iY2 ), dwColorLight );
-    DrawLine( GR::tPoint( iX1 + 1, iY2 ), GR::tPoint( iX2, iY2 ), dwColorLight );
+    DrawLine( GR::tPoint( X2, Y1 + 1 ), GR::tPoint( X2, Y2 ), ColorLight );
+    DrawLine( GR::tPoint( X1 + 1, Y2 ), GR::tPoint( X2, Y2 ), ColorLight );
 
-    DrawLine( GR::tPoint( iX2 - 1, iY1 + 2 ), GR::tPoint( iX2 - 1, iY2 - 1 ), dwColorHiLight );
-    DrawLine( GR::tPoint( iX1 + 2, iY2 - 1 ), GR::tPoint( iX2 - 1, iY2 - 1 ), dwColorHiLight );
+    DrawLine( GR::tPoint( X2 - 1, Y1 + 2 ), GR::tPoint( X2 - 1, Y2 - 1 ), ColorHiLight );
+    DrawLine( GR::tPoint( X1 + 2, Y2 - 1 ), GR::tPoint( X2 - 1, Y2 - 1 ), ColorHiLight );
   }
 }
 
 
 
-void GUIComponentDisplayer::DrawEdge( GR::u32 edgeType, const GR::tRect& rectEdge, const std::vector<std::pair<XTextureSection, GR::u32> >& Sections )
+void GUIComponentDisplayer::DrawEdge( GR::u32 EdgeType, const GR::tRect& Rect, const std::vector<std::pair<XTextureSection, GR::u32> >& Sections )
 {
-  int   iX1 = rectEdge.position().x,
-        iY1 = rectEdge.position().y,
-        iX2 = iX1 + rectEdge.width() - 1,
-        iY2 = iY1 + rectEdge.height() - 1;
+  int   X1 = Rect.Left,
+        Y1 = Rect.Top,
+        X2 = X1 + Rect.Width() - 1,
+        Y2 = Y1 + Rect.Height() - 1;
 
 
   if ( ( Sections[GUI::BT_EDGE_TOP].first.m_pTexture )
@@ -496,42 +519,42 @@ void GUIComponentDisplayer::DrawEdge( GR::u32 edgeType, const GR::tRect& rectEdg
   ||   ( Sections[GUI::BT_EDGE_BOTTOM_LEFT].first.m_pTexture )
   ||   ( Sections[GUI::BT_EDGE_BOTTOM_RIGHT].first.m_pTexture ) )
   {
-    if ( ( edgeType & GUI::VFT_RAISED_BORDER )
-    ||   ( edgeType & GUI::VFT_FLAT_BORDER ) )
+    if ( ( EdgeType & GUI::VFT_RAISED_BORDER )
+    ||   ( EdgeType & GUI::VFT_FLAT_BORDER ) )
     {
       if ( Sections[GUI::BT_EDGE_TOP].first.m_Width )
       {
-        for ( int i = 0; i < ( iX2 - iX1 - Sections[GUI::BT_EDGE_TOP_LEFT].first.m_Width - Sections[GUI::BT_EDGE_TOP_RIGHT].first.m_Width ) / Sections[GUI::BT_EDGE_TOP].first.m_Width + 1; ++i )
+        for ( int i = 0; i < ( X2 - X1 - Sections[GUI::BT_EDGE_TOP_LEFT].first.m_Width - Sections[GUI::BT_EDGE_TOP_RIGHT].first.m_Width ) / Sections[GUI::BT_EDGE_TOP].first.m_Width + 1; ++i )
         {
-          DrawTextureSection( iX1 + Sections[GUI::BT_EDGE_TOP_LEFT].first.m_Width + i * Sections[GUI::BT_EDGE_TOP].first.m_Width,
-                              iY1,
+          DrawTextureSection( X1 + Sections[GUI::BT_EDGE_TOP_LEFT].first.m_Width + i * Sections[GUI::BT_EDGE_TOP].first.m_Width,
+                              Y1,
                               Sections[GUI::BT_EDGE_TOP].first );
         }
       }
       if ( Sections[GUI::BT_EDGE_BOTTOM].first.m_Width )
       {
-        for ( int i = 0; i < ( iX2 - iX1 - Sections[GUI::BT_EDGE_BOTTOM_LEFT].first.m_Width - Sections[GUI::BT_EDGE_BOTTOM_RIGHT].first.m_Width ) / Sections[GUI::BT_EDGE_BOTTOM].first.m_Width + 1; ++i )
+        for ( int i = 0; i < ( X2 - X1 - Sections[GUI::BT_EDGE_BOTTOM_LEFT].first.m_Width - Sections[GUI::BT_EDGE_BOTTOM_RIGHT].first.m_Width ) / Sections[GUI::BT_EDGE_BOTTOM].first.m_Width + 1; ++i )
         {
-          DrawTextureSection( iX1 + Sections[GUI::BT_EDGE_BOTTOM_LEFT].first.m_Width + i * Sections[GUI::BT_EDGE_BOTTOM].first.m_Width,
-                                           iY2 - Sections[GUI::BT_EDGE_BOTTOM].first.m_Height + 1,
+          DrawTextureSection( X1 + Sections[GUI::BT_EDGE_BOTTOM_LEFT].first.m_Width + i * Sections[GUI::BT_EDGE_BOTTOM].first.m_Width,
+                                           Y2 - Sections[GUI::BT_EDGE_BOTTOM].first.m_Height + 1,
                               Sections[GUI::BT_EDGE_BOTTOM].first );
         }
       }
       if ( Sections[GUI::BT_EDGE_LEFT].first.m_Height )
       {
-        for ( int i = 0; i < ( iY2 - iY1 - Sections[GUI::BT_EDGE_TOP_LEFT].first.m_Height - Sections[GUI::BT_EDGE_BOTTOM_LEFT].first.m_Height ) / Sections[GUI::BT_EDGE_LEFT].first.m_Height + 1; ++i )
+        for ( int i = 0; i < ( Y2 - Y1 - Sections[GUI::BT_EDGE_TOP_LEFT].first.m_Height - Sections[GUI::BT_EDGE_BOTTOM_LEFT].first.m_Height ) / Sections[GUI::BT_EDGE_LEFT].first.m_Height + 1; ++i )
         {
-          DrawTextureSection( iX1,
-                              iY1 + Sections[GUI::BT_EDGE_TOP_LEFT].first.m_Height + i * Sections[GUI::BT_EDGE_LEFT].first.m_Height,
+          DrawTextureSection( X1,
+                              Y1 + Sections[GUI::BT_EDGE_TOP_LEFT].first.m_Height + i * Sections[GUI::BT_EDGE_LEFT].first.m_Height,
                               Sections[GUI::BT_EDGE_LEFT].first );
         }
       }
       if ( Sections[GUI::BT_EDGE_RIGHT].first.m_Height )
       {
-        for ( int i = 0; i < ( iY2 - iY1 - Sections[GUI::BT_EDGE_BOTTOM_RIGHT].first.m_Height - Sections[GUI::BT_EDGE_BOTTOM_RIGHT].first.m_Height ) / Sections[GUI::BT_EDGE_RIGHT].first.m_Height + 1; ++i )
+        for ( int i = 0; i < ( Y2 - Y1 - Sections[GUI::BT_EDGE_BOTTOM_RIGHT].first.m_Height - Sections[GUI::BT_EDGE_BOTTOM_RIGHT].first.m_Height ) / Sections[GUI::BT_EDGE_RIGHT].first.m_Height + 1; ++i )
         {
-          DrawTextureSection( iX2 - Sections[GUI::BT_EDGE_RIGHT].first.m_Width + 1,
-                              iY1 + Sections[GUI::BT_EDGE_TOP_RIGHT].first.m_Height + i * Sections[GUI::BT_EDGE_RIGHT].first.m_Height,
+          DrawTextureSection( X2 - Sections[GUI::BT_EDGE_RIGHT].first.m_Width + 1,
+                              Y1 + Sections[GUI::BT_EDGE_TOP_RIGHT].first.m_Height + i * Sections[GUI::BT_EDGE_RIGHT].first.m_Height,
                               Sections[GUI::BT_EDGE_RIGHT].first );
         }
       }
@@ -539,65 +562,65 @@ void GUIComponentDisplayer::DrawEdge( GR::u32 edgeType, const GR::tRect& rectEdg
       // Ecken
       if ( Sections[GUI::BT_EDGE_TOP_LEFT].first.m_pTexture )
       {
-        DrawTextureSection( iX1,
-                            iY1, 
+        DrawTextureSection( X1,
+                            Y1, 
                             Sections[GUI::BT_EDGE_TOP_LEFT].first );
       }
       if ( Sections[GUI::BT_EDGE_TOP_RIGHT].first.m_pTexture )
       {
-        DrawTextureSection( iX2 - Sections[GUI::BT_EDGE_TOP_RIGHT].first.m_Width + 1,
-                            iY1,
+        DrawTextureSection( X2 - Sections[GUI::BT_EDGE_TOP_RIGHT].first.m_Width + 1,
+                            Y1,
                             Sections[GUI::BT_EDGE_TOP_RIGHT].first );
       }
       if ( Sections[GUI::BT_EDGE_BOTTOM_LEFT].first.m_pTexture )
       {
-        DrawTextureSection( iX1,
-                            iY2 - Sections[GUI::BT_EDGE_BOTTOM_LEFT].first.m_Height + 1,
+        DrawTextureSection( X1,
+                            Y2 - Sections[GUI::BT_EDGE_BOTTOM_LEFT].first.m_Height + 1,
                             Sections[GUI::BT_EDGE_BOTTOM_LEFT].first );
       }
       if ( Sections[GUI::BT_EDGE_TOP_RIGHT].first.m_pTexture )
       {
-        DrawTextureSection( iX2 - Sections[GUI::BT_EDGE_BOTTOM_RIGHT].first.m_Width + 1,
-                            iY2 - Sections[GUI::BT_EDGE_BOTTOM_LEFT].first.m_Height + 1,
+        DrawTextureSection( X2 - Sections[GUI::BT_EDGE_BOTTOM_RIGHT].first.m_Width + 1,
+                            Y2 - Sections[GUI::BT_EDGE_BOTTOM_LEFT].first.m_Height + 1,
                             Sections[GUI::BT_EDGE_BOTTOM_RIGHT].first );
       }
       return;
     }
-    else if ( edgeType & GUI::VFT_SUNKEN_BORDER )
+    else if ( EdgeType & GUI::VFT_SUNKEN_BORDER )
     {
       if ( Sections[GUI::BT_SUNKEN_EDGE_TOP].first.m_Width )
       {
-        for ( int i = 0; i < ( iX2 - iX1 - Sections[GUI::BT_SUNKEN_EDGE_TOP_LEFT].first.m_Width - Sections[GUI::BT_SUNKEN_EDGE_TOP_RIGHT].first.m_Width ) / Sections[GUI::BT_SUNKEN_EDGE_TOP].first.m_Width + 1; ++i )
+        for ( int i = 0; i < ( X2 - X1 - Sections[GUI::BT_SUNKEN_EDGE_TOP_LEFT].first.m_Width - Sections[GUI::BT_SUNKEN_EDGE_TOP_RIGHT].first.m_Width ) / Sections[GUI::BT_SUNKEN_EDGE_TOP].first.m_Width + 1; ++i )
         {
-          DrawTextureSection( iX1 + Sections[GUI::BT_SUNKEN_EDGE_TOP_LEFT].first.m_Width + i * Sections[GUI::BT_SUNKEN_EDGE_TOP].first.m_Width,
-                              iY1,
+          DrawTextureSection( X1 + Sections[GUI::BT_SUNKEN_EDGE_TOP_LEFT].first.m_Width + i * Sections[GUI::BT_SUNKEN_EDGE_TOP].first.m_Width,
+                              Y1,
                               Sections[GUI::BT_SUNKEN_EDGE_TOP].first );
         }
       }
       if ( Sections[GUI::BT_SUNKEN_EDGE_BOTTOM].first.m_Width )
       {
-        for ( int i = 0; i < ( iX2 - iX1 - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_LEFT].first.m_Width - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_RIGHT].first.m_Width ) / Sections[GUI::BT_SUNKEN_EDGE_BOTTOM].first.m_Width + 1; ++i )
+        for ( int i = 0; i < ( X2 - X1 - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_LEFT].first.m_Width - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_RIGHT].first.m_Width ) / Sections[GUI::BT_SUNKEN_EDGE_BOTTOM].first.m_Width + 1; ++i )
         {
-          DrawTextureSection( iX1 + Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_LEFT].first.m_Width + i * Sections[GUI::BT_SUNKEN_EDGE_BOTTOM].first.m_Width,
-                              iY2 - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM].first.m_Height + 1,
+          DrawTextureSection( X1 + Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_LEFT].first.m_Width + i * Sections[GUI::BT_SUNKEN_EDGE_BOTTOM].first.m_Width,
+                              Y2 - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM].first.m_Height + 1,
                               Sections[GUI::BT_SUNKEN_EDGE_BOTTOM].first );
         }
       }
       if ( Sections[GUI::BT_SUNKEN_EDGE_LEFT].first.m_Height )
       {
-        for ( int i = 0; i < ( iY2 - iY1 - Sections[GUI::BT_SUNKEN_EDGE_TOP_LEFT].first.m_Height - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_LEFT].first.m_Height ) / Sections[GUI::BT_SUNKEN_EDGE_LEFT].first.m_Height + 1; ++i )
+        for ( int i = 0; i < ( Y2 - Y1 - Sections[GUI::BT_SUNKEN_EDGE_TOP_LEFT].first.m_Height - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_LEFT].first.m_Height ) / Sections[GUI::BT_SUNKEN_EDGE_LEFT].first.m_Height + 1; ++i )
         {
-          DrawTextureSection( iX1,
-                                        iY1 + Sections[GUI::BT_SUNKEN_EDGE_TOP_LEFT].first.m_Height + i * Sections[GUI::BT_SUNKEN_EDGE_LEFT].first.m_Height,
+          DrawTextureSection( X1,
+                                        Y1 + Sections[GUI::BT_SUNKEN_EDGE_TOP_LEFT].first.m_Height + i * Sections[GUI::BT_SUNKEN_EDGE_LEFT].first.m_Height,
                                         Sections[GUI::BT_SUNKEN_EDGE_LEFT].first );
         }
       }
       if ( Sections[GUI::BT_SUNKEN_EDGE_RIGHT].first.m_Height )
       {
-        for ( int i = 0; i < ( iY2 - iY1 - Sections[GUI::BT_SUNKEN_EDGE_RIGHT].first.m_Height - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_RIGHT].first.m_Height ) / Sections[GUI::BT_SUNKEN_EDGE_RIGHT].first.m_Height + 1; ++i )
+        for ( int i = 0; i < ( Y2 - Y1 - Sections[GUI::BT_SUNKEN_EDGE_RIGHT].first.m_Height - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_RIGHT].first.m_Height ) / Sections[GUI::BT_SUNKEN_EDGE_RIGHT].first.m_Height + 1; ++i )
         {
-          DrawTextureSection( iX2 - Sections[GUI::BT_SUNKEN_EDGE_RIGHT].first.m_Width + 1,
-                                        iY1 + Sections[GUI::BT_SUNKEN_EDGE_TOP_RIGHT].first.m_Height + i * Sections[GUI::BT_SUNKEN_EDGE_RIGHT].first.m_Height,
+          DrawTextureSection( X2 - Sections[GUI::BT_SUNKEN_EDGE_RIGHT].first.m_Width + 1,
+                                        Y1 + Sections[GUI::BT_SUNKEN_EDGE_TOP_RIGHT].first.m_Height + i * Sections[GUI::BT_SUNKEN_EDGE_RIGHT].first.m_Height,
                                         Sections[GUI::BT_SUNKEN_EDGE_RIGHT].first );
         }
       }
@@ -605,24 +628,24 @@ void GUIComponentDisplayer::DrawEdge( GR::u32 edgeType, const GR::tRect& rectEdg
       // Ecken
       if ( Sections[GUI::BT_SUNKEN_EDGE_TOP_LEFT].first.m_pTexture )
       {
-        DrawTextureSection( iX1, iY1, Sections[GUI::BT_SUNKEN_EDGE_TOP_LEFT].first );
+        DrawTextureSection( X1, Y1, Sections[GUI::BT_SUNKEN_EDGE_TOP_LEFT].first );
       }
       if ( Sections[GUI::BT_SUNKEN_EDGE_TOP_RIGHT].first.m_pTexture )
       {
-        DrawTextureSection( iX2 - Sections[GUI::BT_SUNKEN_EDGE_TOP_RIGHT].first.m_Width + 1,
-                            iY1,
+        DrawTextureSection( X2 - Sections[GUI::BT_SUNKEN_EDGE_TOP_RIGHT].first.m_Width + 1,
+                            Y1,
                             Sections[GUI::BT_SUNKEN_EDGE_TOP_RIGHT].first );
       }
       if ( Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_LEFT].first.m_pTexture )
       {
-        DrawTextureSection( iX1,
-                            iY2 - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_LEFT].first.m_Height + 1,
+        DrawTextureSection( X1,
+                            Y2 - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_LEFT].first.m_Height + 1,
                             Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_LEFT].first );
       }
       if ( Sections[GUI::BT_SUNKEN_EDGE_TOP_RIGHT].first.m_pTexture )
       {
-        DrawTextureSection( iX2 - Sections[GUI::BT_SUNKEN_EDGE_TOP_RIGHT].first.m_Width + 1,
-                            iY2 - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_LEFT].first.m_Height + 1,
+        DrawTextureSection( X2 - Sections[GUI::BT_SUNKEN_EDGE_TOP_RIGHT].first.m_Width + 1,
+                            Y2 - Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_LEFT].first.m_Height + 1,
                             Sections[GUI::BT_SUNKEN_EDGE_BOTTOM_RIGHT].first );
       }
       return;
@@ -630,47 +653,47 @@ void GUIComponentDisplayer::DrawEdge( GR::u32 edgeType, const GR::tRect& rectEdg
   }
 
 
-  GR::u32       dwColorLight    = GetSysColor( GUI::COL_3DLIGHT ),
-                dwColorHiLight  = GetSysColor( GUI::COL_BTNHIGHLIGHT ),
-                dwColorDark     = GetSysColor( GUI::COL_BTNSHADOW ),
-                dwColorVeryDark = GetSysColor( GUI::COL_3DDKSHADOW );
+  GR::u32       ColorLight    = GetSysColor( GUI::COL_3DLIGHT ),
+                ColorHiLight  = GetSysColor( GUI::COL_BTNHIGHLIGHT ),
+                ColorDark     = GetSysColor( GUI::COL_BTNSHADOW ),
+                ColorVeryDark = GetSysColor( GUI::COL_3DDKSHADOW );
 
 
-  if ( edgeType & GUI::VFT_FLAT_BORDER )
+  if ( EdgeType & GUI::VFT_FLAT_BORDER )
   {
-    DrawLine( GR::tPoint( iX1, iY1 ), GR::tPoint( iX2 - 1, iY1 ), dwColorVeryDark );
-    DrawLine( GR::tPoint( iX1, iY1 ), GR::tPoint( iX1, iY2 - 1 ), dwColorVeryDark );
+    DrawLine( GR::tPoint( X1, Y1 ), GR::tPoint( X2 - 1, Y1 ), ColorVeryDark );
+    DrawLine( GR::tPoint( X1, Y1 ), GR::tPoint( X1, Y2 - 1 ), ColorVeryDark );
 
-    DrawLine( GR::tPoint( iX2, iY1 + 1 ), GR::tPoint( iX2, iY2 ), dwColorVeryDark );
-    DrawLine( GR::tPoint( iX1 + 1, iY2 ), GR::tPoint( iX2, iY2 ), dwColorVeryDark );
+    DrawLine( GR::tPoint( X2, Y1 + 1 ), GR::tPoint( X2, Y2 ), ColorVeryDark );
+    DrawLine( GR::tPoint( X1 + 1, Y2 ), GR::tPoint( X2, Y2 ), ColorVeryDark );
   }
-  else if ( edgeType & GUI::VFT_RAISED_BORDER )
+  else if ( EdgeType & GUI::VFT_RAISED_BORDER )
   {
-    DrawLine( GR::tPoint( iX1 + 1, iY1 + 1 ), GR::tPoint( iX2 - 2, iY1 + 1 ), dwColorLight );
-    DrawLine( GR::tPoint( iX1 + 1, iY1 + 1 ), GR::tPoint( iX1 + 1, iY2 - 2 ), dwColorLight );
+    DrawLine( GR::tPoint( X1 + 1, Y1 + 1 ), GR::tPoint( X2 - 2, Y1 + 1 ), ColorLight );
+    DrawLine( GR::tPoint( X1 + 1, Y1 + 1 ), GR::tPoint( X1 + 1, Y2 - 2 ), ColorLight );
 
-    DrawLine( GR::tPoint( iX1, iY1 ), GR::tPoint( iX2 - 1, iY1 ), dwColorHiLight );
-    DrawLine( GR::tPoint( iX1, iY1 ), GR::tPoint( iX1, iY2 - 1 ), dwColorHiLight );
+    DrawLine( GR::tPoint( X1, Y1 ), GR::tPoint( X2 - 1, Y1 ), ColorHiLight );
+    DrawLine( GR::tPoint( X1, Y1 ), GR::tPoint( X1, Y2 - 1 ), ColorHiLight );
 
-    DrawLine( GR::tPoint( iX2, iY1 + 1 ), GR::tPoint( iX2, iY2 ), dwColorVeryDark );
-    DrawLine( GR::tPoint( iX1 + 1, iY2 ), GR::tPoint( iX2, iY2 ), dwColorVeryDark );
+    DrawLine( GR::tPoint( X2, Y1 + 1 ), GR::tPoint( X2, Y2 ), ColorVeryDark );
+    DrawLine( GR::tPoint( X1 + 1, Y2 ), GR::tPoint( X2, Y2 ), ColorVeryDark );
 
-    DrawLine( GR::tPoint( iX2 - 1, iY1 + 2 ), GR::tPoint( iX2 - 1, iY2 - 1 ), dwColorDark );
-    DrawLine( GR::tPoint( iX1 + 2, iY2 - 1 ), GR::tPoint( iX2 - 1, iY2 - 1 ), dwColorDark );
+    DrawLine( GR::tPoint( X2 - 1, Y1 + 2 ), GR::tPoint( X2 - 1, Y2 - 1 ), ColorDark );
+    DrawLine( GR::tPoint( X1 + 2, Y2 - 1 ), GR::tPoint( X2 - 1, Y2 - 1 ), ColorDark );
   }
-  else if ( edgeType & GUI::VFT_SUNKEN_BORDER )
+  else if ( EdgeType & GUI::VFT_SUNKEN_BORDER )
   {
-    DrawLine( GR::tPoint( iX1, iY1 ), GR::tPoint( iX2 - 1, iY1 ), dwColorDark );
-    DrawLine( GR::tPoint( iX1, iY1 ), GR::tPoint( iX1, iY2 - 1 ), dwColorDark );
+    DrawLine( GR::tPoint( X1, Y1 ), GR::tPoint( X2 - 1, Y1 ), ColorDark );
+    DrawLine( GR::tPoint( X1, Y1 ), GR::tPoint( X1, Y2 - 1 ), ColorDark );
 
-    DrawLine( GR::tPoint( iX1 + 1, iY1 + 1 ), GR::tPoint( iX2 - 2, iY1 + 1 ), dwColorVeryDark );
-    DrawLine( GR::tPoint( iX1 + 1, iY1 + 1 ), GR::tPoint( iX1 + 1, iY2 - 2 ), dwColorVeryDark );
+    DrawLine( GR::tPoint( X1 + 1, Y1 + 1 ), GR::tPoint( X2 - 2, Y1 + 1 ), ColorVeryDark );
+    DrawLine( GR::tPoint( X1 + 1, Y1 + 1 ), GR::tPoint( X1 + 1, Y2 - 2 ), ColorVeryDark );
 
-    DrawLine( GR::tPoint( iX2, iY1 + 1 ), GR::tPoint( iX2, iY2 ), dwColorLight );
-    DrawLine( GR::tPoint( iX1 + 1, iY2 ), GR::tPoint( iX2, iY2 ), dwColorLight );
+    DrawLine( GR::tPoint( X2, Y1 + 1 ), GR::tPoint( X2, Y2 ), ColorLight );
+    DrawLine( GR::tPoint( X1 + 1, Y2 ), GR::tPoint( X2, Y2 ), ColorLight );
 
-    DrawLine( GR::tPoint( iX2 - 1, iY1 + 2 ), GR::tPoint( iX2 - 1, iY2 - 1 ), dwColorHiLight );
-    DrawLine( GR::tPoint( iX1 + 2, iY2 - 1 ), GR::tPoint( iX2 - 1, iY2 - 1 ), dwColorHiLight );
+    DrawLine( GR::tPoint( X2 - 1, Y1 + 2 ), GR::tPoint( X2 - 1, Y2 - 1 ), ColorHiLight );
+    DrawLine( GR::tPoint( X1 + 2, Y2 - 1 ), GR::tPoint( X2 - 1, Y2 - 1 ), ColorHiLight );
   }
 }
 
@@ -724,29 +747,29 @@ void GUIComponentDisplayer::DrawTextureSectionHVRepeat( int X, int Y, int Width,
 
 
 
-void GUIComponentDisplayer::DrawFocusRect( const GR::tRect& rcFocus, GR::u32 VisualStyle )
+void GUIComponentDisplayer::DrawFocusRect( const GR::tRect& Rect, GR::u32 VisualStyle )
 {
   if ( VisualStyle & GUI::VFT_HIDE_FOCUS_RECT )
   {
     return;
   }
 
-  for ( int i = rcFocus.Left; i < rcFocus.Right - 1; i += 2 )
+  for ( int i = Rect.Left; i < Rect.Right - 1; i += 2 )
   {
-    DrawLine( GR::tPoint( i, rcFocus.Top ),
-                         GR::tPoint( i, rcFocus.Top ),
+    DrawLine( GR::tPoint( i, Rect.Top ),
+                         GR::tPoint( i, Rect.Top ),
                          0xff808080 );
-    DrawLine( GR::tPoint( i, rcFocus.Bottom - 1 ),
-                         GR::tPoint( i, rcFocus.Bottom - 1 ),
+    DrawLine( GR::tPoint( i, Rect.Bottom - 1 ),
+                         GR::tPoint( i, Rect.Bottom - 1 ),
                          0xff808080 );
   }
-  for ( int i = rcFocus.Top + 2; i < rcFocus.Bottom - 1; i += 2 )
+  for ( int i = Rect.Top + 2; i < Rect.Bottom - 1; i += 2 )
   {
-    DrawLine( GR::tPoint( rcFocus.Left, i ),
-                         GR::tPoint( rcFocus.Left, i ),
+    DrawLine( GR::tPoint( Rect.Left, i ),
+                         GR::tPoint( Rect.Left, i ),
                          0xff808080 );
-    DrawLine( GR::tPoint( rcFocus.Right - 1, i ),
-                         GR::tPoint( rcFocus.Right - 1, i ),
+    DrawLine( GR::tPoint( Rect.Right - 1, i ),
+                         GR::tPoint( Rect.Right - 1, i ),
                          0xff808080 );
   }
 }

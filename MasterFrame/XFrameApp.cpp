@@ -944,7 +944,7 @@ int XFrameApp::PreLoopRun()
   GR::IO::FileStream  ioIn( UserAppDataPath( "xtreme.cfg" ).c_str() );
   Load( ioIn );
 
-  m_EnvironmentDisplayRect.set( 0, 0, m_EnvironmentConfig.StartUpWidth, m_EnvironmentConfig.StartUpHeight );
+  m_EnvironmentDisplayRect.Set( 0, 0, m_EnvironmentConfig.StartUpWidth, m_EnvironmentConfig.StartUpHeight );
   if ( m_EnvironmentConfig.FixedSize )
   {
     // can't override resolution from previous save, reset to startup size
@@ -953,7 +953,7 @@ int XFrameApp::PreLoopRun()
   else
   {
     m_RenderFrame.SetSize( m_RenderFrame.m_DisplayMode.Width, m_RenderFrame.m_DisplayMode.Height );
-    m_EnvironmentDisplayRect.set( 0, 0, m_RenderFrame.m_DisplayMode.Width, m_RenderFrame.m_DisplayMode.Height );
+    m_EnvironmentDisplayRect.Set( 0, 0, m_RenderFrame.m_DisplayMode.Width, m_RenderFrame.m_DisplayMode.Height );
   }
   auto   itCL( m_StartParameter.begin() );
   while ( itCL != m_StartParameter.end() )
@@ -1119,11 +1119,11 @@ void XFrameApp::Present()
   GR::tRect*   pRcSource = NULL;
   GR::tRect*   pRcTarget = NULL;
 
-  if ( m_SourceRect.width() != 0 )
+  if ( !m_SourceRect.Empty() )
   {
     pRcSource = &m_SourceRect;
   }
-  if ( m_TargetRect.width() != 0 )
+  if ( !m_TargetRect.Empty() )
   {
     pRcTarget = &m_TargetRect;
   }
@@ -1281,7 +1281,7 @@ LRESULT XFrameApp::WindowProc( UINT message, WPARAM wParam, LPARAM lParam )
           }
           ToggleFullscreen();
 
-          if ( m_ClipRect.width() != 0 )
+          if ( !m_ClipRect.Empty() )
           {
             // reset cliprect to adjust changed windows pos
             ApplyClipCursor( m_ClipRect );
@@ -1307,14 +1307,14 @@ LRESULT XFrameApp::WindowProc( UINT message, WPARAM wParam, LPARAM lParam )
     case WM_ACTIVATE:
       m_ApplicationActive = ( LOWORD( wParam ) != WA_INACTIVE );
 
-      if ( m_ClipRect.width() > 0 )
+      if ( !m_ClipRect.Empty() )
       {
         if ( !m_ApplicationActive )
         {
           // Entclippen
           ::ClipCursor( NULL );
         }
-        else if ( m_ClipRect.width() > 0 )
+        else if ( !m_ClipRect.Empty() )
         {
           // Cliprect wiederherstellen
           ApplyClipCursor( m_ClipRect );
@@ -1387,7 +1387,7 @@ bool XFrameApp::ProcessEvent( const GR::Gamebase::tXFrameEvent& Event )
 
           if ( m_KeepMouseInsideDuringFullscreen )
           {
-            if ( m_ClipRect.width() == 0 )
+            if ( m_ClipRect.Empty() )
             {
               ApplyClipCursor( GR::tRect( 0, 0, m_pRenderClass->Width(), m_pRenderClass->Height() ) );
             }
@@ -1396,18 +1396,18 @@ bool XFrameApp::ProcessEvent( const GR::Gamebase::tXFrameEvent& Event )
         else if ( m_EnvironmentConfig.FixedSize )
         {
           // TODO - restore remembered window size
-          m_EnvironmentDisplayRect.set( 0, 0, m_EnvironmentConfig.StartUpWidth, m_EnvironmentConfig.StartUpHeight );
+          m_EnvironmentDisplayRect.Set( 0, 0, m_EnvironmentConfig.StartUpWidth, m_EnvironmentConfig.StartUpHeight );
         }
         else
         {
           // TODO - restore remembered window size
-          m_EnvironmentDisplayRect.set( 0, 0, m_pRenderClass->Width(), m_pRenderClass->Height() );
+          m_EnvironmentDisplayRect.Set( 0, 0, m_pRenderClass->Width(), m_pRenderClass->Height() );
         }
         if ( !m_RenderFrame.m_DisplayMode.FullScreen )
         {
           if ( m_KeepMouseInsideDuringFullscreen )
           {
-            if ( m_ClipRect.width() == 0 )
+            if ( m_ClipRect.Empty() )
             {
               ApplyClipCursor( GR::tRect() );
             }
@@ -1419,8 +1419,8 @@ bool XFrameApp::ProcessEvent( const GR::Gamebase::tXFrameEvent& Event )
         AdjustCanvas( m_pRenderClass->Width(), m_pRenderClass->Height() );
 
 
-        int     offsetX = ( m_pRenderClass->Width() - m_EnvironmentDisplayRect.width() ) / 2;
-        int     offsetY = ( m_pRenderClass->Height() - m_EnvironmentDisplayRect.height() ) / 2;
+        int     offsetX = ( m_pRenderClass->Width() - m_EnvironmentDisplayRect.Width() ) / 2;
+        int     offsetY = ( m_pRenderClass->Height() - m_EnvironmentDisplayRect.Height() ) / 2;
 
         m_pRenderClass->Offset( GR::tPoint( offsetX, offsetY ) );
         m_RenderFrame.SetSize( m_pRenderClass->Width(), m_pRenderClass->Height() );
@@ -1434,12 +1434,12 @@ bool XFrameApp::ProcessEvent( const GR::Gamebase::tXFrameEvent& Event )
       }
       else if ( Event.m_Text.find( "=" ) != GR::String::npos )
       {
-        size_t    iPos = Event.m_Text.find( "=" );
+        size_t    pos = Event.m_Text.find( "=" );
 
-        if ( iPos > 0 )
+        if ( pos > 0 )
         {
-          GR::String     varName = Event.m_Text.substr( 0, iPos );
-          GR::String     varValue = Event.m_Text.substr( iPos + 1 );
+          GR::String     varName = Event.m_Text.substr( 0, pos );
+          GR::String     varValue = Event.m_Text.substr( pos + 1 );
 
           SetVar( varName, varValue );
 
@@ -1575,7 +1575,7 @@ bool XFrameApp::Create( GR::u32 Style, int Width, int Height, const char* Captio
   else*/
   {
     // will that ever happen?
-    m_RenderFrame.m_NativeScreenSize.set( m_EnvironmentConfig.StartUpWidth, m_EnvironmentConfig.StartUpHeight );
+    m_RenderFrame.m_NativeScreenSize.Set( m_EnvironmentConfig.StartUpWidth, m_EnvironmentConfig.StartUpHeight );
   }
   //dh::Log( "NativeSize: %dx%d   Ratio %.2f", nativeSize.x, nativeSize.y, (float)nativeSize.x / (float)nativeSize.y );
 
@@ -2150,7 +2150,7 @@ void XFrameApp::ClipCursor( const GR::tRect& ClipRect )
 void XFrameApp::ApplyClipCursor( const GR::tRect& ClipRect )
 {
 #if OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP
-  if ( ClipRect.width() == 0 )
+  if ( ClipRect.Empty() )
   {
     ::ClipCursor( NULL );
   }
@@ -2165,7 +2165,7 @@ void XFrameApp::ApplyClipCursor( const GR::tRect& ClipRect )
 
     GR::tRect   innerClipRect( ClipRect );
 
-    innerClipRect.offset( pt.x, pt.y );
+    innerClipRect.Offset( pt.x, pt.y );
 
     RECT    rcClip;
 
@@ -2782,7 +2782,7 @@ void XFrameApp::DetermineBestFullscreenMatch( XRendererDisplayMode& Mode )
     int     yOffset = ( Mode.Height - m_EnvironmentConfig.StartUpHeight ) / 2;
 
     dh::Log( "Offset %d,%d", xOffset, yOffset );
-    m_EnvironmentDisplayRect.set( xOffset, yOffset, m_EnvironmentConfig.StartUpWidth, m_EnvironmentConfig.StartUpHeight );
+    m_EnvironmentDisplayRect.Set( xOffset, yOffset, m_EnvironmentConfig.StartUpWidth, m_EnvironmentConfig.StartUpHeight );
   }
 }
 
@@ -2819,7 +2819,7 @@ void XFrameApp::ToggleFullscreen()
   else
   {
     // TODO - restore remembered window size
-    m_EnvironmentDisplayRect.set( 0, 0, m_EnvironmentConfig.StartUpWidth, m_EnvironmentConfig.StartUpHeight );
+    m_EnvironmentDisplayRect.Set( 0, 0, m_EnvironmentConfig.StartUpWidth, m_EnvironmentConfig.StartUpHeight );
 
     mode = m_StoredWindowedMode;
   }

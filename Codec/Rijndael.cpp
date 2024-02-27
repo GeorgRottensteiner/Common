@@ -1845,6 +1845,12 @@ namespace GR
 
 
 
+    int Rijndael::BlockSize() const
+    {
+      return 16;
+    }
+
+
 
   }
 

@@ -12,7 +12,12 @@
 #include <Grafik/ContextDescriptor.h>
 #include <Grafik/Palette.h>
 
-
+// used for checking GetVersionInfo availability vs. deprecation
+#include <ntverp.h>
+#if VER_PRODUCTBUILD >= 9600
+  // should be >= Windows 8.1 SDK code goes here
+#include <VersionHelpers.h>
+#endif
 
 namespace
 {
@@ -819,6 +824,26 @@ Win::Util::eWindowsVersion Win::Util::GetWindowsVersion()
     return WV_WINXP;
   }
 #else
+
+#if VER_PRODUCTBUILD >= 9600
+  // should be >= Windows 8.1 SDK code goes here
+  if ( IsWindows10OrGreater() )
+  {
+    return WV_WIN10;
+  }
+  else if ( IsWindows7OrGreater() )
+  {
+    return WV_WIN7;
+  }
+  else if ( IsWindows7OrGreater() )
+  {
+    return WV_WIN7;
+  }
+  else if ( IsWindowsXPOrGreater() )
+  {
+    return WV_WINXP;
+  }
+#else
   OSVERSIONINFO   osInfo;
 
   osInfo.dwOSVersionInfoSize = sizeof( osInfo );
@@ -889,6 +914,8 @@ Win::Util::eWindowsVersion Win::Util::GetWindowsVersion()
       return WV_HIGHER_THAN_KNOWN;
     }
   }
+#endif
+
 #endif
   return WV_UNKNOWN;
 }
@@ -1331,12 +1358,13 @@ MemoryStream Win::Util::MemoryStreamFromResource( HINSTANCE hInstance, const GR:
 
 bool Win::Util::IsUserAdmin()
 {
-
+#if VER_PRODUCTBUILD < 9600
   if ( GetVersion() >= 0x80000000 )
   {
     // nicht NT
     return true;
   }
+#endif
 
   HANDLE hAccessToken       = NULL;
   PBYTE  pInfoBuffer        = NULL;
@@ -2101,6 +2129,47 @@ HANDLE Win::Util::CreateHDIBFromImage( const GR::Graphic::ImageData& Image )
   /* return handle to the DIB */
   return hDIB;
 
+}
+
+
+
+bool Win::Util::IsRemoteDesktopSession()
+{
+#if WINVER >= 0x0500
+#ifndef SM_REMOTESESSION
+  #define SM_REMOTESESSION 0x1000
+#endif
+  if ( GetSystemMetrics( SM_REMOTESESSION ) )
+  {
+    return true;
+  }
+#endif
+  // nabbed from MSDN, some "optimization" may return false even if inside remote session
+  bool  isRemoteSession = false;
+  HKEY  hRegKey = NULL;
+  LONG  result = RegOpenKeyEx( HKEY_LOCAL_MACHINE, _T( "SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\" ), 0, KEY_READ, &hRegKey );
+  if ( result == ERROR_SUCCESS )
+  {
+    DWORD glassSessionId;
+    DWORD glassSessionIdSize = sizeof( glassSessionId );
+    DWORD type;
+
+    result = RegQueryValueEx( hRegKey, _T( "GlassSessionId" ), NULL, &type, (BYTE*)&glassSessionId, &glassSessionIdSize );
+    if ( result == ERROR_SUCCESS )
+    {
+      DWORD currentSessionId;
+
+      if ( ProcessIdToSessionId( GetCurrentProcessId(), &currentSessionId ) )
+      {
+        isRemoteSession = ( currentSessionId != glassSessionId );
+      }
+    }
+  }
+  if ( hRegKey )
+  {
+    RegCloseKey( hRegKey );
+  }
+  return isRemoteSession;
 }
 
 

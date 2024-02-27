@@ -30,12 +30,12 @@ namespace GR
     bool FormatCur::IsFileOfType( const GR::String& FileName )
     {
       // damit nicht viele Files falsch als Icon erkannt werden
-      size_t   iLength = FileName.length();
-      if ( iLength >= 3 )
+      size_t   length = FileName.length();
+      if ( length >= 3 )
       {
-        if ( ( toupper( FileName[iLength - 3] ) != 'C' )
-             || ( toupper( FileName[iLength - 2] ) != 'U' )
-             || ( toupper( FileName[iLength - 1] ) != 'R' ) )
+        if ( ( toupper( FileName[length - 3] ) != 'C' )
+        ||   ( toupper( FileName[length - 2] ) != 'U' )
+        ||   ( toupper( FileName[length - 1] ) != 'R' ) )
         {
           return false;
         }
@@ -45,18 +45,18 @@ namespace GR
         return false;
       }
 
-      GR::IO::FileStream        aFile;
+      GR::IO::FileStream        file;
 
-      if ( !aFile.Open( FileName, GR::IO::FileStream::OT_READ_ONLY ) )
+      if ( !file.Open( FileName ) )
       {
         return false;
       }
 
-      aFile.ReadU16();
-      WORD wType = aFile.ReadU16();
-      aFile.Close();
+      file.ReadU16();
+      GR::u32 type = file.ReadU16();
+      file.Close();
 
-      if ( wType != 2 )
+      if ( type != 2 )
       {
         return false;
       }
@@ -68,25 +68,25 @@ namespace GR
 
     ImageSet* FormatCur::LoadSet( const GR::String& FileName )
     {
-      GR::IO::FileStream        aFile;
+      GR::IO::FileStream        file;
 
-      if ( !aFile.Open( FileName, GR::IO::FileStream::OT_READ_ONLY ) )
+      if ( !file.Open( FileName, GR::IO::FileStream::OT_READ_ONLY ) )
       {
         return NULL;
       }
+
+      file.ReadU16();
+      GR::u16 type = file.ReadU16();
+      if ( type != 2 )
+      {
+        file.Close();
+        return NULL;
+      }
+
+      GR::u16  numImages = file.ReadU16();
 
       GR::Graphic::ImageData* pImageData = new GR::Graphic::ImageData();
       GR::Graphic::ImageData* pImageDataMask = new GR::Graphic::ImageData();
-
-      aFile.ReadU16();
-      WORD wType = aFile.ReadU16();
-      if ( wType != 2 )
-      {
-        aFile.Close();
-        return NULL;
-      }
-
-      GR::u16  numImages = aFile.ReadU16();
 
 
       /*
@@ -102,250 +102,248 @@ namespace GR
           DWORD       dwImageOffset;   // Where in the file is this image?
       } ICONDIRENTRY, *LPICONDIRENTRY;
       */
-      WORD    wWidth = aFile.ReadU8(),
-        wHeight = aFile.ReadU8(),
-        wColors = aFile.ReadU8();
-      aFile.ReadU8();
-      GR::u16 hotSpotOffsetX = aFile.ReadU16();
-      GR::u16 hotSpotOffsetY = aFile.ReadU16();
-      DWORD   dwBytes = aFile.ReadU32(),
-        dwOffset = aFile.ReadU32();
+      GR::u16   width = file.ReadU8(),
+                height = file.ReadU8(),
+                colors = file.ReadU8();
+      file.ReadU8();
+      GR::u16 hotSpotOffsetX = file.ReadU16();
+      GR::u16 hotSpotOffsetY = file.ReadU16();
+      GR::u32   numBytes = file.ReadU32(),
+                imageOffset = file.ReadU32();
 
-      if ( wWidth == 0 )
+      if ( width == 0 )
       {
-        wWidth = 256;
+        width = 256;
       }
-      if ( wHeight == 0 )
+      if ( height == 0 )
       {
-        wHeight = 256;
+        height = 256;
       }
 
-      aFile.SetPosition( dwOffset, IIOStream::PT_SET );
+      file.SetPosition( imageOffset, IIOStream::PT_SET );
 
-      if ( wColors == 16 )
+      if ( colors == 16 )
       {
-        BITMAPINFOHEADER   icHeader;      // DIB header
-        aFile.ReadBlock( &icHeader, sizeof( BITMAPINFOHEADER ) );
+        BITMAPINFOHEADER   iconHeader;      
+        file.ReadBlock( &iconHeader, sizeof( BITMAPINFOHEADER ) );
 
-        pImageData->CreateData( icHeader.biWidth, icHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
-        pImageDataMask->CreateData( icHeader.biWidth, icHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
+        pImageData->CreateData( iconHeader.biWidth, iconHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
+        pImageDataMask->CreateData( iconHeader.biWidth, iconHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
 
         memset( pImageDataMask->Data(), 0xff, pImageDataMask->DataSize() );
 
-        for ( int i = 0; i < wColors; i++ )
+        for ( int i = 0; i < colors; i++ )
         {
           RGBQUAD   myQuad;
 
-          aFile.ReadBlock( &myQuad, sizeof( RGBQUAD ) );
+          file.ReadBlock( &myQuad, sizeof( RGBQUAD ) );
           pImageData->Palette().SetColor( i, myQuad.rgbRed, myQuad.rgbGreen, myQuad.rgbBlue );
         }
-        if ( wColors < 255 )
+        if ( colors < 255 )
         {
           // Ersatz-Transparenz-Farbe
           pImageData->Palette().SetColor( 255, 255, 255, 255 );
         }
-        for ( int i = 0; i < icHeader.biHeight / 2; i++ )
+        for ( int i = 0; i < iconHeader.biHeight / 2; i++ )
         {
-          int iCount = 0;
-          for ( int j = 0; j < icHeader.biWidth / 2; j++ )
+          int count = 0;
+          for ( int j = 0; j < iconHeader.biWidth / 2; j++ )
           {
-            iCount++;
-            if ( iCount == 4 )
+            count++;
+            if ( count == 4 )
             {
-              iCount = 0;
+              count = 0;
             }
-            BYTE    bByte = aFile.ReadU8();
-            // da sind 2 Bytes drin!
-            ( ( (BYTE*)pImageData->Data() ) + ( icHeader.biHeight / 2 - i - 1 ) * pImageData->Width() )[j * 2]
-              = ( bByte >> 4 );
-            ( ( (BYTE*)pImageData->Data() ) + ( icHeader.biHeight / 2 - i - 1 ) * pImageData->Height() )[j * 2 + 1]
-              = ( bByte & 0x0f );
+            GR::u8    byte = file.ReadU8();
+
+            // two half bytes
+            ( ( (GR::u8*)pImageData->Data() ) + ( iconHeader.biHeight / 2 - i - 1 ) * pImageData->Width() )[j * 2]      = ( byte >> 4 );
+            ( ( (GR::u8*)pImageData->Data() ) + ( iconHeader.biHeight / 2 - i - 1 ) * pImageData->Height() )[j * 2 + 1] = ( byte & 0x0f );
           }
-          // Padding auf 32bit
-          while ( iCount % 4 )
+
+          // pad to 32bit
+          while ( count % 4 )
           {
-            aFile.ReadU8();
-            iCount++;
+            file.ReadU8();
+            count++;
           }
         }
-        for ( int i = 0; i < icHeader.biHeight / 2; i++ )
+        for ( int i = 0; i < iconHeader.biHeight / 2; i++ )
         {
-          int   iCount = 0;
-          for ( int j = 0; j < icHeader.biWidth / 8; j++ )
+          int   count = 0;
+          for ( int j = 0; j < iconHeader.biWidth / 8; j++ )
           {
-            iCount = ( ( iCount + 1 ) % 4 );
-            BYTE    bByte = aFile.ReadU8();
-            DWORD   dwBit = 0x80;
+            count = ( ( count + 1 ) % 4 );
+
+            GR::u8  byte = file.ReadU8();
+            GR::u32 curBit = 0x80;
 
             for ( int k = 0; k < 8; k++ )
             {
-              if ( bByte & dwBit )
+              if ( byte & curBit )
               {
-                // da ist ein Bit!
-                if ( j * 8 + k < icHeader.biWidth )
+                if ( j * 8 + k < iconHeader.biWidth )
                 {
-                  ( ( (BYTE*)pImageDataMask->Data() ) + ( icHeader.biHeight / 2 - i - 1 ) * pImageDataMask->Width() )[j * 8 + k] = 0;
+                  ( ( (GR::u8*)pImageDataMask->Data() ) + ( iconHeader.biHeight / 2 - i - 1 ) * pImageDataMask->Width() )[j * 8 + k] = 0;
                 }
               }
-              dwBit >>= 1;
+              curBit >>= 1;
             }
           }
-          // Padding auf 32bit
-          while ( iCount % 4 )
+          // pad to 32bit
+          while ( count % 4 )
           {
-            aFile.ReadU8();
-            iCount++;
+            file.ReadU8();
+            count++;
           }
         }
       }
-      else if ( wColors == 0 )
+      else if ( colors == 0 )
       {
-        BITMAPINFOHEADER   icHeader;      // DIB header
-        aFile.ReadBlock( &icHeader, sizeof( BITMAPINFOHEADER ) );
+        BITMAPINFOHEADER   iconHeader;
+        file.ReadBlock( &iconHeader, sizeof( BITMAPINFOHEADER ) );
 
-        if ( icHeader.biBitCount == 8 )
+        if ( iconHeader.biBitCount == 8 )
         {
-          pImageData->CreateData( icHeader.biWidth, icHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
-          pImageDataMask->CreateData( icHeader.biWidth, icHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
+          pImageData->CreateData( iconHeader.biWidth, iconHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
+          pImageDataMask->CreateData( iconHeader.biWidth, iconHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
           memset( pImageDataMask->Data(), 0xff, pImageDataMask->DataSize() );
 
-          int   Full32 = pImageData->Width();
-          while ( Full32 % 4 )
+          int   widthPaddedTo32Bit = pImageData->Width();
+          while ( widthPaddedTo32Bit % 4 )
           {
-            ++Full32;
+            ++widthPaddedTo32Bit;
           }
-          int   Padding = Full32 - pImageData->Width();
+          int   padding = widthPaddedTo32Bit - pImageData->Width();
 
-          for ( int i = 0; i < icHeader.biHeight / 2; i++ )
+          for ( int i = 0; i < iconHeader.biHeight / 2; i++ )
           {
-            aFile.ReadBlock( ( (BYTE*)pImageData->Data() ) + ( icHeader.biHeight / 2 - i - 1 ) * pImageData->BytesPerLine(),
+            file.ReadBlock( ( (BYTE*)pImageData->Data() ) + ( iconHeader.biHeight / 2 - i - 1 ) * pImageData->BytesPerLine(),
                              pImageData->Width() );
-            aFile.SetPosition( Padding, IIOStream::PT_CURRENT );
+            file.SetPosition( padding, IIOStream::PT_CURRENT );
           }
-          int   RealWidth = icHeader.biWidth / 8;
-          if ( icHeader.biWidth % 8 )
+          int   realWidth = iconHeader.biWidth / 8;
+          if ( iconHeader.biWidth % 8 )
           {
-            ++RealWidth;
+            ++realWidth;
           }
-          for ( int i = 0; i < icHeader.biHeight / 2; i++ )
+          for ( int i = 0; i < iconHeader.biHeight / 2; i++ )
           {
-            int   iCount = 0;
-            for ( int j = 0; j < RealWidth; j++ )
+            int   count = 0;
+            for ( int j = 0; j < realWidth; j++ )
             {
-              iCount = ( ( iCount + 1 ) % 4 );
-              BYTE    bByte = aFile.ReadU8();
-              DWORD   dwBit = 0x80;
+              count = ( ( count + 1 ) % 4 );
+              GR::u8  byte = file.ReadU8();
+              GR::u32 curBit = 0x80;
 
               for ( int k = 0; k < 8; k++ )
               {
-                if ( bByte & dwBit )
+                if ( byte & curBit )
                 {
                   // da ist ein Bit!
-                  if ( j * 8 + k < icHeader.biWidth )
+                  if ( j * 8 + k < iconHeader.biWidth )
                   {
-                    ( ( (BYTE*)pImageDataMask->Data() ) + ( icHeader.biHeight / 2 - i - 1 ) * pImageDataMask->Width() )[j * 8 + k] = 0;
+                    ( ( (GR::u8*)pImageDataMask->Data() ) + ( iconHeader.biHeight / 2 - i - 1 ) * pImageDataMask->Width() )[j * 8 + k] = 0;
                   }
                 }
-                dwBit >>= 1;
+                curBit >>= 1;
               }
             }
-            // Padding auf 32bit
-            while ( iCount % 4 )
+            // pad to 32bit
+            while ( count % 4 )
             {
-              aFile.ReadU8();
-              iCount++;
+              file.ReadU8();
+              count++;
             }
           }
         }
-        else if ( icHeader.biBitCount == 24 )
+        else if ( iconHeader.biBitCount == 24 )
         {
-          pImageData->CreateData( icHeader.biWidth, icHeader.biHeight / 2, GR::Graphic::IF_R8G8B8 );
-          pImageDataMask->CreateData( icHeader.biWidth, icHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
+          pImageData->CreateData( iconHeader.biWidth, iconHeader.biHeight / 2, GR::Graphic::IF_R8G8B8 );
+          pImageDataMask->CreateData( iconHeader.biWidth, iconHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
           memset( pImageDataMask->Data(), 0xff, pImageDataMask->DataSize() );
-          int   Full32 = pImageData->Width() * 3;
-          while ( Full32 % 4 )
+          int   widthPaddedTo32Bit = pImageData->Width() * 3;
+          while ( widthPaddedTo32Bit % 4 )
           {
-            ++Full32;
+            ++widthPaddedTo32Bit;
           }
-          int   Padding = Full32 - pImageData->Width() * 3;
+          int   padding = widthPaddedTo32Bit - pImageData->Width() * 3;
 
-          for ( int i = 0; i < icHeader.biHeight / 2; i++ )
+          for ( int i = 0; i < iconHeader.biHeight / 2; i++ )
           {
-            aFile.ReadBlock( ( (BYTE*)pImageData->Data() ) + ( icHeader.biHeight / 2 - i - 1 ) * pImageData->Width() * 3,
+            file.ReadBlock( ( (GR::u8*)pImageData->Data() ) + ( iconHeader.biHeight / 2 - i - 1 ) * pImageData->Width() * 3,
                              pImageData->Width() * 3 );
-            aFile.SetPosition( Padding, IIOStream::PT_CURRENT );
+            file.SetPosition( padding, IIOStream::PT_CURRENT );
           }
-          for ( int i = 0; i < icHeader.biHeight / 2; i++ )
+          for ( int i = 0; i < iconHeader.biHeight / 2; i++ )
           {
-            int   iCount = 0;
-            for ( int j = 0; j < icHeader.biWidth / 8; j++ )
+            int   count = 0;
+            for ( int j = 0; j < iconHeader.biWidth / 8; j++ )
             {
-              iCount = ( ( iCount + 1 ) % 4 );
-              BYTE    bByte = aFile.ReadU8();
-              DWORD   dwBit = 0x80;
+              count = ( ( count + 1 ) % 4 );
+              GR::u8  byte = file.ReadU8();
+              GR::u32 curBit = 0x80;
 
               for ( int k = 0; k < 8; k++ )
               {
-                if ( bByte & dwBit )
+                if ( byte & curBit )
                 {
                   // da ist ein Bit!
-                  if ( j * 8 + k < icHeader.biWidth )
+                  if ( j * 8 + k < iconHeader.biWidth )
                   {
-                    ( ( (BYTE*)pImageDataMask->Data() ) + ( icHeader.biHeight / 2 - i - 1 ) * pImageDataMask->Width() )[j * 8 + k] = 0;
+                    ( ( (GR::u8*)pImageDataMask->Data() ) + ( iconHeader.biHeight / 2 - i - 1 ) * pImageDataMask->Width() )[j * 8 + k] = 0;
                   }
                 }
-                dwBit >>= 1;
+                curBit >>= 1;
               }
             }
-            // Padding auf 32bit
-            while ( iCount % 4 )
+            // pad to 32bit
+            while ( count % 4 )
             {
-              aFile.ReadU8();
-              iCount++;
+              file.ReadU8();
+              count++;
             }
           }
         }
-        else if ( icHeader.biBitCount == 32 )
+        else if ( iconHeader.biBitCount == 32 )
         {
-          pImageData->CreateData( icHeader.biWidth, icHeader.biHeight / 2, GR::Graphic::IF_A8R8G8B8 );
-          pImageDataMask->CreateData( icHeader.biWidth, icHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
+          pImageData->CreateData( iconHeader.biWidth, iconHeader.biHeight / 2, GR::Graphic::IF_A8R8G8B8 );
+          pImageDataMask->CreateData( iconHeader.biWidth, iconHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
           memset( pImageDataMask->Data(), 0xff, pImageDataMask->DataSize() );
-          int   Full32 = pImageData->Width() * 4;
-          int   Padding = 0;
+          int   widthPaddedTo32Bit = pImageData->Width() * 4;
 
-          for ( int i = 0; i < icHeader.biHeight / 2; i++ )
+          for ( int i = 0; i < iconHeader.biHeight / 2; i++ )
           {
-            aFile.ReadBlock( ( (BYTE*)pImageData->Data() ) + ( icHeader.biHeight / 2 - i - 1 ) * pImageData->Width() * 4,
+            file.ReadBlock( ( (GR::u8*)pImageData->Data() ) + ( iconHeader.biHeight / 2 - i - 1 ) * pImageData->Width() * 4,
                              pImageData->Width() * 4 );
-            aFile.SetPosition( Padding, IIOStream::PT_CURRENT );
           }
-          for ( int i = 0; i < icHeader.biHeight / 2; i++ )
+          for ( int i = 0; i < iconHeader.biHeight / 2; i++ )
           {
-            int   iCount = 0;
-            for ( int j = 0; j < icHeader.biWidth / 8; j++ )
+            int   count = 0;
+            for ( int j = 0; j < iconHeader.biWidth / 8; j++ )
             {
-              iCount = ( ( iCount + 1 ) % 4 );
-              BYTE    bByte = aFile.ReadU8();
-              DWORD   dwBit = 0x80;
+              count = ( ( count + 1 ) % 4 );
+              GR::u8  byte = file.ReadU8();
+              GR::u32 curBit = 0x80;
 
               for ( int k = 0; k < 8; k++ )
               {
-                if ( bByte & dwBit )
+                if ( byte & curBit )
                 {
                   // da ist ein Bit!
-                  if ( j * 8 + k < icHeader.biWidth )
+                  if ( j * 8 + k < iconHeader.biWidth )
                   {
-                    ( ( (BYTE*)pImageDataMask->Data() ) + ( icHeader.biHeight / 2 - i - 1 ) * pImageDataMask->Width() )[j * 8 + k] = 0;
+                    ( ( (GR::u8*)pImageDataMask->Data() ) + ( iconHeader.biHeight / 2 - i - 1 ) * pImageDataMask->Width() )[j * 8 + k] = 0;
                   }
                 }
-                dwBit >>= 1;
+                curBit >>= 1;
               }
             }
-            // Padding auf 32bit
-            while ( iCount % 4 )
+            // pad to 32bit
+            while ( count % 4 )
             {
-              aFile.ReadU8();
-              iCount++;
+              file.ReadU8();
+              count++;
             }
           }
 
@@ -362,17 +360,77 @@ namespace GR
             }
           }
         }
+        else if ( iconHeader.biBitCount == 1 )
+        {
+          pImageData->CreateData( iconHeader.biWidth, iconHeader.biHeight / 2, GR::Graphic::IF_INDEX1 );
+          pImageDataMask->CreateData( iconHeader.biWidth, iconHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
+          memset( pImageDataMask->Data(), 0xff, pImageDataMask->DataSize() );
+          for ( int i = 0; i < 2; i++ )
+          {
+            RGBQUAD   myQuad;
+
+            file.ReadBlock( &myQuad, sizeof( RGBQUAD ) );
+            pImageData->Palette().SetColor( i, myQuad.rgbRed, myQuad.rgbGreen, myQuad.rgbBlue );
+          }
+
+          int   widthPaddedTo32Bit = pImageData->Width();
+          while ( widthPaddedTo32Bit % 4 )
+          {
+            ++widthPaddedTo32Bit;
+          }
+          int   padding = widthPaddedTo32Bit - pImageData->Width();
+
+          for ( int i = 0; i < iconHeader.biHeight / 2; i++ )
+          {
+            file.ReadBlock( ( (GR::u8*)pImageData->Data() ) + ( iconHeader.biHeight / 2 - i - 1 ) * pImageData->BytesPerLine(), widthPaddedTo32Bit / 8 );
+            file.SetPosition( padding, IIOStream::PT_CURRENT );
+          }
+          int   realWidth = iconHeader.biWidth / 8;
+          if ( iconHeader.biWidth % 8 )
+          {
+            ++realWidth;
+          }
+          for ( int i = 0; i < iconHeader.biHeight / 2; i++ )
+          {
+            int   count = 0;
+            for ( int j = 0; j < realWidth; j++ )
+            {
+              count = ( ( count + 1 ) % 4 );
+              GR::u8    byte = file.ReadU8();
+              GR::u32   bitMask = 0x80;
+
+              for ( int k = 0; k < 8; k++ )
+              {
+                if ( byte & bitMask )
+                {
+                  // da ist ein Bit!
+                  if ( j * 8 + k < iconHeader.biWidth )
+                  {
+                    ( ( (GR::u8*)pImageDataMask->Data() ) + ( iconHeader.biHeight / 2 - i - 1 ) * pImageDataMask->Width() )[j * 8 + k] = 0;
+                  }
+                }
+                bitMask >>= 1;
+              }
+            }
+            // Padding auf 32bit
+            while ( count % 4 )
+            {
+              file.ReadU8();
+              ++count;
+            }
+          }
+        }
         else
         {
-          dh::Log( "Header sagt %d bpp\n", icHeader.biBitCount );
+          dh::Log( "FormatCur: Header used %d bpp, not implemented yet", iconHeader.biBitCount );
         }
       }
       else
       {
-        dh::Log( "Cursor %d unsupported\n", wColors );
+        dh::Log( "Cursor %d unsupported\n", colors );
       }
 
-      aFile.Close();
+      file.Close();
 
       ImageSet* pSet = new ImageSet();
 
@@ -386,7 +444,8 @@ namespace GR
     bool FormatCur::CanSave( GR::Graphic::ImageData* pData )
     {
       if ( ( pData->ImageFormat() == GR::Graphic::IF_PALETTED )
-           || ( pData->ImageFormat() == GR::Graphic::IF_R8G8B8 ) )
+      ||   ( pData->ImageFormat() == GR::Graphic::IF_INDEX1 )
+      ||   ( pData->ImageFormat() == GR::Graphic::IF_R8G8B8 ) )
       {
         return true;
       }
@@ -397,9 +456,9 @@ namespace GR
 
     bool FormatCur::Save( const GR::String& FileName, GR::Graphic::ImageData* pData, GR::Graphic::ImageData* pMask )
     {
-      GR::IO::FileStream        aFile;
+      GR::IO::FileStream        file;
 
-      if ( !aFile.Open( FileName, GR::IO::FileStream::OT_WRITE_ONLY ) )
+      if ( !file.Open( FileName, GR::IO::FileStream::OT_WRITE_ONLY ) )
       {
         return false;
       }
@@ -411,9 +470,9 @@ namespace GR
         ICONDIRENTRY   idEntries[1]; // An entry for each image (idCount of 'em)
         */
 
-      aFile.WriteU16( 0 );   // reserved
-      aFile.WriteU16( 2 );   // 1 = Icon, 2 = Cursor
-      aFile.WriteU16( 1 );   // 1 Icon im File TODO - mehr als eins
+      file.WriteU16( 0 );   // reserved
+      file.WriteU16( 2 );   // 1 = Icon, 2 = Cursor
+      file.WriteU16( 1 );   // 1 Icon im File TODO - mehr als eins
 
       /*
       typedef struct
@@ -429,19 +488,19 @@ namespace GR
       } ICONDIRENTRY, *LPICONDIRENTRY;
       */
 
-      aFile.WriteU8( pData->Width() );
-      aFile.WriteU8( pData->Height() );
-      aFile.WriteU8( 0 );               // 0: >= 8bpp
-      aFile.WriteU8( 0 );               // reserved
-      aFile.WriteU16( 0 );               // 1 Plane
-      aFile.WriteU16( 0 );               // bitcount
+      file.WriteU8( pData->Width() );
+      file.WriteU8( pData->Height() );
+      file.WriteU8( 0 );               // 0: >= 8bpp
+      file.WriteU8( 0 );               // reserved
+      file.WriteU16( 0 );               // 1 Plane
+      file.WriteU16( 0 );               // bitcount
 
-      size_t    iDirEntryPos = (size_t)aFile.GetPosition();
+      size_t    iDirEntryPos = (size_t)file.GetPosition();
 
-      aFile.WriteU32( 0 );               // Bytes in resource
-      aFile.WriteU32( 0 );               // Image-Offset
+      file.WriteU32( 0 );               // Bytes in resource
+      file.WriteU32( 0 );               // Image-Offset
 
-      size_t    iIconResStart = (size_t)aFile.GetPosition();
+      size_t    iIconResStart = (size_t)file.GetPosition();
 
       if ( pData->ImageFormat() == GR::Graphic::IF_PALETTED )
       {
@@ -459,7 +518,7 @@ namespace GR
         icHeader.biXPelsPerMeter = 0;
         icHeader.biYPelsPerMeter = 0;
 
-        aFile.WriteBlock( &icHeader, sizeof( BITMAPINFOHEADER ) );
+        file.WriteBlock( &icHeader, sizeof( BITMAPINFOHEADER ) );
 
         for ( int i = 0; i < 256; i++ )
         {
@@ -470,7 +529,7 @@ namespace GR
           myQuad.rgbBlue = pData->Palette().Blue( i );
           myQuad.rgbReserved = 0;
 
-          aFile.WriteBlock( &myQuad, sizeof( RGBQUAD ) );
+          file.WriteBlock( &myQuad, sizeof( RGBQUAD ) );
         }
 
         // XOR-Maske (bzw. Grafik)
@@ -487,22 +546,22 @@ namespace GR
             {
               if ( pMask->GetPixel( j, pData->Height() - i - 1 ) == 0 )
               {
-                aFile.WriteU8( 0 );
+                file.WriteU8( 0 );
               }
               else
               {
-                aFile.WriteU8( ( GR::u8 )pData->GetPixel( j, pData->Height() - i - 1 ) );
+                file.WriteU8( ( GR::u8 )pData->GetPixel( j, pData->Height() - i - 1 ) );
               }
             }
           }
           else
           {
-            aFile.WriteBlock( ( (BYTE*)pData->Data() ) + ( pData->Height() - i - 1 ) * pData->Width(),
+            file.WriteBlock( ( (BYTE*)pData->Data() ) + ( pData->Height() - i - 1 ) * pData->Width(),
                               pData->Width() );
           }
           for ( int j = 0; j < padding; ++j )
           {
-            aFile.WriteU8( 0 );
+            file.WriteU8( 0 );
           }
         }
 
@@ -532,7 +591,7 @@ namespace GR
 
               if ( ( iBit % 8 ) == 7 )
               {
-                aFile.WriteU8( bCurrentByte );
+                file.WriteU8( bCurrentByte );
                 bCurrentByte = 0;
               }
             }
@@ -554,13 +613,131 @@ namespace GR
               {
                 if ( pData->TransparentColorUsed() )
                 {
-                  aFile.WriteU8( bCurrentByte );
+                  file.WriteU8( bCurrentByte );
                 }
                 else
                 {
-                  aFile.WriteU8( 0 );
+                  file.WriteU8( 0 );
                 }
                 bCurrentByte = 0;
+              }
+            }
+          }
+        }
+      }
+      else if ( pData->ImageFormat() == GR::Graphic::IF_INDEX1 )
+      {
+        BITMAPINFOHEADER   icHeader;      // DIB header
+
+        icHeader.biBitCount       = 1;
+        icHeader.biClrImportant   = 0;
+        icHeader.biClrUsed        = 0;
+        icHeader.biCompression    = BI_RGB;
+        icHeader.biHeight         = pData->Height() * 2;
+        icHeader.biPlanes         = 1;
+        icHeader.biSize           = sizeof( BITMAPINFOHEADER );
+        icHeader.biSizeImage      = 0;
+        icHeader.biWidth          = pData->Width();
+        icHeader.biXPelsPerMeter  = 0;
+        icHeader.biYPelsPerMeter  = 0;
+
+        file.WriteBlock( &icHeader, sizeof( BITMAPINFOHEADER ) );
+
+        for ( int i = 0; i < 2; i++ )
+        {
+          RGBQUAD   myQuad;
+
+          myQuad.rgbRed       = pData->Palette().Red( i );
+          myQuad.rgbGreen     = pData->Palette().Green( i );
+          myQuad.rgbBlue      = pData->Palette().Blue( i );
+          myQuad.rgbReserved  = 0;
+
+          file.WriteBlock( &myQuad, sizeof( RGBQUAD ) );
+        }
+
+        // XOR-Maske (bzw. Grafik)
+        int     padding = 0;
+        if ( pData->BytesPerLine() % 4 )
+        {
+          padding = 4 - pData->BytesPerLine() % 4;
+        }
+
+        int   bytesPerLine = pData->Width() / 8;
+        if ( pData->Width() % 8 )
+        {
+          bytesPerLine++;
+        }
+        while ( bytesPerLine % 4 )
+        {
+          bytesPerLine++;
+        }
+
+        for ( int i = 0; i < pData->Height(); i++ )
+        {
+          GR::u8    currentByte = 0;
+          for ( int bit = 0; bit < bytesPerLine * 8; ++bit )
+          {
+            if ( pData->GetPixel( bit, pData->Height() - 1 - i ) != 0 )
+            {
+              currentByte |= ( 1 << ( bit % 8 ) );
+            }
+            if ( ( bit % 8 ) == 7 )
+            {
+              file.WriteU8( currentByte );
+              currentByte = 0;
+            }
+          }
+          for ( int j = 0; j < padding; ++j )
+          {
+            file.WriteU8( 0 );
+          }
+        }
+
+        // AND-Maske
+        if ( pMask != NULL )
+        {
+          for ( int i = 0; i < pMask->Height(); i++ )
+          {
+            GR::u8    currentByte = 0;
+            for ( int bit = 0; bit < bytesPerLine * 8; ++bit )
+            {
+              if ( ( bit < pMask->Width() ) 
+              &&   ( pMask->GetPixel( bit, pMask->Height() - 1 - i ) == 0 ) )
+              {
+                currentByte |= ( 1 << ( 7 - ( bit % 8 ) ) );
+              }
+
+              if ( ( bit % 8 ) == 7 )
+              {
+                file.WriteU8( currentByte );
+                currentByte = 0;
+              }
+            }
+          }
+        }
+        else
+        {
+          for ( int i = 0; i < pData->Height(); i++ )
+          {
+            GR::u8    currentByte = 0;
+            for ( int bit = 0; bit < bytesPerLine * 8; ++bit )
+            {
+              if ( pData->GetPixel( bit, pData->Height() - 1 - i ) == pData->TransparentColor() )
+              {
+                currentByte |= ( 1 << ( 7 - ( bit % 8 ) ) );
+              }
+
+              if ( ( bit % 8 ) == 7 )
+              {
+                if ( pData->TransparentColorUsed() )
+                {
+                  file.WriteU8( currentByte );
+                }
+                else
+                {
+                  file.WriteU8( 0 );
+                }
+                currentByte = 0;
               }
             }
           }
@@ -582,7 +759,7 @@ namespace GR
         icHeader.biXPelsPerMeter = 0;
         icHeader.biYPelsPerMeter = 0;
 
-        aFile.WriteBlock( &icHeader, sizeof( BITMAPINFOHEADER ) );
+        file.WriteBlock( &icHeader, sizeof( BITMAPINFOHEADER ) );
 
         // XOR-Maske (bzw. Grafik)
         int     padding = 0;
@@ -592,16 +769,16 @@ namespace GR
           {
             for ( int j = 0; j < pData->Width(); ++j )
             {
-              aFile.WriteU32( ( GR::u32 )pData->GetPixel( j, pData->Height() - i - 1 ) | ( pMask->GetPixel( j, pData->Height() - i - 1 ) << 24 ) );
+              file.WriteU32( ( GR::u32 )pData->GetPixel( j, pData->Height() - i - 1 ) | ( pMask->GetPixel( j, pData->Height() - i - 1 ) << 24 ) );
             }
           }
           else
           {
-            aFile.WriteBlock( ( (BYTE*)pData->Data() ) + ( pData->Height() - i - 1 ) * pData->Width() * 4, pData->Width() * 4 );
+            file.WriteBlock( ( (BYTE*)pData->Data() ) + ( pData->Height() - i - 1 ) * pData->Width() * 4, pData->Width() * 4 );
           }
           for ( int j = 0; j < padding; ++j )
           {
-            aFile.WriteU8( 0 );
+            file.WriteU8( 0 );
           }
         }
 
@@ -630,7 +807,7 @@ namespace GR
               }
               if ( ( iBit % 8 ) == 7 )
               {
-                aFile.WriteU8( bCurrentByte );
+                file.WriteU8( bCurrentByte );
                 bCurrentByte = 0;
               }
             }
@@ -652,11 +829,11 @@ namespace GR
               {
                 if ( pData->TransparentColorUsed() )
                 {
-                  aFile.WriteU8( bCurrentByte );
+                  file.WriteU8( bCurrentByte );
                 }
                 else
                 {
-                  aFile.WriteU8( 0 );
+                  file.WriteU8( 0 );
                 }
                 bCurrentByte = 0;
               }
@@ -665,13 +842,13 @@ namespace GR
         }
       }
 
-      size_t    iIconResEnd = (size_t)aFile.GetPosition();
+      size_t    iIconResEnd = (size_t)file.GetPosition();
 
-      aFile.SetPosition( (long)iDirEntryPos, IIOStream::PT_SET );
-      aFile.WriteU32( (unsigned long)( iIconResEnd - iIconResStart ) );
-      aFile.WriteU32( (unsigned long)iIconResStart );
+      file.SetPosition( (long)iDirEntryPos, IIOStream::PT_SET );
+      file.WriteU32( (unsigned long)( iIconResEnd - iIconResStart ) );
+      file.WriteU32( (unsigned long)iIconResStart );
 
-      aFile.Close();
+      file.Close();
 
       return false;
     }

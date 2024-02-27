@@ -11,10 +11,10 @@ GUIComboBox::GUIComboBox( int iNewX, int iNewY, int iNewWidth, int iNewHeight, G
   AbstractComboBox<GUIComponent,GUIEdit,GUIButton,GUIListBox>( iNewX, iNewY, iNewWidth, iNewHeight, cfType, Id )
 {
   m_pEdit->SetLocation( 0, 0 );
-  m_pEdit->SetSize( m_ClientRect.size().x - 20, 20 );
+  m_pEdit->SetSize( m_ClientRect.Width() - 20, 20 );
   m_pEdit->Enable( false );
 
-  m_pButtonDropDown->SetLocation( m_ClientRect.size().x - 20, 0 );
+  m_pButtonDropDown->SetLocation( m_ClientRect.Width() - 20, 0 );
   m_pButtonDropDown->SetSize( 20, 20 );
 
   m_pListBox->SetTextureSection( GUI::BT_EDGE_TOP_LEFT, XTextureSection() );

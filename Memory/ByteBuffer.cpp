@@ -743,6 +743,10 @@ int ByteBuffer::Compare( const void* pData, size_t DataLength ) const
 {
   if ( Size() == 0 )
   {
+    if ( DataLength == 0 )
+    {
+      return 0;
+    }
     return -1;
   }
   if ( DataLength == 0 )

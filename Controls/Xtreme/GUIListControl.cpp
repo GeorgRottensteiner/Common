@@ -31,12 +31,12 @@ void GUIListControl::DisplayOnPage( GUIComponentDisplayer& Displayer )
 
       if ( m_pFont )
       {
-        rc.inflate( -2, -2 );
+        rc.Inflate( -2, -2 );
 
         XViewport vpTemp = vpOrig;
 
         vpTemp.X      += rc.Left;
-        vpTemp.Width  = rc.width();
+        vpTemp.Width  = rc.Width();
         Displayer.SetViewport( vpTemp );
 
         Displayer.DrawText( m_pFont, 0, 0, m_vectColumns[i].Description, m_vectColumns[i].TextAlignment, 
@@ -52,15 +52,15 @@ void GUIListControl::DisplayOnPage( GUIComponentDisplayer& Displayer )
 
   if ( GetLineRect( m_SelectedItem, rc ) )
   {
-    Displayer.DrawQuad( rc.Left, rc.Top, rc.width(), rc.height(), GetColor( GUI::COL_HIGHLIGHT ) );
+    Displayer.DrawQuad( rc.Left, rc.Top, rc.Width(), rc.Height(), GetColor( GUI::COL_HIGHLIGHT ) );
   }
   if ( GetLineRect( m_MouseOverItem, rc ) )
   {
-    Displayer.DrawQuad( rc.Left, rc.Top, rc.width(), rc.height(), GetColor( GUI::COL_HOTLIGHT ) );
+    Displayer.DrawQuad( rc.Left, rc.Top, rc.Width(), rc.Height(), GetColor( GUI::COL_HOTLIGHT ) );
   }
   if ( GetItemRect( m_MouseOverItem, m_MouseOverSubItem, rc ) )
   {
-    Displayer.DrawQuad( rc.Left, rc.Top, rc.width(), rc.height(), GetColor( GUI::COL_ACTIVECAPTION ) );
+    Displayer.DrawQuad( rc.Left, rc.Top, rc.Width(), rc.Height(), GetColor( GUI::COL_ACTIVECAPTION ) );
   }
 
 
@@ -91,8 +91,8 @@ void GUIListControl::DisplayOnPage( GUIComponentDisplayer& Displayer )
 
         odInfo.pComponent = this;
         odInfo.ItemIndex  = (int)iItem;
-        odInfo.ItemOffset = rc.position();
-        odInfo.ItemSize   = rc.size();
+        odInfo.ItemOffset = rc.Position();
+        odInfo.ItemSize   = rc.Size();
         odInfo.pDisplayer = &Displayer;
 
         GenerateEvent( OET_OWNER_DRAW_ITEM, (GR::up)&odInfo );
@@ -113,12 +113,12 @@ void GUIListControl::DisplayOnPage( GUIComponentDisplayer& Displayer )
 
           vpTemp.X = vpOrig.X + rc.Left;
           vpTemp.Y = vpOrig.Y + rc.Top;
-          vpTemp.Width  = rc.width();
-          vpTemp.Height = rc.height();
+          vpTemp.Width  = rc.Width();
+          vpTemp.Height = rc.Height();
 
-          if ( rc.Bottom > m_ClientRect.height() )
+          if ( rc.Bottom > m_ClientRect.Height() )
           {
-            vpTemp.Height -= rc.Bottom - ( m_ClientRect.height() );
+            vpTemp.Height -= rc.Bottom - ( m_ClientRect.Height() );
           }
 
           Displayer.SetViewport( vpTemp );

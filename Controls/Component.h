@@ -266,6 +266,8 @@ namespace GUI
 
       void                  RaiseDefaultEvent();
 
+      void                  Invalidate();
+
 
       virtual void          Display( ComponentDisplayerBase* pDisplayer );
       virtual void          DisplayNonClient( ComponentDisplayerBase* pDisplayer );

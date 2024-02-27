@@ -41,11 +41,16 @@ namespace math
     }
 
     Target.Clear();
-    Target.Resize( NumBytes );
+
+    while ( Target.Size() < (size_t)m_Cipher.BlockSize() )
+    {
+      Target.Resize( NumBytes + m_Cipher.BlockSize() );
+    }
     if ( !m_Cipher.TransformBlock( Target, Target ) )
     {
       return false;
     }
+    Target.Resize( NumBytes );
     AddEntropy( Target );
     return true;
   }

@@ -119,7 +119,7 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
 
     virtual void                UpdateScrollBar()
     {
-      int       iUsableHeight = m_ClientRect.height() - m_pScrollBarH->Height();
+      int       iUsableHeight = m_ClientRect.Height() - m_pScrollBarH->Height();
 
       if ( Style() & LCS_SHOW_HEADER )
       {
@@ -141,12 +141,12 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
       if ( ( Style() & LCS_AUTOHIDE_SCROLLBAR )
       &&   ( m_Items.NumRows() <= iVisibleItems ) )
       {
-        m_pScrollBar->SetSize( 0, m_ClientRect.height() - m_pScrollBarH->Height() );
+        m_pScrollBar->SetSize( 0, m_ClientRect.Height() - m_pScrollBarH->Height() );
       }
       else
       {
-        m_pScrollBar->SetSize( 20, m_ClientRect.height() - m_pScrollBarH->Height() );
-        m_pScrollBar->SetLocation( m_ClientRect.width() - 20, 0 );
+        m_pScrollBar->SetSize( 20, m_ClientRect.Height() - m_pScrollBarH->Height() );
+        m_pScrollBar->SetLocation( m_ClientRect.Width() - 20, 0 );
       }
 
       AdjustColumnOffsets();
@@ -283,7 +283,7 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
       m_pScrollBar->ModifyFlags( 0, GUI::COMPFT_TAB_STOP );
       Add( m_pScrollBar );
 
-      m_pScrollBarH = new SCROLLBARCLASS( 0, m_ClientRect.height() - 20, m_Width - 20, 20, SCROLLBARCLASS::SBFT_HORIZONTAL, dwId );
+      m_pScrollBarH = new SCROLLBARCLASS( 0, m_ClientRect.Height() - 20, m_Width - 20, 20, SCROLLBARCLASS::SBFT_HORIZONTAL, dwId );
       m_pScrollBarH->ModifyFlags( 0, GUI::COMPFT_TAB_STOP );
       Add( m_pScrollBarH );
 
@@ -337,7 +337,7 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
         ++it;
       }
 
-      int   iWidthLeft = m_ClientRect.size().x - m_pScrollBar->Width();
+      int   iWidthLeft = m_ClientRect.Width() - m_pScrollBar->Width();
 
       it = m_vectColumns.begin();
       while ( it != m_vectColumns.end() )
@@ -371,23 +371,23 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
         ++it;
       }
 
-      if ( completeWidth > m_ClientRect.width() )
+      if ( completeWidth > m_ClientRect.Width() )
       {
         // H-Scrollbar wird benötigt
-        m_pScrollBarH->SetLocation( 0, m_ClientRect.height() - 20 );
+        m_pScrollBarH->SetLocation( 0, m_ClientRect.Height() - 20 );
         m_pScrollBarH->SetSize( m_pScrollBarH->Width(), 20 );
-        m_pScrollBarH->SetScrollRange( 0, completeWidth - m_ClientRect.width() );
+        m_pScrollBarH->SetScrollRange( 0, completeWidth - m_ClientRect.Width() );
       }
       else
       {
-        completeWidth = m_ClientRect.width();
-        m_pScrollBarH->SetLocation( 0, m_ClientRect.height() );
+        completeWidth = m_ClientRect.Width();
+        m_pScrollBarH->SetLocation( 0, m_ClientRect.Height() );
         m_pScrollBarH->SetSize( m_pScrollBarH->Width(), 0 );
         m_pScrollBarH->SetScrollRange( 0, 0 );
       }
-      if ( m_HorzOffset > completeWidth - m_ClientRect.width() )
+      if ( m_HorzOffset > completeWidth - m_ClientRect.Width() )
       {
-        m_HorzOffset = completeWidth - m_ClientRect.width();
+        m_HorzOffset = completeWidth - m_ClientRect.Width();
       }
       if ( m_HorzOffset < 0 )
       {
@@ -462,7 +462,7 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
 
       GR::tRect   rectList;
       GetListRect( rectList );
-      if ( !rectList.contains( ptPosition ) )
+      if ( !rectList.Contains( ptPosition ) )
       {
         return false;
       }
@@ -498,7 +498,7 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
 
       GR::tRect   rectList;
       GetHeaderRect( rectList );
-      if ( !rectList.contains( ptPosition ) )
+      if ( !rectList.Contains( ptPosition ) )
       {
         return false;
       }
@@ -842,11 +842,11 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
           BASECLASS::ProcessEvent( Event );
           RecalcClientRect();
 
-          m_pScrollBar->SetLocation( m_ClientRect.size().x - m_pScrollBar->Width(), 0 );
-          m_pScrollBar->SetSize( m_pScrollBar->Width(), m_ClientRect.height() );
+          m_pScrollBar->SetLocation( m_ClientRect.Width() - m_pScrollBar->Width(), 0 );
+          m_pScrollBar->SetSize( m_pScrollBar->Width(), m_ClientRect.Height() );
 
-          m_pScrollBarH->SetLocation( 0, m_ClientRect.height() - m_pScrollBarH->Height() );
-          m_pScrollBarH->SetSize( m_ClientRect.width(), m_pScrollBarH->Height() );
+          m_pScrollBarH->SetLocation( 0, m_ClientRect.Height() - m_pScrollBarH->Height() );
+          m_pScrollBarH->SetSize( m_ClientRect.Width(), m_pScrollBarH->Height() );
 
           UpdateScrollBar();
           AdjustColumnOffsets();
@@ -1055,37 +1055,37 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
 
       GetListRect( rcList );
 
-      LineRect.position( 0, (int)( Item - m_Offset ) * m_ItemHeight );
-      LineRect.size( rcList.width(), m_ItemHeight );
+      LineRect.Position( 0, (int)( Item - m_Offset ) * m_ItemHeight );
+      LineRect.Size( rcList.Width(), m_ItemHeight );
 
       if ( Style() & LCS_SHOW_HEADER )
       {
-        LineRect.offset( 0, m_HeaderHeight );
+        LineRect.Offset( 0, m_HeaderHeight );
       }
 
-      if ( LineRect.position().y + LineRect.size().y < 0 )
+      if ( LineRect.Top + LineRect.Height() < 0 )
       {
-        LineRect.size( 0, 0 );
-        LineRect.position( 0, 0 );
+        LineRect.Size( 0, 0 );
+        LineRect.Position( 0, 0 );
         return false;
       }
-      if ( LineRect.position().y >= m_ClientRect.size().y )
+      if ( LineRect.Top >= m_ClientRect.Height() )
       {
-        LineRect.size( 0, 0 );
-        LineRect.position( 0, 0 );
+        LineRect.Size( 0, 0 );
+        LineRect.Position( 0, 0 );
         return false;
       }
-      if ( LineRect.position().y < 0 )
+      if ( LineRect.Top < 0 )
       {
-        LineRect.size( LineRect.size().x, LineRect.size().y + LineRect.position().y );
-        LineRect.position( LineRect.position().x, 0 );
+        LineRect.Size( LineRect.Width(), LineRect.Height() + LineRect.Top );
+        LineRect.Position( LineRect.Left, 0 );
       }
-      if ( LineRect.position().y + LineRect.size().y >= m_ClientRect.size().y )
+      if ( LineRect.Top + LineRect.Height() >= m_ClientRect.Height() )
       {
-        LineRect.size( LineRect.size().x, m_ClientRect.size().y - LineRect.position().y );
+        LineRect.Size( LineRect.Width(), m_ClientRect.Height() - LineRect.Top );
       }
 
-      LineRect.offset( -m_HorzOffset, 0 );
+      LineRect.Offset( -m_HorzOffset, 0 );
       return true;
     }
 
@@ -1115,39 +1115,39 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
           iX += m_vectColumns[tempColumn].CurrentWidth;
           ++tempColumn;
         }
-        ItemRect.position( iX, (int)( Item - m_Offset ) * m_ItemHeight );
-        ItemRect.size( m_vectColumns[tempColumn].CurrentWidth, m_ItemHeight );
+        ItemRect.Position( iX, (int)( Item - m_Offset ) * m_ItemHeight );
+        ItemRect.Size( m_vectColumns[tempColumn].CurrentWidth, m_ItemHeight );
       }
       else
       {
-        ItemRect.position( 0, (int)( Item - m_Offset ) * m_ItemHeight );
-        ItemRect.size( m_ClientRect.width() + m_pScrollBarH->GetMax() - m_pScrollBar->Width(), m_ItemHeight );
+        ItemRect.Position( 0, (int)( Item - m_Offset ) * m_ItemHeight );
+        ItemRect.Size( m_ClientRect.Width() + m_pScrollBarH->GetMax() - m_pScrollBar->Width(), m_ItemHeight );
       }
 
       if ( Style() & LCS_SHOW_HEADER )
       {
-        ItemRect.offset( 0, m_HeaderHeight );
+        ItemRect.Offset( 0, m_HeaderHeight );
       }
 
-      if ( ItemRect.position().y + ItemRect.size().y < 0 )
+      if ( ItemRect.Top + ItemRect.Height() < 0 )
       {
-        ItemRect.size( 0, 0 );
-        ItemRect.position( 0, 0 );
+        ItemRect.Size( 0, 0 );
+        ItemRect.Position( 0, 0 );
         return false;
       }
-      if ( ItemRect.position().y >= m_ClientRect.size().y )
+      if ( ItemRect.Top >= m_ClientRect.Height() )
       {
-        ItemRect.size( 0, 0 );
-        ItemRect.position( 0, 0 );
+        ItemRect.Size( 0, 0 );
+        ItemRect.Position( 0, 0 );
         return false;
       }
-      if ( ItemRect.position().y < 0 )
+      if ( ItemRect.Top < 0 )
       {
-        ItemRect.size( ItemRect.size().x, ItemRect.size().y + ItemRect.position().y );
-        ItemRect.position( ItemRect.position().x, 0 );
+        ItemRect.Size( ItemRect.Width(), ItemRect.Height() + ItemRect.Top );
+        ItemRect.Position( ItemRect.Left, 0 );
       }
 
-      ItemRect.offset( -m_HorzOffset, 0 );
+      ItemRect.Offset( -m_HorzOffset, 0 );
 
       return true;
     }
@@ -1190,15 +1190,15 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
     {
       if ( Style() & LCS_SHOW_HEADER )
       {
-        rectItem.position( 0, m_HeaderHeight );
-        rectItem.size( m_ClientRect.width() + m_pScrollBarH->GetMax() - m_pScrollBar->Width(), m_ClientRect.height() - m_HeaderHeight );
+        rectItem.Position( 0, m_HeaderHeight );
+        rectItem.Size( m_ClientRect.Width() + m_pScrollBarH->GetMax() - m_pScrollBar->Width(), m_ClientRect.Height() - m_HeaderHeight );
       }
       else
       {
-        rectItem.position( 0, 0 );
-        rectItem.size( m_ClientRect.width() + m_pScrollBarH->GetMax() - m_pScrollBar->Width(), m_ClientRect.height() );
+        rectItem.Position( 0, 0 );
+        rectItem.Size( m_ClientRect.Width() + m_pScrollBarH->GetMax() - m_pScrollBar->Width(), m_ClientRect.Height() );
       }
-      rectItem.offset( -m_HorzOffset, 0 );
+      rectItem.Offset( -m_HorzOffset, 0 );
     }
 
 
@@ -1207,37 +1207,37 @@ template <class BS_, class SB_> class AbstractListCtrl : public BS_
     {
       if ( iColumn >= m_vectColumns.size() )
       {
-        rectHeader.position( 0, 0 );
-        rectHeader.size( 0, 0 );
+        rectHeader.Position( 0, 0 );
+        rectHeader.Size( 0, 0 );
         return;
       }
       if ( Style() & LCS_SHOW_HEADER )
       {
-        rectHeader.position( m_vectColumns[iColumn].CurrentOffset, 0 );
-        rectHeader.size( m_vectColumns[iColumn].CurrentWidth, m_HeaderHeight );
+        rectHeader.Position( m_vectColumns[iColumn].CurrentOffset, 0 );
+        rectHeader.Size( m_vectColumns[iColumn].CurrentWidth, m_HeaderHeight );
       }
       else
       {
-        rectHeader.position( 0, 0 );
-        rectHeader.size( m_ClientRect.size().x, 0 );
+        rectHeader.Position( 0, 0 );
+        rectHeader.Size( m_ClientRect.Width(), 0 );
       }
-      rectHeader.offset( -m_HorzOffset, 0 );
+      rectHeader.Offset( -m_HorzOffset, 0 );
     }
 
 
 
     virtual void GetHeaderRect( GR::tRect& rectHeader )
     {
-      rectHeader.position( 0, 0 );
+      rectHeader.Position( 0, 0 );
       if ( Style() & LCS_SHOW_HEADER )
       {
-        rectHeader.size( m_ClientRect.width(), m_HeaderHeight );
+        rectHeader.Size( m_ClientRect.Width(), m_HeaderHeight );
       }
       else
       {
-        rectHeader.size( 0, 0 );
+        rectHeader.Size( 0, 0 );
       }
-      rectHeader.offset( -m_HorzOffset, 0 );
+      rectHeader.Offset( -m_HorzOffset, 0 );
     }
 
 

@@ -103,6 +103,8 @@ ByteBuffer Base64::Decode( const ByteBuffer& memSource )
   GR::String stringcode = "";
 
   ByteBuffer    decodedData;
+  decodedData.Reserve( memSource.Size() * 3 / 4 );
+
 
   size_t l = memSource.Size();
 
@@ -268,7 +270,6 @@ ByteBuffer Base64::Decode( const ByteBuffer& memSource )
 
     // update decodedstring
     decodedData.AppendU8( (GR::u8)value );
-    //decodedstring += (char)value;
 
     value = 0;
   }

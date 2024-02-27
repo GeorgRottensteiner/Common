@@ -40,8 +40,8 @@ class GUIComponentDisplayer : public GUI::ComponentDisplayerBase
 
   public:
 
-    int                             m_iOffsetX,
-                                    m_iOffsetY;
+    int                             m_OffsetX,
+                                    m_OffsetY;
 
     X2dRenderer*                    m_pActualRenderer;
 
@@ -60,8 +60,8 @@ class GUIComponentDisplayer : public GUI::ComponentDisplayerBase
     virtual void                    DisplayBackground();
 
     virtual void                    PushClipValues();
-    virtual void                    SetClipping( int iX1, int iY1, int iX2, int iY2 );
-    virtual void                    SetOffset( int iX, int iY );
+    virtual void                    SetClipping( int X1, int Y1, int X2, int Y2 );
+    virtual void                    SetOffset( int X, int Y );
     virtual GR::tPoint              GetOffset();
 
     void SetRenderer( X2dRenderer* pRenderer );
@@ -79,6 +79,15 @@ class GUIComponentDisplayer : public GUI::ComponentDisplayerBase
                              int AlternativeWidth = -1,
                              int AlternativeHeight = -1,
                              GR::u32 AlternativeFlags = -1 );
+    void DrawTextureSectionColorKeyed( int X,
+                                       int Y,
+                                       const XTextureSection& TexSection,
+                                       GR::u32 ColorKey,
+                                       GR::u32 Color = -1,
+                                       int AlternativeWidth = -1,
+                                       int AlternativeHeight = -1,
+                                       GR::u32 AlternativeFlags = -1 );
+
     void DrawTextureSectionHRepeat( int X, int Y, int Width, const XTextureSection& Section, GR::u32 Color = 0xffffffff );
     void DrawTextureSectionVRepeat( int X, int Y, int Height, const XTextureSection& Section, GR::u32 Color = 0xffffffff );
     void DrawTextureSectionHVRepeat( int X, int Y, int Width, int Height, const XTextureSection& Section, GR::u32 Color = 0xffffffff );
@@ -95,11 +104,11 @@ class GUIComponentDisplayer : public GUI::ComponentDisplayerBase
                    GR::u32 Color = 0xffffffff,
                    const GR::tRect* pRect = NULL );
 
-    void DrawEdge( GR::u32 VisualStyle, const GR::tRect& rectEdge );
-    void DrawEdge( GR::u32 VisualStyle, const GR::tRect& rectEdge, const std::vector<std::pair<XTextureSection, GR::u32> >& Sections );
+    void DrawEdge( GR::u32 VisualStyle, const GR::tRect& Edge );
+    void DrawEdge( GR::u32 VisualStyle, const GR::tRect& Edge, const std::vector<std::pair<XTextureSection, GR::u32> >& Sections );
     void DrawLine( const GR::tPoint& Pos1, const GR::tPoint& Pos2, GR::u32 Color, GR::u32 Color2 = 0 );
 
-    void DrawFocusRect( const GR::tRect& rcFocus, GR::u32 VisualStyle = 0 );
+    void DrawFocusRect( const GR::tRect& Rect, GR::u32 VisualStyle = 0 );
 
 };
 

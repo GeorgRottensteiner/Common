@@ -23,99 +23,99 @@ namespace GUI
     }
 
     // jetzt Text schnippeln
-    GR::String    strDummy = Text;
+    GR::String    dummy = Text;
 
-    GR::String    strNewLine;
+    GR::String    newLine;
 
-    int           iPos = -1;
+    int           pos = -1;
 
     GR::tRect     rcResult;
 
     do
     {
-      strNewLine = "";
+      newLine = "";
 
-      ++iPos;
-      if ( iPos >= (int)strDummy.length() )
+      ++pos;
+      if ( pos >= (int)dummy.length() )
       {
-        TextLines.push_back( strDummy );
+        TextLines.push_back( dummy );
         if ( CalcRect )
         {
-          int   iPixelLength = pFont->TextLength( strDummy.c_str() );
-          if ( iPixelLength > rcResult.width() )
+          int   pixelLength = pFont->TextLength( dummy.c_str() );
+          if ( pixelLength > rcResult.Width() )
           {
-            rcResult.width( iPixelLength );
+            rcResult.Width( pixelLength );
           }
         }
         break;
       }
-      if ( (GR::u8)strDummy[iPos] < 32 )
+      if ( (GR::u8)dummy[pos] < 32 )
       {
-        if ( strDummy[iPos] == 10 )
+        if ( dummy[pos] == 10 )
         {
           // Linebreak
-          TextLines.push_back( strDummy.substr( 0, iPos ) );
-          strDummy = strDummy.substr( iPos + 1 );
-          iPos = -1;
+          TextLines.push_back( dummy.substr( 0, pos ) );
+          dummy = dummy.substr( pos + 1 );
+          pos = -1;
           continue;
         }
 
-        strDummy.erase( iPos, 1 );
-        --iPos;
+        dummy.erase( pos, 1 );
+        --pos;
         continue;
       }
-      if ( ( strDummy[iPos] == '\\' )   // erzwungener Umbruch
-      &&   ( iPos < (int)strDummy.length() )
-      &&   ( strDummy[iPos + 1] == 'n' ) )
+      if ( ( dummy[pos] == '\\' )   // erzwungener Umbruch
+      &&   ( pos < (int)dummy.length() )
+      &&   ( dummy[pos + 1] == 'n' ) )
       {
         if ( CalcRect )
         {
-          int   iPixelLength = pFont->TextLength(  strDummy.substr( 0, iPos ).c_str() );
-          if ( iPixelLength > rcResult.width() )
+          int   iPixelLength = pFont->TextLength(  dummy.substr( 0, pos ).c_str() );
+          if ( iPixelLength > rcResult.Width() )
           {
-            rcResult.width( iPixelLength );
+            rcResult.Width( iPixelLength );
           }
         }
-        TextLines.push_back( strDummy.substr( 0, iPos ) );
-        strDummy = strDummy.substr( iPos + 2 );
-        iPos = -1;
+        TextLines.push_back( dummy.substr( 0, pos ) );
+        dummy = dummy.substr( pos + 2 );
+        pos = -1;
       }
-      else if ( pFont->TextLength( strDummy.substr( 0, iPos ).c_str() ) >= TextArea.size().x )
+      else if ( pFont->TextLength( dummy.substr( 0, pos ).c_str() ) >= TextArea.Width() )
       {
-        if ( strDummy[iPos] != '\n' )
+        if ( dummy[pos] != '\n' )
         {
           // hier muﬂ noch eine passende Stelle (Leerzeichen) gefunden werden
-          int   iNewPos = iPos;
+          int   newPos = pos;
           do
           {
-            iNewPos--;
-            if ( iNewPos <= 0 )
+            newPos--;
+            if ( newPos <= 0 )
             {
-              iNewPos = iPos;
+              newPos = pos;
               break;
             }
           }
-          while ( strDummy[iNewPos] != ' ' );
-          iPos = iNewPos;
+          while ( dummy[newPos] != ' ' );
+          pos = newPos;
         }
         if ( CalcRect )
         {
-          int   iPixelLength = pFont->TextLength(  strDummy.substr( 0, iPos ).c_str() );
-          if ( iPixelLength > rcResult.width() )
+          int   pixelLength = pFont->TextLength(  dummy.substr( 0, pos ).c_str() );
+          if ( pixelLength > rcResult.Width() )
           {
-            rcResult.width( iPixelLength );
+            rcResult.Width( pixelLength );
           }
         }
-        TextLines.push_back( strDummy.substr( 0, iPos ) );
-        strDummy = strDummy.substr( iPos + 1 );
-        iPos = -1;
+        TextLines.push_back( dummy.substr( 0, pos ) );
+        dummy = dummy.substr( pos + 1 );
+        pos = -1;
       }
     }
-    while ( strDummy.length() );
+    while ( dummy.length() );
 
     if ( CalcRect )
     {
-      rcResult.height( (int)TextLines.size() * pFont->TextHeight() );
+      rcResult.Height( (int)TextLines.size() * pFont->TextHeight() );
       TextArea = rcResult;
     }
   }
@@ -132,69 +132,66 @@ namespace GUI
     }
 
     // jetzt Text schnippeln
-    GR::String   strDummy = strText;
-
-    GR::String   strNewLine;
-
-    int           iPos = -1;
-
+    GR::String    dummy = strText;
+    GR::String    newLine;
+    int           pos = -1;
     GR::tRect     rcResult;
 
     do
     {
-      strNewLine = "";
+      newLine = "";
 
-      ++iPos;
-      if ( iPos >= (int)strDummy.length() )
+      ++pos;
+      if ( pos >= (int)dummy.length() )
       {
-        vectText.push_back( strDummy );
+        vectText.push_back( dummy );
         if ( bCalcRect )
         {
-          int   iPixelLength = pFont->TextLength( strDummy.c_str() );
-          if ( iPixelLength > rcResult.width() )
+          int   pixelLength = pFont->TextLength( dummy.c_str() );
+          if ( pixelLength > rcResult.Width() )
           {
-            rcResult.width( iPixelLength );
+            rcResult.Width( pixelLength );
           }
         }
         break;
       }
-      if ( (unsigned int)strDummy[iPos] < 32 )
+      if ( (unsigned int)dummy[pos] < 32 )
       {
-        if ( strDummy[iPos] == 10 )
+        if ( dummy[pos] == 10 )
         {
           // Linebreak
-          vectText.push_back( strDummy.substr( 0, iPos ) );
-          strDummy = strDummy.substr( iPos + 1 );
-          iPos = -1;
+          vectText.push_back( dummy.substr( 0, pos ) );
+          dummy = dummy.substr( pos + 1 );
+          pos = -1;
           continue;
         }
 
-        strDummy.erase( iPos, 1 );
-        --iPos;
+        dummy.erase( pos, 1 );
+        --pos;
         continue;
       }
-      if ( ( strDummy[iPos] == '\\' )   // erzwungener Umbruch
-      &&   ( iPos < (int)strDummy.length() )
-      &&   ( strDummy[iPos + 1] == 'n' ) )
+      if ( ( dummy[pos] == '\\' )   // erzwungener Umbruch
+      &&   ( pos < (int)dummy.length() )
+      &&   ( dummy[pos + 1] == 'n' ) )
       {
         if ( bCalcRect )
         {
-          int   iPixelLength = pFont->TextLength(  strDummy.substr( 0, iPos ).c_str() );
-          if ( iPixelLength > rcResult.width() )
+          int   pixelLength = pFont->TextLength(  dummy.substr( 0, pos ).c_str() );
+          if ( pixelLength > rcResult.Width() )
           {
-            rcResult.width( iPixelLength );
+            rcResult.Width( pixelLength );
           }
         }
-        vectText.push_back( strDummy.substr( 0, iPos ) );
-        strDummy = strDummy.substr( iPos + 2 );
-        iPos = -1;
+        vectText.push_back( dummy.substr( 0, pos ) );
+        dummy = dummy.substr( pos + 2 );
+        pos = -1;
       }
     }
-    while ( strDummy.length() );
+    while ( dummy.length() );
 
     if ( bCalcRect )
     {
-      rcResult.height( (int)vectText.size() * pFont->TextHeight() );
+      rcResult.Height( (int)vectText.size() * pFont->TextHeight() );
       rectResult = rcResult;
     }
   }
@@ -203,7 +200,7 @@ namespace GUI
 
   GR::tPoint TextOffset( Interface::IFont* pFont, const GR::String& strText, GR::u32 textAlignment, const GR::tRect& Rect )
   {
-    GR::tPoint    ptResult( Rect.position() );
+    GR::tPoint    ptResult( Rect.Position() );
 
     if ( pFont == NULL )
     {
@@ -212,20 +209,20 @@ namespace GUI
 
     if ( ( textAlignment & GUI::AF_VCENTER ) == GUI::AF_VCENTER )
     {
-      ptResult.y = Rect.Top + ( Rect.height() - pFont->TextHeight() ) / 2;
+      ptResult.y = Rect.Top + ( Rect.Height() - pFont->TextHeight() ) / 2;
     }
     else if ( textAlignment & GUI::AF_BOTTOM )
     {
-      ptResult.y = Rect.Top + Rect.height() - pFont->TextHeight();
+      ptResult.y = Rect.Top + Rect.Height() - pFont->TextHeight();
     }
 
     if ( ( textAlignment & GUI::AF_CENTER ) == GUI::AF_CENTER )
     {
-      ptResult.x = Rect.Left + ( Rect.width() - pFont->TextLength( strText.c_str() ) ) / 2;
+      ptResult.x = Rect.Left + ( Rect.Width() - pFont->TextLength( strText.c_str() ) ) / 2;
     }
     else if ( textAlignment & GUI::AF_RIGHT )
     {
-      ptResult.x = Rect.Left + Rect.width() - pFont->TextLength( strText.c_str() );
+      ptResult.x = Rect.Left + Rect.Width() - pFont->TextLength( strText.c_str() );
     }
     return ptResult;
   }
@@ -587,10 +584,10 @@ namespace GUI
     {
       GR::tRect&    rectClipping = m_ClipRects.back();
 
-      SetClipping( rectClipping.position().x,
-                    rectClipping.position().y,
-                    rectClipping.size().x,
-                    rectClipping.size().y );
+      SetClipping( rectClipping.Left,
+                    rectClipping.Top,
+                    rectClipping.Width(),
+                    rectClipping.Height() );
 
       m_ClipRects.pop_back();
     }
@@ -614,8 +611,8 @@ namespace GUI
 
       X      = rectClipping.Left;
       Y      = rectClipping.Top;
-      Width  = rectClipping.width();
-      Height = rectClipping.height();
+      Width  = rectClipping.Width();
+      Height = rectClipping.Height();
     }
     if ( !m_Offsets.empty() )
     {
@@ -695,16 +692,16 @@ namespace GUI
 
     GR::tRect     ncAreaClip( Offset + pComponent->Position(), pComponent->Size() );
 
-    if ( ( !ncAreaClip.intersects( ParentClipRect ) )
-    ||   ( !ncAreaClip.intersects( GR::tRect( Offset, rcParentClient.size() ) ) ) )
+    if ( ( !ncAreaClip.Intersects( ParentClipRect ) )
+    ||   ( !ncAreaClip.Intersects( GR::tRect( Offset, rcParentClient.Size() ) ) ) )
     {
       // completely outside!
       return;
     }
-    ncAreaClip = ncAreaClip.intersection( ParentClipRect );
-    ncAreaClip = ncAreaClip.intersection( GR::tRect( Offset, rcParentClient.size() ) );
+    ncAreaClip = ncAreaClip.Intersection( ParentClipRect );
+    ncAreaClip = ncAreaClip.Intersection( GR::tRect( Offset, rcParentClient.Size() ) );
 
-    SetClipping( ncAreaClip.Left, ncAreaClip.Top, ncAreaClip.width(), ncAreaClip.height() );
+    SetClipping( ncAreaClip.Left, ncAreaClip.Top, ncAreaClip.Width(), ncAreaClip.Height() );
 
     GR::tPoint      offset( Offset + pComponent->Position() );
     SetOffset( offset.x, offset.y );
@@ -722,19 +719,19 @@ namespace GUI
     GR::tPoint  ptClientOffset = pComponent->GetClientOffset();
 
     // clip to client rect
-    GR::tRect   clientAreaClip( Offset + pComponent->Position() + ptClientOffset, rcClient.size() );
+    GR::tRect   clientAreaClip( Offset + pComponent->Position() + ptClientOffset, rcClient.Size() );
 
-    if ( ( !clientAreaClip.intersects( ParentClipRect ) )
-    &&   ( !clientAreaClip.intersects( GR::tRect( Offset, rcParentClient.size() ) ) ) )
+    if ( ( !clientAreaClip.Intersects( ParentClipRect ) )
+    &&   ( !clientAreaClip.Intersects( GR::tRect( Offset, rcParentClient.Size() ) ) ) )
     {
       // completely outside!
       return;
     }
 
-    clientAreaClip = clientAreaClip.intersection( ParentClipRect );
-    clientAreaClip = clientAreaClip.intersection( GR::tRect( Offset, rcParentClient.size() ) );
+    clientAreaClip = clientAreaClip.Intersection( ParentClipRect );
+    clientAreaClip = clientAreaClip.Intersection( GR::tRect( Offset, rcParentClient.Size() ) );
 
-    SetClipping( clientAreaClip.Left, clientAreaClip.Top, clientAreaClip.width(), clientAreaClip.height() );
+    SetClipping( clientAreaClip.Left, clientAreaClip.Top, clientAreaClip.Width(), clientAreaClip.Height() );
     SetOffset( offset.x + ptClientOffset.x, offset.y + ptClientOffset.y );
 
     DisplayComponent( pComponent );
@@ -834,11 +831,11 @@ namespace GUI
   void ComponentDisplayerBase::SetExtents( int Width, int Height )
   {
     GR::tPoint    trueSize = ScreenToVirtual( GR::tPoint( Width, Height ) );
-    m_ClientRect.size( trueSize.x, trueSize.y );
+    m_ClientRect.Size( trueSize.x, trueSize.y );
 
     ComponentEvent   Event( CET_EXTENTS_CHANGED );
 
-    Event.Position.set( Width, Height );
+    Event.Position.Set( Width, Height );
 
     NotifyAllComponents( Event );
   }
@@ -930,8 +927,8 @@ namespace GUI
 
       iXA = iXOffset + pComponent->Position().x + ptClientOffset.x;
       iYA = iYOffset + pComponent->Position().y + ptClientOffset.y;
-      iXB = iXA + rcClient.size().x;
-      iYB = iYA + rcClient.size().y;
+      iXB = iXA + rcClient.Width();
+      iYB = iYA + rcClient.Height();
 
       SetClipping( iXA, iYA, iXB - iXA, iYB - iYA );
       SetOffset( iXA, iYA );
@@ -1006,6 +1003,8 @@ namespace GUI
     }
     ProcessComponentEventQueue();
     DeleteDanglingControls();
+    // TODO - can that stay here?
+    m_AlreadyHandledComponentsThisFrame.clear();
   }
 
 
@@ -1061,8 +1060,8 @@ namespace GUI
 
             iXA = iXOffset + pComponent->Position().x + ptClientOffset.x;
             iYA = iYOffset + pComponent->Position().y + ptClientOffset.y;
-            iXB = iXA + rcClient.size().x;
-            iYB = iYA + rcClient.size().y;
+            iXB = iXA + rcClient.Width();
+            iYB = iYA + rcClient.Height();
 
             if ( ( iXB - iXA > 0 )
             &&   ( iYB - iYA > 0 )
@@ -1153,8 +1152,8 @@ namespace GUI
 
       iXA = iXOffset + pParentComponent->Position().x + ptClientOffset.x;
       iYA = iYOffset + pParentComponent->Position().y + ptClientOffset.y;
-      iXB = iXA + rcClient.size().x;
-      iYB = iYA + rcClient.size().y;
+      iXB = iXA + rcClient.Width();
+      iYB = iYA + rcClient.Height();
 
       if ( ( iXB - iXA > 0 )
       &&   ( iYB - iYA > 0 )
@@ -1310,10 +1309,10 @@ namespace GUI
       inputEvent.Position.y       = (GR::i16)( Event.Param1 & 0xffff );
       inputEvent.Position         = ScreenToVirtual( inputEvent.Position );
 
-      if ( m_ExternalArea.width() != 0 )
+      if ( m_ExternalArea.Width() != 0 )
       {
-        inputEvent.Position = GR::tPoint( ( inputEvent.Position.x * m_ExternalArea.width() ) / m_PhysicalSize.x - m_ExternalArea.Left,
-                                          ( inputEvent.Position.y * m_ExternalArea.height() ) / m_PhysicalSize.y - m_ExternalArea.Top );
+        inputEvent.Position = GR::tPoint( ( inputEvent.Position.x * m_ExternalArea.Width() ) / m_PhysicalSize.x - m_ExternalArea.Left,
+                                          ( inputEvent.Position.y * m_ExternalArea.Height() ) / m_PhysicalSize.y - m_ExternalArea.Top );
       }
 
       ProcessEvent( inputEvent );
@@ -1326,10 +1325,10 @@ namespace GUI
       inputEvent.Position.y       = (GR::i16)( Event.Param1 & 0xffff );
       inputEvent.Position         = ScreenToVirtual( inputEvent.Position );
 
-      if ( m_ExternalArea.width() != 0 )
+      if ( m_ExternalArea.Width() != 0 )
       {
-        inputEvent.Position = GR::tPoint( ( inputEvent.Position.x * m_ExternalArea.width() ) / m_PhysicalSize.x - m_ExternalArea.Left,
-                                          ( inputEvent.Position.y * m_ExternalArea.height() ) / m_PhysicalSize.y - m_ExternalArea.Top );
+        inputEvent.Position = GR::tPoint( ( inputEvent.Position.x * m_ExternalArea.Width() ) / m_PhysicalSize.x - m_ExternalArea.Left,
+                                          ( inputEvent.Position.y * m_ExternalArea.Height() ) / m_PhysicalSize.y - m_ExternalArea.Top );
       }
 
       ProcessEvent( inputEvent );
@@ -1342,10 +1341,10 @@ namespace GUI
       inputEvent.Position.y       = (GR::i16)( Event.Param1 & 0xffff );
       inputEvent.Position         = ScreenToVirtual( inputEvent.Position );
 
-      if ( m_ExternalArea.width() != 0 )
+      if ( m_ExternalArea.Width() != 0 )
       {
-        inputEvent.Position = GR::tPoint( ( inputEvent.Position.x * m_ExternalArea.width() ) / m_PhysicalSize.x - m_ExternalArea.Left,
-                                          ( inputEvent.Position.y * m_ExternalArea.height() ) / m_PhysicalSize.y - m_ExternalArea.Top );
+        inputEvent.Position = GR::tPoint( ( inputEvent.Position.x * m_ExternalArea.Width() ) / m_PhysicalSize.x - m_ExternalArea.Left,
+                                          ( inputEvent.Position.y * m_ExternalArea.Height() ) / m_PhysicalSize.y - m_ExternalArea.Top );
       }
 
       ProcessEvent( inputEvent );
@@ -1626,22 +1625,22 @@ namespace GUI
       return NULL;
     }
 
-    float   fAngle = 0.0f;
+    float   angle = 0.0f;
 
     switch ( wChar )
     {
       case Xtreme::KEY_LEFT:
-        fAngle = 180.0f;
+        angle = 180.0f;
         break;
       case Xtreme::KEY_UP:
-        fAngle = 90.0f;
+        angle = 90.0f;
         break;
       case Xtreme::KEY_DOWN:
-        fAngle = 270.0f;
+        angle = 270.0f;
         break;
     }
 
-    Component*   pBestMatch = NULL;
+    Component*    pBestMatch = NULL;
 
     GR::tRect     rcMyComponent;
 
@@ -1650,7 +1649,7 @@ namespace GUI
       pOldFocusedComponent->GetWindowRect( rcMyComponent );
     }
 
-    float         fBestDistance = 100000.0f;
+    float         bestDistance = 100000.0f;
 
     tListComponents::iterator   it( pParentComponent->m_Components.begin() );
     while ( it != pParentComponent->m_Components.end() )
@@ -1681,25 +1680,25 @@ namespace GUI
 
           pOtherComponent->GetWindowRect( rc );
 
-          float   fDistance = (float)( rc.center().x - rcMyComponent.center().x ) * ( rc.center().x - rcMyComponent.center().x )
-                            + ( rc.center().y - rcMyComponent.center().y ) * ( rc.center().y - rcMyComponent.center().y );
+          float   distance = (float)( rc.CenterX() - rcMyComponent.CenterX() ) * ( rc.CenterX() - rcMyComponent.CenterX() )
+                                  + ( rc.CenterY() - rcMyComponent.CenterY() ) * ( rc.CenterY() - rcMyComponent.CenterY() );
 
-          float   fLocalAngle = atan2f( (float)( rcMyComponent.center().y - rc.center().y ), 
-                                        -(float)( rcMyComponent.center().x - rc.center().x ) ) * 180.0f / 3.1415926f;
+          float   localAngle = atan2f( (float)( rcMyComponent.CenterY() - rc.CenterY() ), 
+                                      -(float)( rcMyComponent.CenterX() - rc.CenterX() ) ) * 180.0f / 3.1415926f;
 
-          while ( fLocalAngle < 0.0f )
+          while ( localAngle < 0.0f )
           {
-            fLocalAngle += 360.0f;
+            localAngle += 360.0f;
           }
 
-          if ( ( fabsf( fLocalAngle - fAngle ) <= 45.0f )
-          ||   ( fabsf( fLocalAngle - fAngle ) >= 315.0f ) )
+          if ( ( fabsf( localAngle - angle ) <= 45.0f )
+          ||   ( fabsf( localAngle - angle ) >= 315.0f ) )
           {
             // im erlaubten Bereich
-            if ( fDistance < fBestDistance )
+            if ( distance < bestDistance )
             {
               pBestMatch = pOtherComponent;
-              fBestDistance = fDistance;
+              bestDistance = distance;
             }
           }
         }
@@ -1722,7 +1721,7 @@ namespace GUI
     m_VirtualSize = VirtualSize;
     m_PhysicalSize = PhysicalSize;
 
-    m_ClientRect.set( 0, 0, PhysicalSize.x, PhysicalSize.y );
+    m_ClientRect.Set( 0, 0, PhysicalSize.x, PhysicalSize.y );
   }
 
 
@@ -1770,5 +1769,13 @@ namespace GUI
   {
     return *s_pInstance;
   }
+
+
+
+  void ComponentDisplayerBase::Invalidate( Component* pComponent )
+  {
+  }
+
+
 
 }

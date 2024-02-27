@@ -381,7 +381,7 @@ namespace GUI
                     {
                       dragInfo.DragOffset = Event.Position;
                       GenerateEventForParent( OET_DRAG_CONTENT_QUERY, (GR::up)&dragInfo );
-                      dragInfo.DragOffset.clear();
+                      dragInfo.DragOffset.Clear();
                       if ( dragInfo.pComponentDragContent )
                       {
                         dragInfo.pComponentDragContent->StartDragging();
@@ -467,6 +467,9 @@ namespace GUI
           GenerateEventForParent( OET_MOUSE_WHEEL, Event.Position.x, Event.Position.y, Event.MouseButtons, Event.Value );
         }
         break;
+      case CET_VISUAL_STYLE_CHANGED:
+        RecalcClientRect();
+        return true;
       case CET_SET_SIZE:
         m_Width  = Event.Position.x;
         m_Height = Event.Position.y;
@@ -766,14 +769,7 @@ namespace GUI
       return false;
     }
 
-    if ( ( MousePos.x >= 0 )
-    &&   ( MousePos.y >= 0 )
-    &&   ( MousePos.x < m_ClientRect.size().x )
-    &&   ( MousePos.y < m_ClientRect.size().y ) )
-    {
-      return true;
-    }
-    return false;
+    return m_ClientRect.Contains( MousePos );
   }
 
 
@@ -863,7 +859,7 @@ namespace GUI
 
   void Component::GetComponentRect( GR::tRect& Rect ) const
   {
-    Rect.set( 0, 0, m_Width, m_Height );
+    Rect.Set( 0, 0, m_Width, m_Height );
   }
 
 
@@ -889,11 +885,11 @@ namespace GUI
 
   void Component::RecalcClientRect()
   {
-    m_ClientRect.set( 0, 0, m_Width, m_Height );
+    m_ClientRect.Set( 0, 0, m_Width, m_Height );
 
-    m_ClientRect.Left += GetBorderWidth( GUI::BT_EDGE_LEFT );
-    m_ClientRect.Right -= GetBorderWidth( GUI::BT_EDGE_RIGHT );
-    m_ClientRect.Top += GetBorderHeight( GUI::BT_EDGE_TOP );
+    m_ClientRect.Left   += GetBorderWidth( GUI::BT_EDGE_LEFT );
+    m_ClientRect.Right  -= GetBorderWidth( GUI::BT_EDGE_RIGHT );
+    m_ClientRect.Top    += GetBorderHeight( GUI::BT_EDGE_TOP );
     m_ClientRect.Bottom -= GetBorderHeight( GUI::BT_EDGE_BOTTOM );
   }
 
@@ -1255,18 +1251,18 @@ namespace GUI
   {
     Rect = GR::tRect();
 
-    Rect.size( Width(), Height() );
+    Rect.Size( Width(), Height() );
 
     const Component*   pComponent = this;
 
     while ( pComponent )
     {
-      Rect.offset( pComponent->Position() );
+      Rect.Offset( pComponent->Position() );
 
       pComponent = pComponent->GetComponentParent();
       if ( pComponent )
       {
-        Rect.offset( pComponent->GetClientOffset() );
+        Rect.Offset( pComponent->GetClientOffset() );
       }
     }
   }
@@ -1525,7 +1521,7 @@ namespace GUI
     
     pParent->GetClientRect( RectClient );
 
-    SetLocation( ( RectClient.width() - Width() ) / 2, ( RectClient.height() - Height() ) / 2 );
+    SetLocation( ( RectClient.Width() - Width() ) / 2, ( RectClient.Height() - Height() ) / 2 );
   }
 
 
@@ -1701,6 +1697,11 @@ namespace GUI
   }
 
 
+
+  void Component::Invalidate()
+  {
+    ComponentDisplayerBase::Instance().Invalidate( this );
+  }
 
 
 

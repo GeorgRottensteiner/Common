@@ -325,7 +325,7 @@ namespace GUI
   {
     while ( pComponent )
     {
-      pt -= pComponent->Position() + pComponent->m_ClientRect.position();
+      pt -= pComponent->Position() + pComponent->m_ClientRect.Position();
 
       pComponent = pComponent->GetComponentParent();
     }
@@ -343,7 +343,7 @@ namespace GUI
 
     while ( pComponent )
     {
-      pt -= pComponent->Position() + pComponent->m_ClientRect.position();
+      pt -= pComponent->Position() + pComponent->m_ClientRect.Position();
 
       pComponent = pComponent->GetComponentParent();
     }
@@ -359,7 +359,7 @@ namespace GUI
 
       pComponent->GetClientRect( rcClient );
 
-      pt += pComponent->Position() + rcClient.position();
+      pt += pComponent->Position() + rcClient.Position();
 
       pComponent = pComponent->GetComponentParent();
     }
@@ -375,7 +375,7 @@ namespace GUI
 
       pComponent->GetClientRect( rcClient );
 
-      rc.offset( pComponent->Position() + rcClient.position() );
+      rc.Offset( pComponent->Position() + rcClient.Position() );
 
       pComponent = pComponent->GetComponentParent();
     }
@@ -500,7 +500,7 @@ namespace GUI
               m_pCapturingComponent->m_ComponentFlags |= GUI::COMPFT_MOUSE_INSIDE;
               ComponentEvent     mouseinEvent( CET_MOUSE_IN );
               mouseinEvent.MouseButtons   = newEvent.MouseButtons;
-              mouseinEvent.Position       = newEvent.Position - m_pCapturingComponent->m_ClientRect.position();
+              mouseinEvent.Position       = newEvent.Position - m_pCapturingComponent->m_ClientRect.Position();
               m_pCapturingComponent->ProcessEvent( mouseinEvent );
             }
           }
@@ -746,7 +746,7 @@ namespace GUI
   void ComponentContainer::GetClientRect( GR::tRect& rectClient ) const
   {
     rectClient = m_ClientRect;
-    rectClient.offset( -rectClient.Left, -rectClient.Top );
+    rectClient.Offset( -rectClient.Left, -rectClient.Top );
   }
 
 
@@ -754,7 +754,7 @@ namespace GUI
   GR::tRect ComponentContainer::GetClientRect() const
   {
     GR::tRect rectClient = m_ClientRect;
-    rectClient.offset( -rectClient.Left, -rectClient.Top );
+    rectClient.Offset( -rectClient.Left, -rectClient.Top );
 
     return rectClient;
   }
@@ -763,7 +763,7 @@ namespace GUI
 
   GR::tPoint ComponentContainer::GetClientOffset() const
   {
-    return m_ClientRect.position();
+    return m_ClientRect.Position();
   }
 
 

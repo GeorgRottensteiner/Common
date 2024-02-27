@@ -30,7 +30,7 @@ void GUIDialog::DisplayNonClientOnPage( GUIComponentDisplayer& Displayer )
     Displayer.m_pActualRenderer->SetShader( XRenderer::ST_FLAT_NO_TEXTURE );
     GR::u32   col1 = GetColor( GUI::COL_ACTIVECAPTION );
     GR::u32   col2 = GetColor( GUI::COL_GRADIENTACTIVECAPTION );
-    Displayer.DrawQuad( rc.Left, rc.Top, rc.width(), rc.height(), 
+    Displayer.DrawQuad( rc.Left, rc.Top, rc.Width(), rc.Height(), 
                         col1, 
                         col2, 
                         col1, 

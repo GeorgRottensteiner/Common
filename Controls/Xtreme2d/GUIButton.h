@@ -10,14 +10,12 @@
 #include "GUIComponent.h"
 
 
-class X2dRenderer;
-
 class GUIButton : public AbstractButton<GUIComponent>
 {
 
   protected:
 
-    GR::tPoint                m_ptPushedTextOffset;
+    GR::tPoint                m_PushedTextOffset;
 
 
   public:
@@ -33,13 +31,13 @@ class GUIButton : public AbstractButton<GUIComponent>
       CTS_PUSHED
     };
 
-    GUIButton( int iNewX = 0, int iNewY = 0, int iNewWidth = 20, int iNewHeight = 20, GR::u32 dwId = 0, GR::u32 dwStyle = BCS_DEFAULT );
-    GUIButton( int iNewX, int iNewY, int iNewWidth, int iNewHeight, const GR::String& strCaption, GR::u32 dwId = 0, GR::u32 dwStyle = BCS_DEFAULT );
+    GUIButton( int X = 0, int Y = 0, int Width = 20, int Height = 20, GR::u32 Id = 0, GR::u32 Style = BCS_DEFAULT );
+    GUIButton( int X, int Y, int Width, int Height, const GR::String& Caption, GR::u32 Id = 0, GR::u32 Style = BCS_DEFAULT );
 
     virtual void              DisplayOnPage( GUIComponentDisplayer& Displayer );
     virtual void              DisplayNonClientOnPage( GUIComponentDisplayer& Displayer );
 
-    void                      SetPushedTextOffset( const GR::tPoint& ptOffset );
+    void                      SetPushedTextOffset( const GR::tPoint& Offset );
 
 };
 

@@ -61,7 +61,7 @@ CDX8RenderClass::CDX8RenderClass( HINSTANCE hInstance ) :
   {
     m_hInstance = GetModuleHandle( NULL );
   }
-  m_DirectTexelMappingOffset.set( -0.5f, -0.5f );
+  m_DirectTexelMappingOffset.Set( -0.5f, -0.5f );
   g_pDX8Instance = this;
 }
 
@@ -116,8 +116,8 @@ bool CDX8RenderClass::Initialize( GR::u32 Width, GR::u32 Height, GR::u32 Depth, 
   m_CreationHeight  = Height;
   m_CreationDepth   = Depth;
 
-  m_Canvas.set( 0, 0, Width, Height );
-  m_VirtualSize.set( Width, Height );
+  m_Canvas.Set( 0, 0, Width, Height );
+  m_VirtualSize.Set( Width, Height );
 
   m_bWindowed         = !( Flags & XRenderer::IN_FULLSCREEN );
   m_VSyncEnabled      = !!( Flags & XRenderer::IN_VSYNC );
@@ -130,12 +130,12 @@ bool CDX8RenderClass::Initialize( GR::u32 Width, GR::u32 Height, GR::u32 Depth, 
 
   if ( GetMonitorInfo( mon, &mInfo ) )
   {
-    m_NativeMonitorSize.set( mInfo.rcMonitor.right - mInfo.rcMonitor.left, mInfo.rcMonitor.bottom - mInfo.rcMonitor.top );
+    m_NativeMonitorSize.Set( mInfo.rcMonitor.right - mInfo.rcMonitor.left, mInfo.rcMonitor.bottom - mInfo.rcMonitor.top );
   }
   else
   {
     // will that ever happen?
-    m_NativeMonitorSize.set( m_CreationWidth, m_CreationHeight );
+    m_NativeMonitorSize.Set( m_CreationWidth, m_CreationHeight );
   }
 
   // Build a list of Direct3D adapters, modes and devices. The
@@ -188,7 +188,7 @@ bool CDX8RenderClass::Initialize( GR::u32 Width, GR::u32 Height, GR::u32 Depth, 
   Log( "Renderer.Full", CMisc::printf( "FullscreenMode.Height %d", m_FullscreenDisplayMode.Height ) );
   Log( "Renderer.Full", CMisc::printf( "FullscreenMode.Format %d", m_FullscreenDisplayMode.ImageFormat ) );
 
-  m_Canvas.set( 0, 0, Width, Height );
+  m_Canvas.Set( 0, 0, Width, Height );
 
   // Unless a substitute hWnd has been specified, create a window to
   // render into
@@ -916,7 +916,7 @@ HRESULT CDX8RenderClass::Initialize3DEnvironment()
     return E_FAIL;
   }
 
-  m_Canvas.set( 0, 0, m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight );
+  m_Canvas.Set( 0, 0, m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight );
 
   // Create the device
   DWORD   Behaviour = m_pCurrentModeInfo->Behaviour;
@@ -2068,8 +2068,8 @@ XTexture* CDX8RenderClass::CreateTexture( GR::u32 Width, GR::u32 Height, GR::Gra
   D3DSURFACE_DESC ddsd;
   pTexture->m_Surface->GetLevelDesc( 0, &ddsd );
 
-  pTexture->m_SurfaceSize.set( ddsd.Width, ddsd.Height );
-  pTexture->m_ImageSourceSize.set( Width, Height );
+  pTexture->m_SurfaceSize.Set( ddsd.Width, ddsd.Height );
+  pTexture->m_ImageSourceSize.Set( Width, Height );
   pTexture->m_PixelFormat   = ddsd.Format;
   pTexture->m_ImageFormat   = imgFormat;
 
@@ -2208,8 +2208,8 @@ void CDX8RenderClass::RenderQuad2d( GR::i32 iX, GR::i32 iY, GR::i32 iWidth, GR::
   iX += m_DisplayOffset.x;
   iY += m_DisplayOffset.y;
 
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   struct CUSTOMVERTEX
   {
@@ -2289,8 +2289,8 @@ void CDX8RenderClass::RenderQuadDetail2d( GR::f32 fX, GR::f32 fY, GR::f32 fWidth
   fX += m_DisplayOffset.x;
   fY += m_DisplayOffset.y;
 
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   struct CUSTOMVERTEX
   {
@@ -2370,8 +2370,8 @@ void CDX8RenderClass::RenderQuadDetail2d( GR::f32 fX1, GR::f32 fY1,
   fX4 += m_DisplayOffset.x;
   fY4 += m_DisplayOffset.y;
 
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   if ( ( Color2 == Color3 )
   &&   ( Color3 == Color4 )
@@ -2463,8 +2463,8 @@ void CDX8RenderClass::RenderTriangle2d( const GR::tPoint& pt1, const GR::tPoint&
 
   float   fRHW = 1.0f;
 
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   m_pd3dDevice->SetVertexShader( D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1 );
 
@@ -3803,8 +3803,8 @@ void CDX8RenderClass::RenderLine2d( const GR::tPoint& pt1, const GR::tPoint& pt2
   CUSTOMVERTEX          vertData[2];
 
 
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
 
   m_pd3dDevice->SetVertexShader( D3DFVF_XYZRHW | D3DFVF_DIFFUSE );

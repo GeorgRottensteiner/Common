@@ -25,7 +25,7 @@ class GUIScreen : public GUIComponent
 
 
 
-    GUIScreen( int iNewX = 0, int iNewY = 0, int iNewWidth = 0, int iNewHeight = 0, GR::u32 dwId = 0 );
+    GUIScreen( int NewX = 0, int NewY = 0, int NewWidth = 0, int NewHeight = 0, GR::u32 Id = 0 );
 
     virtual void              DisplayOnPage( GUIComponentDisplayer& Displayer );
 

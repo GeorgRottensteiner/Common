@@ -16,7 +16,7 @@ class GUISlider : public AbstractSlider<GUIComponent>
     DECLARE_CLONEABLE( GUISlider, "Slider" )
 
 
-    GUISlider( int X = 0, int Y = 0, int Width = 20, int Height = 20, SliderFlagType Flags = SFT_VERTICAL, GR::u32 Id = 0 );
+    GUISlider( int X = 0, int Y = 0, int Width = 20, int Height = 20, SliderFlagType SliderFlags = SFT_VERTICAL, GR::u32 Id = 0 );
 
     virtual void              DisplayOnPage( GUIComponentDisplayer& Displayer );
 

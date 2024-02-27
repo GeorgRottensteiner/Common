@@ -173,9 +173,9 @@ template <class BS_, class EC_, class BT_, class LBC_> class AbstractComboBox : 
           BASECLASS::ProcessEvent( Event );
 
           m_pEdit->SetLocation( 0, 0 );
-          m_pEdit->SetSize( m_ClientRect.width() - m_pButtonDropDown->Width(), m_ClientRect.height() );
-          m_pButtonDropDown->SetLocation( m_ClientRect.width() - m_pButtonDropDown->Width(), 0 );
-          m_pButtonDropDown->SetSize( m_pButtonDropDown->Width(), m_ClientRect.height() );
+          m_pEdit->SetSize( m_ClientRect.Width() - m_pButtonDropDown->Width(), m_ClientRect.Height() );
+          m_pButtonDropDown->SetLocation( m_ClientRect.Width() - m_pButtonDropDown->Width(), 0 );
+          m_pButtonDropDown->SetSize( m_pButtonDropDown->Width(), m_ClientRect.Height() );
           return true;
         case CET_MOUSE_DOWN:
           if ( ( m_ListBoxOpened )
@@ -355,7 +355,7 @@ template <class BS_, class EC_, class BT_, class LBC_> class AbstractComboBox : 
       m_pListBox->Enable();
 
       m_pListBox->SetLocation( ptPos.x, ptPos.y );
-      m_pListBox->SetClientSize( m_ClientRect.width(), completeHeight );
+      m_pListBox->SetClientSize( m_ClientRect.Width(), completeHeight );
       m_pListBox->SetFocus();
     }
 

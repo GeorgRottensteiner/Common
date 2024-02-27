@@ -66,10 +66,10 @@ void DX11LineCache::AddEntry( XTexture* pTexture,
   auto&   v2 = Vertices[m_UsedVertices + 1];
 
   v1.Pos      = Pos1;
-  v1.TextureCoord.set( TU1, TV1 );
+  v1.TextureCoord.Set( TU1, TV1 );
   v1.SetColor( Color1 );
   v2.Pos = Pos2;
-  v2.TextureCoord.set( TU2, TV2 );
+  v2.TextureCoord.Set( TU2, TV2 );
   v2.SetColor( Color2 );
 
   auto&  entry = LineInfo[m_UsedVertices / 2];

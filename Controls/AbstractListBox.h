@@ -68,14 +68,14 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
     {
       if ( Style() & LCS_MULTI_COLUMN )
       {
-        m_ItemsPerLine = ( m_ClientRect.width() - m_pScrollBar->Width() ) / m_ItemWidth;
+        m_ItemsPerLine = ( m_ClientRect.Width() - m_pScrollBar->Width() ) / m_ItemWidth;
         if ( m_ItemsPerLine == 0 )
         {
           m_ItemsPerLine = 1;
         }
       }
 
-      size_t   visibleItems = m_ClientRect.size().y / m_ItemHeight;
+      size_t   visibleItems = m_ClientRect.Height() / m_ItemHeight;
 
       if ( visibleItems > m_Items.size() )
       {
@@ -97,7 +97,7 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
       else
       {
         m_pScrollBar->SetSize( 20, m_pScrollBar->Height() );
-        m_pScrollBar->SetLocation( m_ClientRect.width() - 20, 0 );
+        m_pScrollBar->SetLocation( m_ClientRect.Width() - 20, 0 );
       }
         
       if ( ( iScrollMaxItems < visibleItems )
@@ -225,11 +225,11 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
 
       m_pScrollBar->AddListener( this );
 
-      m_ItemWidth        = m_ClientRect.width() - m_pScrollBar->Width();
+      m_ItemWidth        = m_ClientRect.Width() - m_pScrollBar->Width();
       m_ItemsPerLine     = 1;
       if ( Type & LCS_MULTI_COLUMN )
       {
-        m_ItemsPerLine = ( m_ClientRect.width() - m_pScrollBar->Width() ) / m_ItemWidth;
+        m_ItemsPerLine = ( m_ClientRect.Width() - m_pScrollBar->Width() ) / m_ItemWidth;
         if ( m_ItemsPerLine == 0 )
         {
           m_ItemsPerLine = 1;
@@ -358,19 +358,19 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
         case CET_SET_CLIENT_SIZE:
           BASECLASS::ProcessEvent( Event );
 
-          m_ItemWidth        = m_ClientRect.width() - m_pScrollBar->Width();
+          m_ItemWidth        = m_ClientRect.Width() - m_pScrollBar->Width();
           m_ItemsPerLine     = 1;
           if ( Style() & LCS_MULTI_COLUMN )
           {
-            m_ItemsPerLine = ( m_ClientRect.width() - m_pScrollBar->Width() ) / m_ItemWidth;
+            m_ItemsPerLine = ( m_ClientRect.Width() - m_pScrollBar->Width() ) / m_ItemWidth;
             if ( m_ItemsPerLine == 0 )
             {
               m_ItemsPerLine = 1;
             }
           }
 
-          m_pScrollBar->SetLocation( m_ClientRect.width() - m_pScrollBar->Width(), 0 );
-          m_pScrollBar->SetSize( m_pScrollBar->Width(), m_ClientRect.size().y );
+          m_pScrollBar->SetLocation( m_ClientRect.Width() - m_pScrollBar->Width(), 0 );
+          m_pScrollBar->SetSize( m_pScrollBar->Width(), m_ClientRect.Height() );
 
           UpdateScrollBar();
           return true;
@@ -472,7 +472,7 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
             }
             GR::tRect   rectList;
             GetListRect( rectList );
-            if ( rectList.contains( Event.Position ) )
+            if ( rectList.Contains( Event.Position ) )
             {
               size_t   iItem = ( Event.Position.y / m_ItemHeight ) * m_ItemsPerLine + m_FirstVisibleItem;
 
@@ -505,7 +505,7 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
           {
             GR::tRect   rectList;
             GetListRect( rectList );
-            if ( rectList.contains( Event.Position ) )
+            if ( rectList.Contains( Event.Position ) )
             {
               size_t   itemIndex = ( Event.Position.y / m_ItemHeight ) * m_ItemsPerLine + m_FirstVisibleItem;
 
@@ -739,32 +739,32 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
       {
         return false;
       }
-      rectItem.position( (int)( ( iItem - m_FirstVisibleItem ) % m_ItemsPerLine ) * m_ItemWidth, (int)( iItem - m_FirstVisibleItem ) / m_ItemsPerLine * m_ItemHeight );
+      rectItem.Position( (int)( ( iItem - m_FirstVisibleItem ) % m_ItemsPerLine ) * m_ItemWidth, (int)( iItem - m_FirstVisibleItem ) / m_ItemsPerLine * m_ItemHeight );
       if ( m_ItemsPerLine == 1 )
       {
-        rectItem.size( m_ClientRect.width() - m_pScrollBar->Width(), m_ItemHeight );
+        rectItem.Size( m_ClientRect.Width() - m_pScrollBar->Width(), m_ItemHeight );
       }
       else
       {
-        rectItem.size( m_ItemWidth, m_ItemHeight );
+        rectItem.Size( m_ItemWidth, m_ItemHeight );
       }
 
-      if ( rectItem.position().y + rectItem.height() <= 0 )
+      if ( rectItem.Top + rectItem.Height() <= 0 )
       {
-        rectItem.size( 0, 0 );
-        rectItem.position( 0, 0 );
+        rectItem.Size( 0, 0 );
+        rectItem.Position( 0, 0 );
         return false;
       }
-      if ( rectItem.position().y >= m_ClientRect.height() )
+      if ( rectItem.Top >= m_ClientRect.Height() )
       {
-        rectItem.size( 0, 0 );
-        rectItem.position( 0, 0 );
+        rectItem.Size( 0, 0 );
+        rectItem.Position( 0, 0 );
         return false;
       }
-      if ( rectItem.position().y < 0 )
+      if ( rectItem.Top < 0 )
       {
-        rectItem.size( rectItem.size().x, rectItem.size().y + rectItem.position().y );
-        rectItem.position( rectItem.position().x, 0 );
+        rectItem.Size( rectItem.Width(), rectItem.Height() + rectItem.Top );
+        rectItem.Position( rectItem.Left, 0 );
       }
       return true;
     }
@@ -780,8 +780,8 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
 
     virtual void GetListRect( GR::tRect& rectItem )
     {
-      rectItem.position( 0, 0 );
-      rectItem.size( m_ClientRect.width() - m_pScrollBar->Width(), m_ClientRect.size().y );
+      rectItem.Position( 0, 0 );
+      rectItem.Size( m_ClientRect.Width() - m_pScrollBar->Width(), m_ClientRect.Height() );
     }
 
 
@@ -815,7 +815,7 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
       }
       if ( Style() & LCS_MULTI_COLUMN )
       {
-        m_ItemsPerLine = ( m_ClientRect.width() - m_pScrollBar->Width() ) / m_ItemWidth;
+        m_ItemsPerLine = ( m_ClientRect.Width() - m_pScrollBar->Width() ) / m_ItemWidth;
         if ( m_ItemsPerLine == 0 )
         {
           m_ItemsPerLine = 1;
@@ -823,7 +823,7 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
       }
       else
       {
-        m_ItemWidth = m_ClientRect.width() - m_pScrollBar->Width();
+        m_ItemWidth = m_ClientRect.Width() - m_pScrollBar->Width();
       }
       UpdateScrollBar();
 

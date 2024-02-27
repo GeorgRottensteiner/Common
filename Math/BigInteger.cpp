@@ -1447,12 +1447,14 @@ BigInteger BigInteger::expRightToLeft( const BigInteger& exponent, const BigInte
     }
     if ( *curr & mask )
     {
-      result = std::move( result * S % mod );
+      //result = std::move( result * S % mod );
+      result = result * S % mod;
     }
 
     if ( i + 1 != len )
     {
-      S = std::move( S.qrt() % mod );
+      //S = std::move( S.qrt() % mod );
+      S = S.qrt() % mod;
     }
     mask <<= 1;
   }

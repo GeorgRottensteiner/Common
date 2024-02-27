@@ -19,8 +19,8 @@ class GUILabel : public AbstractLabel<GUIComponent>
     DECLARE_CLONEABLE( GUILabel, "Label" )
 
 
-    GUILabel( int iNewX = 0, int iNewY = 0, int iNewWidth = 0, int iNewHeight = 0, const GR::String& Caption = GR::String(), GR::u32 ID = 0 );
-    GUILabel( int iNewX, int iNewY, int iNewWidth, int iNewHeight, GR::u32 dwFlags, const GR::String& Caption, GR::u32 ID = 0 );
+    GUILabel( int NewX = 0, int NewY = 0, int NewWidth = 0, int NewHeight = 0, const GR::String& Caption = GR::String(), GR::u32 ID = 0 );
+    GUILabel( int NewX, int NewY, int NewWidth, int NewHeight, GR::u32 dwFlags, const GR::String& Caption, GR::u32 ID = 0 );
 
 
     virtual void        DisplayOnPage( GUIComponentDisplayer& Displayer );

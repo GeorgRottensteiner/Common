@@ -45,6 +45,7 @@
 #include <Memory/ByteBuffer.h>
 
 
+#include <debug/debugclient.h>
 
 namespace GR
 {
@@ -415,6 +416,7 @@ namespace GR
 
 
 
+
     bool SHA256::CalcHashKeyed( const ByteBuffer& Data, const ByteBuffer& Key, ByteBuffer& Hash )
     {
       GR::u32     blockSize = 64;
@@ -427,6 +429,8 @@ namespace GR
         {
           return false;
         }
+        //dh::Log( "Key was hashed" );
+        //dh::Hex( keyToUse.Data(), keyToUse.Size() );
       }
       // Keys shorter than blockSize are padded to blockSize by padding with zeros on the right
       if ( keyToUse.Size() < blockSize )
@@ -461,7 +465,21 @@ namespace GR
       {
         return false;
       }
-      return Calculate( outerPad + innerResult, Hash );
+
+      //dh::Log( "outerpad" );
+      //dh::Hex( outerPad.Data(), outerPad.Size() );
+      //dh::Log( "inner result" );
+      //dh::Hex( innerResult.Data(), innerResult.Size() );
+
+      if ( !Calculate( outerPad + innerResult, Hash ) )
+      {
+        return false;
+      }
+      //dh::Log( "outer result" );
+      //dh::Hex( Hash.Data(), Hash.Size() );
+      return true;
+
+      //return Calculate( outerPad + innerResult, Hash );
     }
 
 

@@ -243,8 +243,8 @@ namespace GR
 
       Chunk.AppendI32( m_EnvironmentDisplayRect.Left );
       Chunk.AppendI32( m_EnvironmentDisplayRect.Top );
-      Chunk.AppendI32( m_EnvironmentDisplayRect.width() );
-      Chunk.AppendI32( m_EnvironmentDisplayRect.height() );
+      Chunk.AppendI32( m_EnvironmentDisplayRect.Width() );
+      Chunk.AppendI32( m_EnvironmentDisplayRect.Height() );
 
       Chunk.AppendI32( m_StoredWindowedMode.Width );
       Chunk.AppendI32( m_StoredWindowedMode.Height );
@@ -303,9 +303,9 @@ namespace GR
       m_EnvironmentDisplayRect.Top    = MemIn.ReadI32();
       m_EnvironmentDisplayRect.Right  = m_EnvironmentDisplayRect.Left + MemIn.ReadI32();
       m_EnvironmentDisplayRect.Bottom = m_EnvironmentDisplayRect.Top + MemIn.ReadI32();
-      if ( m_EnvironmentDisplayRect.width() == 0 )
+      if ( m_EnvironmentDisplayRect.Empty() )
       {
-        m_EnvironmentDisplayRect.set( 0, 0, m_RenderFrame.m_DisplayMode.Width, m_RenderFrame.m_DisplayMode.Height );
+        m_EnvironmentDisplayRect.Set( 0, 0, m_RenderFrame.m_DisplayMode.Width, m_RenderFrame.m_DisplayMode.Height );
       }
 
       m_StoredWindowedMode.Width      = MemIn.ReadI32();

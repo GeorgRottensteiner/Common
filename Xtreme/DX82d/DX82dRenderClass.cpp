@@ -62,7 +62,7 @@ DX82dRenderer::DX82dRenderer( HINSTANCE hInstance ) :
   {
     m_hInstance = GetModuleHandle( NULL );
   }
-  m_DirectTexelMappingOffset.set( -0.5f, -0.5f );
+  m_DirectTexelMappingOffset.Set( -0.5f, -0.5f );
   g_pDX8Instance = this;
 }
 
@@ -158,7 +158,7 @@ bool DX82dRenderer::Initialize( GR::u32 Width, GR::u32 Height, GR::u32 Depth, bo
     dh::Log( "Create: failed to find suitable mode (%dx%dx%d Windowed %d)", m_CreationWidth, m_CreationHeight, m_CreationDepth, m_Windowed );
     return false;
   }
-  m_VirtualSize.set( m_CreationWidth, m_CreationHeight );
+  m_VirtualSize.Set( m_CreationWidth, m_CreationHeight );
 
   // Unless a substitute hWnd has been specified, create a window to
   // render into
@@ -1739,8 +1739,8 @@ XTexture* DX82dRenderer::CreateTexture( GR::u32 Width, GR::u32 Height, GR::Graph
   D3DSURFACE_DESC ddsd;
   pTexture->m_Surface->GetLevelDesc( 0, &ddsd );
 
-  pTexture->m_SurfaceSize.set( ddsd.Width, ddsd.Height );
-  pTexture->m_ImageSourceSize.set( Width, Height );
+  pTexture->m_SurfaceSize.Set( ddsd.Width, ddsd.Height );
+  pTexture->m_ImageSourceSize.Set( Width, Height );
   pTexture->m_PixelFormat   = ddsd.Format;
   pTexture->m_ImageFormat   = imgFormat;
 
@@ -2562,10 +2562,9 @@ void DX82dRenderer::RenderQuadMasked( GR::i32 X, GR::i32 Y, GR::i32 Width, GR::i
   GR::tRect     rcSection( X, Y, Width, Height );
   GR::tRect     rcMask( MaskX, MaskY, TexSectionMask.m_Width, TexSectionMask.m_Height );
 
-  GR::tRect     rcOverlap( rcSection.intersection( rcMask ) );
+  GR::tRect     rcOverlap( rcSection.Intersection( rcMask ) );
 
-  if ( ( rcOverlap.width() == 0 )
-  ||   ( rcOverlap.height() == 0 ) )
+  if ( rcOverlap.Empty() )
   {
     return;
   }
@@ -2575,10 +2574,10 @@ void DX82dRenderer::RenderQuadMasked( GR::i32 X, GR::i32 Y, GR::i32 Width, GR::i
   TS2.m_XOffset += rcOverlap.Left - MaskX;
   TS2.m_YOffset += rcOverlap.Top - MaskY;
 
-  Width = rcOverlap.width();
-  Height = rcOverlap.height();
-  TS2.m_Width = rcOverlap.width();
-  TS2.m_Height = rcOverlap.height();
+  Width = rcOverlap.Width();
+  Height = rcOverlap.Height();
+  TS2.m_Width = rcOverlap.Width();
+  TS2.m_Height = rcOverlap.Height();
 
   SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
   SetRenderState( D3DRS_ALPHATESTENABLE, TRUE );
@@ -2619,7 +2618,7 @@ void DX82dRenderer::RenderQuadMasked( GR::i32 X, GR::i32 Y, GR::i32 Width, GR::i
   CUSTOMVERTEX          vertData[4];
 
   GR::tVector   ptPos( (float)rcOverlap.Left, (float)rcOverlap.Top, 0.0f );
-  GR::tVector   ptSize( (float)rcOverlap.width(), (float)rcOverlap.height(), 0.0f );
+  GR::tVector   ptSize( (float)rcOverlap.Width(), (float)rcOverlap.Height(), 0.0f );
 
   ptPos.x *= m_CreationWidth / m_VirtualSize.x;
   ptPos.y *= m_CreationHeight / m_VirtualSize.y;
@@ -4705,10 +4704,9 @@ void DX82dRenderer::RenderTextureSectionMasked( GR::i32 X, GR::i32 Y,
   GR::tRect     rcSection( X, Y, TexSection.m_Width, TexSection.m_Height );
   GR::tRect     rcMask( MaskX, MaskY, TexSectionMask.m_Width, TexSectionMask.m_Height );
 
-  GR::tRect     rcOverlap( rcSection.intersection( rcMask ) );
+  GR::tRect     rcOverlap( rcSection.Intersection( rcMask ) );
 
-  if ( ( rcOverlap.width() == 0 )
-  ||   ( rcOverlap.height() == 0 ) )
+  if ( rcOverlap.Empty() )
   {
     return;
   }
@@ -4722,10 +4720,10 @@ void DX82dRenderer::RenderTextureSectionMasked( GR::i32 X, GR::i32 Y,
   TS2.m_XOffset += rcOverlap.Left - MaskX;
   TS2.m_YOffset += rcOverlap.Top - MaskY;
 
-  TS1.m_Width = rcOverlap.width();
-  TS1.m_Height = rcOverlap.height();
-  TS2.m_Width = rcOverlap.width();
-  TS2.m_Height = rcOverlap.height();
+  TS1.m_Width = rcOverlap.Width();
+  TS1.m_Height = rcOverlap.Height();
+  TS2.m_Width = rcOverlap.Width();
+  TS2.m_Height = rcOverlap.Height();
 
   static GR::tFPoint     UV1a;
   static GR::tFPoint     UV2a;
@@ -4783,7 +4781,7 @@ void DX82dRenderer::RenderTextureSectionMasked( GR::i32 X, GR::i32 Y,
   CUSTOMVERTEX          vertData[4];
 
   GR::tVector   ptPos( (float)rcOverlap.Left, (float)rcOverlap.Top, 0.0f );
-  GR::tVector   ptSize( (float)rcOverlap.width(), (float)rcOverlap.height(), 0.0f );
+  GR::tVector   ptSize( (float)rcOverlap.Width(), (float)rcOverlap.Height(), 0.0f );
 
   ptPos.x *= m_CreationWidth / m_VirtualSize.x;
   ptPos.y *= m_CreationHeight / m_VirtualSize.y;

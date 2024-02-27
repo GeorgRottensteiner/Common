@@ -119,6 +119,10 @@ namespace GR
 
 
 
+        virtual int             BlockSize() const;
+
+
+
         // init(): Initializes the crypt session
         // Returns RIJNDAEL_SUCCESS or an error code
         // mode      : Rijndael::ECB, Rijndael::CBC or Rijndael::CFB1

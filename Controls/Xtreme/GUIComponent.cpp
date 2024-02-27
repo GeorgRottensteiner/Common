@@ -68,8 +68,8 @@ void GUIComponent::Display( GUI::ComponentDisplayerBase* pDisplayer )
     odInfo.pDisplayer = pDisplayer;
     odInfo.pComponent = this;
     odInfo.ItemIndex  = -1;
-    odInfo.ItemSize.set( m_ClientRect.width(), m_ClientRect.height() );
-    odInfo.ComponentOffset.set( 0, 0 );
+    odInfo.ItemSize.Set( m_ClientRect.Width(), m_ClientRect.Height() );
+    odInfo.ComponentOffset.Set( 0, 0 );
     
 
     GenerateEvent( OET_OWNER_DRAW, (GR::up)&odInfo );
@@ -120,8 +120,8 @@ void GUIComponent::DisplayNonClientOnPage( GUIComponentDisplayer& Displayer )
                                         ptClientOffset.y, 
                                         m_TextureSection[GUI::BT_BACKGROUND].first, 
                                         GetColor( GUI::COL_BTNFACE ),
-                                        rcClient.height(),
-                                        rcClient.width() );
+                                        rcClient.Height(),
+                                        rcClient.Width() );
         }
         else
         {
@@ -129,8 +129,8 @@ void GUIComponent::DisplayNonClientOnPage( GUIComponentDisplayer& Displayer )
                                         ptClientOffset.y, 
                                         m_TextureSection[GUI::BT_BACKGROUND].first,
                                         GetColor( GUI::COL_BTNFACE ),
-                                        rcClient.width(),
-                                        rcClient.height() );
+                                        rcClient.Width(),
+                                        rcClient.Height() );
         }
       }
     }
@@ -150,7 +150,7 @@ void GUIComponent::DisplayNonClientOnPage( GUIComponentDisplayer& Displayer )
 
       Displayer.DrawQuad( ptClientOffset.x, 
                           ptClientOffset.y, 
-                          rcClient.width(), rcClient.height(),
+                          rcClient.Width(), rcClient.Height(),
                           Color );
     }
   }
@@ -229,7 +229,7 @@ void GUIComponent::AdjustRect( GR::tPoint& Size, bool ClientToNC )
 
 void GUIComponent::RecalcClientRect()
 {
-  m_ClientRect.set( 0, 0, m_Width, m_Height );
+  m_ClientRect.Set( 0, 0, m_Width, m_Height );
 
   if ( ( m_VisualStyle & GUI::VFT_SUNKEN_BORDER )
   ||   ( m_VisualStyle & GUI::VFT_RAISED_BORDER )
@@ -244,7 +244,7 @@ void GUIComponent::RecalcClientRect()
         {
           iBorderWidth = 1;
         }
-        m_ClientRect.inflate( -iBorderWidth, -iBorderWidth );
+        m_ClientRect.Inflate( -iBorderWidth, -iBorderWidth );
       }
       else
       {
@@ -264,7 +264,7 @@ void GUIComponent::RecalcClientRect()
         {
           iBorderWidth = 1;
         }
-        m_ClientRect.inflate( -iBorderWidth, -iBorderWidth );
+        m_ClientRect.Inflate( -iBorderWidth, -iBorderWidth );
       }
       else
       {

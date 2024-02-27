@@ -699,7 +699,7 @@ void X2dFont::WrapText( const GR::String& strText, GR::tRect& rectText, std::vec
       strDummy = strDummy.substr( iPos + 1 );
       iPos = -1;
     }
-    else if ( TextLength( strDummy.substr( 0, iPos ).c_str() ) >= rectText.size().x )
+    else if ( TextLength( strDummy.substr( 0, iPos ).c_str() ) >= rectText.Width() )
     {
       if ( strDummy[iPos] != '\n' )
       {
@@ -731,8 +731,8 @@ void X2dFont::WrapText( const GR::String& strText, GR::tRect& rectText, std::vec
     iMaxWidth = math::maxValue( iMaxWidth, TextLength( vectText[i].c_str() ) );
   }
 
-  rectText.width( iMaxWidth );
-  rectText.height( TextHeight() * (int)vectText.size() );
+  rectText.Width( iMaxWidth );
+  rectText.Height( TextHeight() * (int)vectText.size() );
 }
 
 

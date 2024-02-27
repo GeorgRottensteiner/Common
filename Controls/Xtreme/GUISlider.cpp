@@ -47,7 +47,7 @@ void GUISlider::DisplayOnPage( GUIComponentDisplayer& Displayer )
       Displayer.DrawTextureSection( rc.Left, rc.Top, TSSlider1 );
 
       Displayer.DrawTextureSectionHRepeat( rc.Left + TSSlider1.VisualWidth(), rc.Top,
-                             rc.width() - TSSlider3.VisualWidth() - TSSlider1.VisualWidth(),
+                             rc.Width() - TSSlider3.VisualWidth() - TSSlider1.VisualWidth(),
                              TSSlider2,
                              0xffffffff );
       Displayer.DrawTextureSection( rc.Right - TSSlider3.VisualWidth(), rc.Top, TSSlider3 );
@@ -69,16 +69,16 @@ void GUISlider::DisplayOnPage( GUIComponentDisplayer& Displayer )
       Displayer.DrawTextureSection( rc.Left, rc.Top, TSSlider1 );
 
       Displayer.DrawTextureSectionVRepeat( rc.Left, rc.Top + TSSlider1.VisualHeight(),
-                             rc.height() - TSSlider3.VisualHeight() - TSSlider1.VisualHeight(),
+                             rc.Height() - TSSlider3.VisualHeight() - TSSlider1.VisualHeight(),
                              TSSlider2,
                              0xffffffff );
       
-      Displayer.DrawTextureSection( rc.Left, rc.Top + rc.height() - TSSlider3.VisualHeight(), TSSlider3 );
+      Displayer.DrawTextureSection( rc.Left, rc.Top + rc.Height() - TSSlider3.VisualHeight(), TSSlider3 );
       return;
     }
   }
 
-  Displayer.DrawQuad( rc.Left, rc.Top, rc.width(), rc.height(), GetColor( GUI::COL_HIGHLIGHT ) );
+  Displayer.DrawQuad( rc.Left, rc.Top, rc.Width(), rc.Height(), GetColor( GUI::COL_HIGHLIGHT ) );
 }
 
 

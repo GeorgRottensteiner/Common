@@ -602,8 +602,8 @@ XTexture* CDDrawRenderClass::CreateTexture( GR::u32 Width, GR::u32 Height, GR::G
   pTexture->m_cdImage.CreateData( Width, Height, Format );
 
   pTexture->m_ImageFormat         = Format;
-  pTexture->m_SurfaceSize.set( Width, Height );
-  pTexture->m_ImageSourceSize.set( Width, Height );
+  pTexture->m_SurfaceSize.Set( Width, Height );
+  pTexture->m_ImageSourceSize.Set( Width, Height );
 
   AddTexture( pTexture );
 
@@ -988,10 +988,9 @@ void CDDrawRenderClass::RenderQuadMasked( GR::i32 X, GR::i32 Y, GR::i32 Width, G
   GR::tRect     rcSection( X, Y, Width, Height );
   GR::tRect     rcMask( MaskX, MaskY, TexSectionMask.m_Width, TexSectionMask.m_Height );
 
-  GR::tRect     rcOverlap( rcSection.intersection( rcMask ) );
+  GR::tRect     rcOverlap( rcSection.Intersection( rcMask ) );
 
-  if ( ( rcOverlap.width() == 0 )
-  ||   ( rcOverlap.height() == 0 ) )
+  if ( rcOverlap.Empty() )
   {
     return;
   }
@@ -1016,10 +1015,10 @@ void CDDrawRenderClass::RenderQuadMasked( GR::i32 X, GR::i32 Y, GR::i32 Width, G
   TS2.m_XOffset += rcOverlap.Left - MaskX;
   TS2.m_YOffset += rcOverlap.Top - MaskY;
 
-  Width         = rcOverlap.width();
-  Height        = rcOverlap.height();
-  TS2.m_Width   = rcOverlap.width();
-  TS2.m_Height  = rcOverlap.height();
+  Width         = rcOverlap.Width();
+  Height        = rcOverlap.Height();
+  TS2.m_Width   = rcOverlap.Width();
+  TS2.m_Height  = rcOverlap.Height();
 
   for ( int y = 0; y < Height; ++y )
   {
@@ -2195,10 +2194,9 @@ void CDDrawRenderClass::RenderTextureSectionMasked( GR::i32 X, GR::i32 Y,
   GR::tRect     rcSection( X, Y, TexSection.m_Width, TexSection.m_Height );
   GR::tRect     rcMask( MaskX, MaskY, TexSectionMask.m_Width, TexSectionMask.m_Height );
 
-  GR::tRect     rcOverlap( rcSection.intersection( rcMask ) );
+  GR::tRect     rcOverlap( rcSection.Intersection( rcMask ) );
 
-  if ( ( rcOverlap.width() == 0 )
-  ||   ( rcOverlap.height() == 0 ) )
+  if ( rcOverlap.Empty() )
   {
     return;
   }
@@ -2235,10 +2233,10 @@ void CDDrawRenderClass::RenderTextureSectionMasked( GR::i32 X, GR::i32 Y,
   TS2.m_XOffset += rcOverlap.Left - MaskX;
   TS2.m_YOffset += rcOverlap.Top - MaskY;
 
-  TS1.m_Width = rcOverlap.width();
-  TS1.m_Height = rcOverlap.height();
-  TS2.m_Width = rcOverlap.width();
-  TS2.m_Height = rcOverlap.height();
+  TS1.m_Width = rcOverlap.Width();
+  TS1.m_Height = rcOverlap.Height();
+  TS2.m_Width = rcOverlap.Width();
+  TS2.m_Height = rcOverlap.Height();
 
   for ( int iY = 0; iY < TS1.m_Height; ++iY )
   {

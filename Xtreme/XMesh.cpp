@@ -16,7 +16,6 @@ namespace Mesh
 
   void Face::CalculateNormals( XMesh& Object, bool bFlip )
   {
-
     if ( ( m_Vertex[0] >= Object.m_Vertices.size() )
     ||   ( m_Vertex[1] >= Object.m_Vertices.size() )
     ||   ( m_Vertex[2] >= Object.m_Vertices.size() ) )
@@ -45,9 +44,7 @@ namespace Mesh
     m_Normal[0] = vectDummy1;
     m_Normal[1] = vectDummy1;
     m_Normal[2] = vectDummy1;
-
   }
-
 }
 
 

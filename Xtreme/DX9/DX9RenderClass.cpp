@@ -58,7 +58,7 @@ CDX9RenderClass::CDX9RenderClass( HINSTANCE hInstance ) :
   {
     m_hInstance = GetModuleHandle( NULL );
   }
-  m_DirectTexelMappingOffset.set( -0.5f, -0.5f );
+  m_DirectTexelMappingOffset.Set( -0.5f, -0.5f );
   g_pDX9Instance = this;
 }
 
@@ -94,8 +94,8 @@ bool CDX9RenderClass::Initialize( GR::u32 Width, GR::u32 Height, GR::u32 Depth, 
   m_CreationHeight  = Height;
   m_CreationDepth   = Depth;
 
-  m_Canvas.set( 0, 0, Width, Height );
-  m_VirtualSize.set( Width, Height );
+  m_Canvas.Set( 0, 0, Width, Height );
+  m_VirtualSize.Set( Width, Height );
 
   m_bWindowed         = !( Flags & XRenderer::IN_FULLSCREEN );
 
@@ -1181,7 +1181,7 @@ HRESULT CDX9RenderClass::Initialize3DEnvironment()
     return E_FAIL;
   }
 
-  m_Canvas.set( 0, 0, m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight );
+  m_Canvas.Set( 0, 0, m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight );
 
   // Create the device
   DWORD   Behaviour = m_pCurrentModeInfo->m_Behaviour;
@@ -2017,8 +2017,8 @@ XTexture* CDX9RenderClass::CreateTexture( const GR::u32 Width, const GR::u32 Hei
   D3DSURFACE_DESC ddsd;
   pTexture->m_Surface->GetLevelDesc( 0, &ddsd );
 
-  pTexture->m_SurfaceSize.set( ddsd.Width, ddsd.Height );
-  pTexture->m_ImageSourceSize.set( Width, Height );
+  pTexture->m_SurfaceSize.Set( ddsd.Width, ddsd.Height );
+  pTexture->m_ImageSourceSize.Set( Width, Height );
   pTexture->m_d3dfPixelFormat     = ddsd.Format;
   pTexture->m_ImageFormat         = imgFormat;
 
@@ -2151,8 +2151,8 @@ void CDX9RenderClass::RenderQuad2d( GR::i32 iX, GR::i32 iY, GR::i32 iWidth, GR::
   iX += m_DisplayOffset.x;
   iY += m_DisplayOffset.y;
 
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   if ( ( Color2 == Color3 )
   &&   ( Color3 == Color4 )
@@ -2250,8 +2250,8 @@ void CDX9RenderClass::RenderQuadDetail2d( GR::f32 fX, GR::f32 fY, GR::f32 fWidth
 
   CUSTOMVERTEX          vertData[4];
 
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   float   fRHW = 1.0f;
 
@@ -2320,8 +2320,8 @@ void CDX9RenderClass::RenderQuadDetail2d( GR::f32 fX1, GR::f32 fY1,
   fX4 += m_DisplayOffset.x;
   fY4 += m_DisplayOffset.y;
 
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   if ( ( Color2 == Color3 )
   &&   ( Color3 == Color4 )
@@ -2412,8 +2412,8 @@ void CDX9RenderClass::RenderTriangle2d( const GR::tPoint& pt1, const GR::tPoint&
 
   CUSTOMVERTEX          vertData[3];
 
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   float   fRHW = 1.0f;
 
@@ -3716,8 +3716,8 @@ void CDX9RenderClass::RenderLine2d( const GR::tPoint& pt1, const GR::tPoint& pt2
 
   CUSTOMVERTEX          vertData[2];
 
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   m_pd3dDevice->SetFVF( D3DFVF_XYZRHW | D3DFVF_DIFFUSE );
 

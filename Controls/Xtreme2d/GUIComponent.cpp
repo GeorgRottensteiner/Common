@@ -20,8 +20,8 @@ GUIComponent::GUIComponent( GR::u32 Id ) :
 
 
 
-GUIComponent::GUIComponent( int iX, int iY, int iWidth, int iHeight, GR::u32 dwId ) :
-  GUI::Component( iX, iY, iWidth, iHeight, dwId ),
+GUIComponent::GUIComponent( int X, int Y, int Width, int Height, GR::u32 Id ) :
+  GUI::Component( X, Y, Width, Height, Id ),
   m_pBackground( NULL )
 {
   m_pFont = GUIComponentDisplayer::Instance().DefaultFont();
@@ -35,8 +35,8 @@ GUIComponent::GUIComponent( int iX, int iY, int iWidth, int iHeight, GR::u32 dwI
 
 
 
-GUIComponent::GUIComponent( int iX, int iY, int iWidth, int iHeight, const GR::String& strCaption, GR::u32 dwId ) :
-  GUI::Component( iX, iY, iWidth, iHeight, strCaption, dwId ),
+GUIComponent::GUIComponent( int X, int Y, int Width, int Height, const GR::String& Caption, GR::u32 Id ) :
+  GUI::Component( X, Y, Width, Height, Caption, Id ),
   m_pBackground( NULL )
 {
   m_pFont = GUIComponentDisplayer::Instance().DefaultFont();
@@ -75,7 +75,6 @@ void GUIComponent::DisplayNonClientOnPage( GUIComponentDisplayer& Displayer )
     }
   }
 
-
   GR::tRect   rectComp;
   GetComponentRect( rectComp );
   Displayer.DrawEdge( m_VisualStyle, rectComp, m_TextureSection );
@@ -94,7 +93,7 @@ void GUIComponent::Display( GUI::ComponentDisplayerBase* pDisplayer )
     odInfo.pDisplayer = pDisplayer;
     odInfo.pComponent = this;
     odInfo.ItemIndex  = -1;
-    odInfo.ComponentOffset.set( pCompDisplayer->m_iOffsetX, pCompDisplayer->m_iOffsetY );
+    odInfo.ComponentOffset.Set( pCompDisplayer->m_OffsetX, pCompDisplayer->m_OffsetY );
 
 
     GenerateEvent( OET_OWNER_DRAW, (GR::up)&odInfo );
@@ -206,48 +205,6 @@ int GUIComponent::GetBorderHeight( const GUI::eBorderType eType ) const
 
 
 
-/*
-void GUIComponent::DisplayCustomTextureSection( X2dRenderer& Renderer, int iX, int iY, GR::u32 dwType )
-{
-  XTextureSection   tsDisplay( CustomTextureSection( dwType ) );
-  if ( tsDisplay.m_pTexture == NULL )
-  {
-    return;
-  }
-
-  GR::u32           dwColorKey = CustomTSColorKey( dwType );
-  if ( dwColorKey )
-  {
-    Renderer.RenderTextureSectionColorKeyed( iX, iY, tsDisplay, dwColorKey );
-  }
-  else
-  {
-    Renderer.RenderTextureSection( iX, iY, tsDisplay );
-  }
-}
-
-
-
-void GUIComponent::DisplayTextureSection( X2dRenderer& Renderer, int iX, int iY, GUI::eBorderType dwType )
-{
-  if ( m_TextureSection[dwType].first.m_pTexture == NULL )
-  {
-    return;
-  }
-
-  if ( m_TextureSection[dwType].second )
-  {
-    Renderer.RenderTextureSectionColorKeyed( iX, iY, m_TextureSection[dwType].first, m_TextureSection[dwType].second );
-  }
-  else
-  {
-    Renderer.RenderTextureSection( iX, iY, m_TextureSection[dwType].first );
-  }
-}
-*/
-
-
-
 void GUIComponent::SetBackground( XMultiTexture* pBack )
 {
   m_pBackground = pBack;
@@ -257,7 +214,6 @@ void GUIComponent::SetBackground( XMultiTexture* pBack )
 
 XTextureSection GUIComponent::Section( Xtreme::Asset::IAssetLoader* pLoader, const GR::String& Image )
 {
-
   Xtreme::Asset::XAsset* pSection = pLoader->Asset( Xtreme::Asset::XA_IMAGE_SECTION, Image.c_str() );
   if ( pSection == NULL )
   {

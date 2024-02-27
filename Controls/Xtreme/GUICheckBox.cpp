@@ -48,14 +48,14 @@ void GUICheckBox::DisplayOnPage( GUIComponentDisplayer& Displayer )
     if ( m_Style & GUICheckBox::CS_CHECKBOX_RIGHT )
     {
       GR::tRect   rcText( 0, 0,
-                          m_ClientRect.width() - ( m_Height - boxSize ) / 2 - boxSize - 2, m_ClientRect.height() );
+                          m_ClientRect.Width() - ( m_Height - boxSize ) / 2 - boxSize - 2, m_ClientRect.Height() );
 
       Displayer.DrawText( m_pFont, 0, 0, m_Caption, m_TextAlignment, GetColor( GUI::COL_WINDOWTEXT ), &rcText );
     }
     else
     {
       GR::tRect   rcText( ( m_Height - boxSize ) / 2 + boxSize + 4, 0,
-                          m_ClientRect.width() - ( m_Height - boxSize ) / 2 - boxSize - 2, m_ClientRect.height() );
+                          m_ClientRect.Width() - ( m_Height - boxSize ) / 2 - boxSize - 2, m_ClientRect.Height() );
 
       Displayer.DrawText( m_pFont, 0, 0, m_Caption, m_TextAlignment, GetColor( GUI::COL_WINDOWTEXT ), &rcText );
     }

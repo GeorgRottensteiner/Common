@@ -35,9 +35,9 @@ void GUIRadioButton::DisplayOnPage( GUIComponentDisplayer& Displayer )
 
   int     boxSize = 20;
 
-  if ( m_ClientRect.height() < boxSize )
+  if ( m_ClientRect.Height() < boxSize )
   {
-    boxSize = m_ClientRect.height();
+    boxSize = m_ClientRect.Height();
   }
   
   XTextureSection   tsChecked = CustomTextureSection( GUI::CTS_RADIO_CHECKED );
@@ -51,8 +51,8 @@ void GUIRadioButton::DisplayOnPage( GUIComponentDisplayer& Displayer )
 
   if ( m_pFont )
   {
-    GR::tRect   rcText( ( m_ClientRect.height() - boxSize ) / 2 + boxSize + 4, 0,
-                          m_ClientRect.width() - ( m_ClientRect.height() - boxSize ) / 2 - boxSize - 2, m_ClientRect.height() );
+    GR::tRect   rcText( ( m_ClientRect.Height() - boxSize ) / 2 + boxSize + 4, 0,
+                          m_ClientRect.Width() - ( m_ClientRect.Height() - boxSize ) / 2 - boxSize - 2, m_ClientRect.Height() );
                         
     Displayer.DrawText( m_pFont, 0, 0, m_Caption, GUI::AF_LEFT | GUI::AF_VCENTER, GetColor( GUI::COL_WINDOWTEXT ), &rcText );
   }
@@ -76,15 +76,15 @@ void GUIRadioButton::DisplayOnPage( GUIComponentDisplayer& Displayer )
   else
   {
     Displayer.m_pActualRenderer->SetShader( XRenderer::ST_FLAT_NO_TEXTURE );
-    Displayer.DrawQuad( ( m_ClientRect.height() - boxSize ) / 2, ( m_ClientRect.height() - boxSize ) / 2,
+    Displayer.DrawQuad( ( m_ClientRect.Height() - boxSize ) / 2, ( m_ClientRect.Height() - boxSize ) / 2,
                         boxSize, boxSize, GetSysColor( GUI::COL_WINDOW ) );
     if ( IsChecked() )
     {
-      Displayer.DrawLine( GR::tPoint( ( m_ClientRect.height() - boxSize ) / 2, ( m_ClientRect.height() - boxSize ) / 2 ),
-                          GR::tPoint( ( m_ClientRect.height() - boxSize ) / 2 + boxSize - 1, ( m_ClientRect.height() - boxSize ) / 2 + boxSize - 1 ),
+      Displayer.DrawLine( GR::tPoint( ( m_ClientRect.Height() - boxSize ) / 2, ( m_ClientRect.Height() - boxSize ) / 2 ),
+                          GR::tPoint( ( m_ClientRect.Height() - boxSize ) / 2 + boxSize - 1, ( m_ClientRect.Height() - boxSize ) / 2 + boxSize - 1 ),
                           GetColor( GUI::COL_WINDOWTEXT ) );
-      Displayer.DrawLine( GR::tPoint( ( m_ClientRect.height() - boxSize ) / 2 + boxSize - 1, ( m_ClientRect.height() - boxSize ) / 2 ),
-                          GR::tPoint( ( m_ClientRect.height() - boxSize ) / 2, ( m_ClientRect.height() - boxSize ) / 2 + boxSize - 1 ),
+      Displayer.DrawLine( GR::tPoint( ( m_ClientRect.Height() - boxSize ) / 2 + boxSize - 1, ( m_ClientRect.Height() - boxSize ) / 2 ),
+                          GR::tPoint( ( m_ClientRect.Height() - boxSize ) / 2, ( m_ClientRect.Height() - boxSize ) / 2 + boxSize - 1 ),
                           GetColor( GUI::COL_WINDOWTEXT ) );
     }
   }

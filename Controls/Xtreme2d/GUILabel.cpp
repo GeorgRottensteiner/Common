@@ -7,16 +7,16 @@ GUI_IMPLEMENT_CLONEABLE( GUILabel, "Label" )
 
 
 
-GUILabel::GUILabel( int iNewX, int iNewY, int iNewWidth, int iNewHeight, const GR::String& strCaption, GR::u32 dwID ) :
-  AbstractLabel<GUIComponent>( iNewX, iNewY, iNewWidth, iNewHeight, strCaption, GUI::AF_DEFAULT, dwID )
+GUILabel::GUILabel( int NewX, int NewY, int NewWidth, int NewHeight, const GR::String& Caption, GR::u32 ID ) :
+  AbstractLabel<GUIComponent>( NewX, NewY, NewWidth, NewHeight, Caption, GUI::AF_DEFAULT, ID )
 {
   ModifyVisualStyle( GUI::VFT_TRANSPARENT_BKGND );
 }
 
 
 
-GUILabel::GUILabel( int iNewX, int iNewY, int iNewWidth, int iNewHeight, GR::u32 dwFlags, const GR::String& strCaption, GR::u32 dwID ) :
-  AbstractLabel<GUIComponent>( iNewX, iNewY, iNewWidth, iNewHeight, strCaption, dwFlags, dwID )
+GUILabel::GUILabel( int NewX, int NewY, int NewWidth, int NewHeight, GR::u32 Flags, const GR::String& Caption, GR::u32 ID ) :
+  AbstractLabel<GUIComponent>( NewX, NewY, NewWidth, NewHeight, Caption, Flags, ID )
 {
   ModifyVisualStyle( GUI::VFT_TRANSPARENT_BKGND );
 }
@@ -33,8 +33,8 @@ void GUILabel::DisplayOnPage( GUIComponentDisplayer& Displayer )
 
     rc.Left   += m_TextPos.Left;
     rc.Top    += m_TextPos.Top;
-    rc.Right  -= m_TextPos.width();
-    rc.Bottom -= m_TextPos.height();
+    rc.Right  -= m_TextPos.Width();
+    rc.Bottom -= m_TextPos.Height();
 
     /*
     if ( Style() & LS_SCALE_TEXT )

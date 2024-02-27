@@ -7,8 +7,8 @@ GUI_IMPLEMENT_CLONEABLE( GUIListControl, "ListCtrl" )
 
 
 
-GUIListControl::GUIListControl( int iNewX, int iNewY, int iNewWidth, int iNewHeight, GR::u32 dwStyles, GR::u32 dwId ) :
-  AbstractListCtrl<GUIComponent, GUIScrollBar>( iNewX, iNewY, iNewWidth, iNewHeight, dwStyles, dwId )
+GUIListControl::GUIListControl( int NewX, int NewY, int NewWidth, int NewHeight, GR::u32 Styles, GR::u32 Id ) :
+  AbstractListCtrl<GUIComponent, GUIScrollBar>( NewX, NewY, NewWidth, NewHeight, Styles, Id )
 {
   ModifyVisualStyle( GUI::VFT_SUNKEN_BORDER );
   SetFont( m_pFont );
@@ -18,19 +18,17 @@ GUIListControl::GUIListControl( int iNewX, int iNewY, int iNewWidth, int iNewHei
 
 void GUIListControl::DisplayOnPage( GUIComponentDisplayer& Displayer )
 {
-  GR::u32   dwColor     = 0xff808080;
-
+  GR::u32     color     = 0xff808080;
   GR::tRect   rc;
 
 
-  // Header darstellen
   if ( Style() & LCS_SHOW_HEADER )
   {
     for ( size_t i = 0; i < Columns(); ++i )
     {
       GetHeaderRect( i, rc );
 
-      Displayer.DrawQuad( rc.Left, rc.Top, rc.width(), rc.height(), 0xffa0a0a0 );
+      Displayer.DrawQuad( rc.Left, rc.Top, rc.Width(), rc.Height(), 0xffa0a0a0 );
       
       if ( m_pFont )
       {
@@ -42,17 +40,16 @@ void GUIListControl::DisplayOnPage( GUIComponentDisplayer& Displayer )
   // Selection
   if ( GetLineRect( m_SelectedItem, rc ) )
   {
-    Displayer.DrawQuad( rc.Left, rc.Top, rc.width(), rc.height(), 0xff8080ff );
+    Displayer.DrawQuad( rc.Left, rc.Top, rc.Width(), rc.Height(), 0xff8080ff );
   }
   if ( GetLineRect( m_MouseOverItem, rc ) )
   {
-    Displayer.DrawQuad( rc.Left, rc.Top, rc.width(), rc.height(), 0xffff00ff );
+    Displayer.DrawQuad( rc.Left, rc.Top, rc.Width(), rc.Height(), 0xffff00ff );
   }
 
 
-  size_t    iItem = m_Offset;
-
-  bool      bDone = false;
+  size_t    itemIndex = m_Offset;
+  bool      done = false;
 
   if ( Columns() == 0 )
   {
@@ -60,28 +57,28 @@ void GUIListControl::DisplayOnPage( GUIComponentDisplayer& Displayer )
   }
   do
   {
-    for ( size_t iColumn = 0; iColumn < Columns(); ++iColumn )
+    for ( size_t columnIndex = 0; columnIndex < Columns(); ++columnIndex )
     {
-      if ( !GetItemRect( iItem, iColumn, rc ) )
+      if ( !GetItemRect( itemIndex, columnIndex, rc ) )
       {
-        bDone = true;
+        done = true;
         break;
       }
       if ( m_pFont )
       {
-        Displayer.DrawText( m_pFont, GetItemText( iItem, iColumn ).c_str(), rc, m_vectColumns[iColumn].TextAlignment, GetColor( GUI::COL_WINDOWTEXT ) );
+        Displayer.DrawText( m_pFont, GetItemText( itemIndex, columnIndex ).c_str(), rc, m_vectColumns[columnIndex].TextAlignment, GetColor( GUI::COL_WINDOWTEXT ) );
       }
     }
-    ++iItem;
+    ++itemIndex;
   }
-  while ( !bDone );
+  while ( !done );
 }
 
 
 
-void GUIListControl::SetTextureSection( const GUI::eBorderType eType, const XTextureSection& TexSection )
+void GUIListControl::SetTextureSection( const GUI::eBorderType Border, const XTextureSection& TexSection )
 {
-  AbstractListCtrl<GUIComponent, GUIScrollBar>::SetTextureSection( eType, TexSection );
+  AbstractListCtrl<GUIComponent, GUIScrollBar>::SetTextureSection( Border, TexSection );
 
   UpdateScrollBar();
 }

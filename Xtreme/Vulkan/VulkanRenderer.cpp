@@ -306,7 +306,7 @@ bool VulkanRenderer::Initialize( GR::u32 Width,
 
 
   m_hwndViewport = hWnd;
-  m_DisplayOffset.clear();
+  m_DisplayOffset.Clear();
 
   uint32_t extensionCount = 0;
   if ( Failed( "vkEnumerateInstanceExtensionProperties", vkEnumerateInstanceExtensionProperties( nullptr, &extensionCount, nullptr ) ) )
@@ -415,7 +415,7 @@ bool VulkanRenderer::Initialize( GR::u32 Width,
 #if OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP
   RECT      windowRect;
   GetWindowRect( m_hwndViewport, &windowRect );
-  m_WindowedPlacement.set( windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top );
+  m_WindowedPlacement.Set( windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top );
 #endif
 
   if ( !InitialiseBasicShaders() )
@@ -427,12 +427,12 @@ bool VulkanRenderer::Initialize( GR::u32 Width,
   m_Width = Width;
   m_Height = Height;
 
-  m_Canvas.set( 0, 0, m_Width, m_Height );
+  m_Canvas.Set( 0, 0, m_Width, m_Height );
 
   SetVertexShader( "position_color" );
   SetPixelShader( "position_color" );
 
-  m_VirtualSize.set( m_Width, m_Height );
+  m_VirtualSize.Set( m_Width, m_Height );
 
   XViewport   vp;
 
@@ -1228,7 +1228,7 @@ bool VulkanRenderer::ToggleFullscreen()
     RECT      windowRect;
     GetWindowRect( m_hwndViewport, &windowRect );
 
-    m_WindowedPlacement.set( windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top );
+    m_WindowedPlacement.Set( windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top );
 
     //dh::Log( "Store m_WindowedPlacement as %d,%d %dx%d", windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top );
 #endif
@@ -1247,7 +1247,7 @@ bool VulkanRenderer::ToggleFullscreen()
     // restore window placement
 #if OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP
     //dh::Log( "restore m_WindowedPlacement as %d,%d %dx%d", m_WindowedPlacement.Left, m_WindowedPlacement.Top, m_WindowedPlacement.width(), m_WindowedPlacement.height() );
-    SetWindowPos( m_hwndViewport, NULL, m_WindowedPlacement.Left, m_WindowedPlacement.Top, m_WindowedPlacement.width(), m_WindowedPlacement.height(), SWP_NOACTIVATE );
+    SetWindowPos( m_hwndViewport, NULL, m_WindowedPlacement.Left, m_WindowedPlacement.Top, m_WindowedPlacement.Width(), m_WindowedPlacement.Height(), SWP_NOACTIVATE );
 
     //RecreateBuffers();
 
@@ -2336,7 +2336,7 @@ XTexture* VulkanRenderer::CreateTexture( const GR::u32 Width, const GR::u32 Heig
     pTexture->m_MipMapLevels = 1;
   }
   pTexture->AllowUsageAsRenderTarget = AllowUsageAsRenderTarget;
-  pTexture->m_ImageSourceSize.set( Width, Height );
+  pTexture->m_ImageSourceSize.Set( Width, Height );
   pTexture->m_ImageFormat         = imgFormat;
 
   pTexture->m_Device              = m_VulkanDevice;
@@ -2659,8 +2659,8 @@ void VulkanRenderer::RenderLine2d( const GR::tPoint& pt1, const GR::tPoint& pt2,
   SetLineMode();
   m_LineCache3d.FlushCache();
 
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   m_LineCache.AddEntry( m_SetTextures[0],
                         GR::tVector( m_Canvas.Left + m_DisplayOffset.x + ( GR::f32 )pt1.x * virtualX, m_Canvas.Top + m_DisplayOffset.y + ( GR::f32 )pt1.y * virtualY, fZ ), 0.0f, 0.0f,
@@ -2753,8 +2753,8 @@ void VulkanRenderer::RenderQuad2d( GR::i32 iX, GR::i32 iY, GR::i32 iWidth, GR::i
   iX += m_DisplayOffset.x;
   iY += m_DisplayOffset.y;
 
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   SetQuadMode();
   m_QuadCache3d.FlushCache();
@@ -2797,8 +2797,8 @@ void VulkanRenderer::RenderQuadDetail2d( GR::f32 fX, GR::f32 fY, GR::f32 fWidth,
   {
     Color2 = Color3 = Color4 = Color1;
   }
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   fX *= virtualX;
   fY *= virtualY;
@@ -2931,8 +2931,8 @@ void VulkanRenderer::RenderTriangle2d( const GR::tPoint& pt1,
     Color2 = Color3 = Color1;
   }
 
-  GR::f32     virtualX = (GR::f32)m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = (GR::f32)m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   m_TriangleCache.AddEntry( m_SetTextures[0],
                             GR::tVector( m_Canvas.Left + m_DisplayOffset.x + ( GR::f32 )pt1.x * virtualX, m_Canvas.Top + m_DisplayOffset.y + ( GR::f32 )pt1.y * virtualY, fZ ), fTU1, fTV1,
@@ -3080,8 +3080,8 @@ void VulkanRenderer::RenderQuadDetail2d( GR::f32 X1, GR::f32 Y1,
     Color2 = Color3 = Color4 = Color1;
   }
 
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   X1 *= virtualX;
   Y1 *= virtualY;

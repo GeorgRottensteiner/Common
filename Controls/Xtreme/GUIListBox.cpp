@@ -31,7 +31,7 @@ void GUIListBox::DisplayOnPage( GUIComponentDisplayer& Displayer )
     if ( item != -1 )
     {
       Displayer.DrawQuad( 0, yOffset + (int)item * m_ItemHeight,
-                          m_ClientRect.width() - m_pScrollBar->Width(), m_ItemHeight,
+                          m_ClientRect.Width() - m_pScrollBar->Width(), m_ItemHeight,
                           GetColor( GUI::COL_HIGHLIGHT ) );
     }
 
@@ -39,7 +39,7 @@ void GUIListBox::DisplayOnPage( GUIComponentDisplayer& Displayer )
     &&   ( !( Style() & LCS_HIDE_HOVER_ITEM ) ) )
     {
       Displayer.DrawQuad( 0, yOffset + (int)m_MouseOverItem * m_ItemHeight,
-                          m_ClientRect.width() - m_pScrollBar->Width(), m_ItemHeight,
+                          m_ClientRect.Width() - m_pScrollBar->Width(), m_ItemHeight,
                           GetColor( GUI::COL_HOTLIGHT ) );
     }
 
@@ -64,8 +64,8 @@ void GUIListBox::DisplayOnPage( GUIComponentDisplayer& Displayer )
 
           odInfo.pComponent = this;
           odInfo.ItemIndex  = (int)item;
-          odInfo.ItemOffset = rcItem.position();
-          odInfo.ItemSize   = rcItem.size();
+          odInfo.ItemOffset = rcItem.Position();
+          odInfo.ItemSize   = rcItem.Size();
           odInfo.pDisplayer = &Displayer;
 
           GenerateEvent( OET_OWNER_DRAW_ITEM, ( GR::up ) & odInfo );

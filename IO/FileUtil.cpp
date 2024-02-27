@@ -501,7 +501,7 @@ namespace GR
           listFiles.clear();
         }
 
-        GR::String  workDirUTF8 = Path::AddBackslash( Path::RemoveFileSpec( FindMask ) );
+        GR::String  workDirUTF8 = Path::AddSeparator( Path::RemoveFileSpec( FindMask ) );
 
         GR::WString     workDir = GR::Convert::ToUTF16( workDirUTF8 );
         if ( workDir.empty() )

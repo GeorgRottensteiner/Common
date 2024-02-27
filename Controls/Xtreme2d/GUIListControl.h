@@ -21,12 +21,12 @@ class GUIListControl : public AbstractListCtrl<GUIComponent, GUIScrollBar>
     DECLARE_CLONEABLE( GUIListControl, "ListCtrl" )
 
 
-    GUIListControl( int iNewX = 0, int iNewY = 0, int iNewWidth = 20, int iNewHeight = 20, GR::u32 dwStyles = LCS_DEFAULT, GR::u32 dwId = 0 );
+    GUIListControl( int NewX = 0, int NewY = 0, int NewWidth = 20, int NewHeight = 20, GR::u32 ListControlFlags = LCS_DEFAULT, GR::u32 Id = 0 );
 
     virtual void              DisplayOnPage( GUIComponentDisplayer& Displayer );
 
 
-    virtual void              SetTextureSection( const GUI::eBorderType eType, const XTextureSection& TexSection );
+    virtual void              SetTextureSection( const GUI::eBorderType Border, const XTextureSection& TexSection );
 
 };
 

@@ -160,7 +160,7 @@ template <class BASECLASS> class AbstractPullIn : public BASECLASS
 
       if ( ( Style() & PCS_SIDE_MASK ) == PCS_BOTTOM )
       {
-        SetLocation( ptPos.x, rcTopParent.height() - m_CaptionSize );
+        SetLocation( ptPos.x, rcTopParent.Height() - m_CaptionSize );
       }
       else if ( ( Style() & PCS_SIDE_MASK ) == PCS_TOP )
       {
@@ -172,7 +172,7 @@ template <class BASECLASS> class AbstractPullIn : public BASECLASS
       }
       else if ( ( Style() & PCS_SIDE_MASK ) == PCS_RIGHT )
       {
-        SetLocation( rcTopParent.width() - m_CaptionSize, ptPos.y );
+        SetLocation( rcTopParent.Width() - m_CaptionSize, ptPos.y );
       }
     }
 
@@ -199,7 +199,7 @@ template <class BASECLASS> class AbstractPullIn : public BASECLASS
 
       if ( ( Style() & PCS_SIDE_MASK ) == PCS_BOTTOM )
       {
-        SetLocation( ptPos.x, rcTopParent.height() - Height() + m_CaptionSize );
+        SetLocation( ptPos.x, rcTopParent.Height() - Height() + m_CaptionSize );
       }
       else if ( ( Style() & PCS_SIDE_MASK ) == PCS_TOP )
       {
@@ -211,7 +211,7 @@ template <class BASECLASS> class AbstractPullIn : public BASECLASS
       }
       else if ( ( Style() & PCS_SIDE_MASK ) == PCS_RIGHT )
       {
-        SetLocation( rcTopParent.width() - Width() + m_CaptionSize, ptPos.y );
+        SetLocation( rcTopParent.Width() - Width() + m_CaptionSize, ptPos.y );
       }
     }
 
@@ -221,23 +221,23 @@ template <class BASECLASS> class AbstractPullIn : public BASECLASS
 
       if ( ( Style() & PCS_SIDE_MASK ) == PCS_BOTTOM )
       {
-        m_ClientRect.offset( 0, m_CaptionSize );
-        m_ClientRect.size( m_ClientRect.width(), m_ClientRect.height() - m_CaptionSize );
+        m_ClientRect.Offset( 0, m_CaptionSize );
+        m_ClientRect.Size( m_ClientRect.Width(), m_ClientRect.Height() - m_CaptionSize );
       }
       else if ( ( Style() & PCS_SIDE_MASK ) == PCS_TOP )
       {
-        m_ClientRect.offset( 0, 0 );
-        m_ClientRect.size( m_ClientRect.width(), m_ClientRect.height() - m_CaptionSize );
+        m_ClientRect.Offset( 0, 0 );
+        m_ClientRect.Size( m_ClientRect.Width(), m_ClientRect.Height() - m_CaptionSize );
       }
       else if ( ( Style() & PCS_SIDE_MASK ) == PCS_RIGHT )
       {
-        m_ClientRect.offset( m_CaptionSize, 0 );
-        m_ClientRect.size( m_ClientRect.width() - m_CaptionSize, m_ClientRect.height() );
+        m_ClientRect.Offset( m_CaptionSize, 0 );
+        m_ClientRect.Size( m_ClientRect.Width() - m_CaptionSize, m_ClientRect.Height() );
       }
       else if ( ( Style() & PCS_SIDE_MASK ) == PCS_LEFT )
       {
-        m_ClientRect.offset( 0, 0 );
-        m_ClientRect.size( m_ClientRect.width() - m_CaptionSize, m_ClientRect.height() );
+        m_ClientRect.Offset( 0, 0 );
+        m_ClientRect.Size( m_ClientRect.Width() - m_CaptionSize, m_ClientRect.Height() );
       }
     }
 
@@ -245,31 +245,31 @@ template <class BASECLASS> class AbstractPullIn : public BASECLASS
     {
       if ( ( Style() & PCS_SIDE_MASK ) == PCS_BOTTOM )
       {
-        rcCaption.set( m_ClientRect.Left,
+        rcCaption.Set( m_ClientRect.Left,
                        GetBorderHeight( GUI::BT_EDGE_TOP ),
-                       m_ClientRect.width(),
+                       m_ClientRect.Width(),
                        m_CaptionSize );
       }
       else if ( ( Style() & PCS_SIDE_MASK ) == PCS_TOP )
       {
-        rcCaption.set( m_ClientRect.Left,
+        rcCaption.Set( m_ClientRect.Left,
                        m_ClientRect.Bottom,
-                       m_ClientRect.width(),
+                       m_ClientRect.Width(),
                        m_CaptionSize );
       }
       else if ( ( Style() & PCS_SIDE_MASK ) == PCS_RIGHT )
       {
-        rcCaption.set( GetBorderWidth( GUI::BT_EDGE_LEFT ),
+        rcCaption.Set( GetBorderWidth( GUI::BT_EDGE_LEFT ),
                         m_ClientRect.Top,
                         m_CaptionSize,
-                        m_ClientRect.height() );
+                        m_ClientRect.Height() );
       }
       else if ( ( Style() & PCS_SIDE_MASK ) == PCS_LEFT )
       {
-        rcCaption.set( m_ClientRect.Right,
+        rcCaption.Set( m_ClientRect.Right,
                         m_ClientRect.Top,
                         m_CaptionSize,
-                        m_ClientRect.height() );
+                        m_ClientRect.Height() );
       }
       return true;
     }
@@ -378,33 +378,33 @@ template <class BASECLASS> class AbstractPullIn : public BASECLASS
       {
         if ( IsMouseOverMe() )
         {
-          if ( ptPos.y > rcTopParent.height() - Height() + m_CaptionSize )
+          if ( ptPos.y > rcTopParent.Height() - Height() + m_CaptionSize )
           {
             if ( fElapsedTime * m_SlideOutSpeed >= Height() - m_CaptionSize - m_SlideDelta )
             {
-              SetLocation( ptPos.x, rcTopParent.height() - Height() + m_CaptionSize );
+              SetLocation( ptPos.x, rcTopParent.Height() - Height() + m_CaptionSize );
               m_SlideDelta = (float)( Height() - m_CaptionSize );
             }
             else
             {
               m_SlideDelta += fElapsedTime * m_SlideOutSpeed;
-              SetLocation( ptPos.x, rcTopParent.height() - m_CaptionSize - (int)m_SlideDelta );
+              SetLocation( ptPos.x, rcTopParent.Height() - m_CaptionSize - (int)m_SlideDelta );
             }
           }
         }
         else
         {
-          if ( ptPos.y < rcTopParent.height() - m_CaptionSize )
+          if ( ptPos.y < rcTopParent.Height() - m_CaptionSize )
           {
             if ( fElapsedTime * m_SlideInSpeed >= m_SlideDelta )
             {
-              SetLocation( ptPos.x, rcTopParent.height() - m_CaptionSize );
+              SetLocation( ptPos.x, rcTopParent.Height() - m_CaptionSize );
               m_SlideDelta = 0.0f;
             }
             else
             {
               m_SlideDelta -= fElapsedTime * m_SlideInSpeed;
-              SetLocation( ptPos.x, rcTopParent.height() - m_CaptionSize - (int)m_SlideDelta );
+              SetLocation( ptPos.x, rcTopParent.Height() - m_CaptionSize - (int)m_SlideDelta );
             }
           }
         }
@@ -475,24 +475,24 @@ template <class BASECLASS> class AbstractPullIn : public BASECLASS
       {
         if ( IsMouseOverMe() )
         {
-          if ( ptPos.x > rcTopParent.width() - Width() )
+          if ( ptPos.x > rcTopParent.Width() - Width() )
           {
             m_SlidePos.x -= fElapsedTime * m_SlideOutSpeed;
-            if ( m_SlidePos.x < rcTopParent.width() - Width() )
+            if ( m_SlidePos.x < rcTopParent.Width() - Width() )
             {
-              m_SlidePos.x = (float)( rcTopParent.width() - Width() );
+              m_SlidePos.x = (float)( rcTopParent.Width() - Width() );
             }
             SetLocation( (int)m_SlidePos.x, ptPos.y );
           }
         }
         else
         {
-          if ( ptPos.x < rcTopParent.width() - m_CaptionSize )
+          if ( ptPos.x < rcTopParent.Width() - m_CaptionSize )
           {
             m_SlidePos.x += fElapsedTime * m_SlideInSpeed;
-            if ( m_SlidePos.x > rcTopParent.width() - m_CaptionSize )
+            if ( m_SlidePos.x > rcTopParent.Width() - m_CaptionSize )
             {
-              m_SlidePos.x = (float)( rcTopParent.width() - m_CaptionSize );
+              m_SlidePos.x = (float)( rcTopParent.Width() - m_CaptionSize );
             }
             SetLocation( (int)m_SlidePos.x, ptPos.y );
           }

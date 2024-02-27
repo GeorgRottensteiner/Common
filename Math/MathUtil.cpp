@@ -157,7 +157,7 @@ namespace math
   bool IntersectCircleWithCircle2d( const GR::tFPoint& CirclePos1, const GR::f32 Radius1,
                                     const GR::tFPoint& CirclePos2, const GR::f32 Radius2 )
   {
-    return ( ( CirclePos2 - CirclePos1 ).length() < Radius1 + Radius2 );
+    return ( ( CirclePos2 - CirclePos1 ).Length() < Radius1 + Radius2 );
   }
 
 
@@ -572,7 +572,7 @@ namespace math
   {
     if ( Point1 == Point2 )
     {
-      return ( Point1.distance( CircleCenter ) <= Radius );
+      return ( Point1.Distance( CircleCenter ) <= Radius );
     }
 
     float     fU = ( ( CircleCenter.x - Point1.x ) * ( Point2.x - Point1.x ) + ( CircleCenter.y - Point1.y ) * ( Point2.y - Point1.y ) )
@@ -582,11 +582,11 @@ namespace math
     ||   ( fU > 1 ) )
     {
       // der beste Punkt ist nicht innerhalb des Segments, aber die Segment-Endpunkte könnten innerhalb des Kreises sein
-      if ( Point1.distance( CircleCenter ) <= Radius )
+      if ( Point1.Distance( CircleCenter ) <= Radius )
       {
         return true;
       }
-      if ( Point2.distance( CircleCenter ) <= Radius )
+      if ( Point2.Distance( CircleCenter ) <= Radius )
       {
         return true;
       }
@@ -594,7 +594,7 @@ namespace math
     }
     GR::tFPoint   ClosestPoint = Point1 + ( Point2 - Point1 ) * fU;
 
-    return ( ClosestPoint.distance( CircleCenter ) <= Radius );
+    return ( ClosestPoint.Distance( CircleCenter ) <= Radius );
   }
 
 
@@ -625,14 +625,14 @@ namespace math
     GR::tFPoint   v = Segment2B - Segment2A;
     GR::tFPoint   w = Segment1A - Segment2A;
 
-    float         D = u.perpendicular( v );
+    float         D = u.Perpendicular( v );
 
     // test if they are parallel (includes either being a point)
     if ( fabs( D ) < 0.000001f ) 
     {          
       // S1 and S2 are parallel
-      if ( ( u.perpendicular( w ) != 0 )
-      ||   ( v.perpendicular( w ) != 0 ) ) 
+      if ( ( u.Perpendicular( w ) != 0 )
+      ||   ( v.Perpendicular( w ) != 0 ) ) 
       {
         // they are NOT collinear
         return 0;                   
@@ -640,8 +640,8 @@ namespace math
 
       // they are collinear or degenerate
       // check if they are degenerate points
-      float du = u.dot( u );
-      float dv = v.dot( v );
+      float du = u.Dot( u );
+      float dv = v.Dot( v );
 
       if ( ( du == 0 )
       &&   ( dv == 0 ) ) 
@@ -742,7 +742,7 @@ namespace math
 
     // the segments are skew and may intersect in a point
     // get the intersect parameter for S1
-    float     sI = v.perpendicular( w ) / D;
+    float     sI = v.Perpendicular( w ) / D;
 
     if ( ( sI < 0 )
     ||   ( sI > 1 ) )
@@ -752,7 +752,7 @@ namespace math
     }
 
     // get the intersect parameter for S2
-    float     tI = u.perpendicular( w ) / D;
+    float     tI = u.Perpendicular( w ) / D;
 
     if ( ( tI < 0 )
     ||   ( tI > 1 ) )
@@ -915,7 +915,7 @@ namespace math
                                       const GR::tFPoint& Line1,
                                       const GR::tFPoint& Line2 )
   {
-    GR::f32 fLineLength = ( Line2 - Line1 ).length();
+    GR::f32 fLineLength = ( Line2 - Line1 ).Length();
 
     GR::f32 fU = ( ( ( Point.x - Line1.x ) * ( Line2.x - Line1.x ) ) +
         ( ( Point.y - Line1.y ) * ( Line2.y - Line1.y ) ) ) 
@@ -924,16 +924,16 @@ namespace math
 
     if ( fU < 0.0f )
     {
-      return ( Line1 - Point ).length();
+      return ( Line1 - Point ).Length();
     }
     if ( fU > 1.0f )
     {
-      return ( Line2 - Point ).length();
+      return ( Line2 - Point ).Length();
     }
 
     GR::tFPoint   Closest = Line1 + fU * ( Line2 - Line1 );
 
-    return ( Closest - Point ).length();
+    return ( Closest - Point ).Length();
 
   }
 
@@ -943,7 +943,7 @@ namespace math
                                const GR::tFPoint& Line1,
                                const GR::tFPoint& Line2 )
   {
-    GR::f32 fLineLength = ( Line2 - Line1 ).length();
+    GR::f32 fLineLength = ( Line2 - Line1 ).Length();
 
     GR::f32 fU = ( ( ( Point.x - Line1.x ) * ( Line2.x - Line1.x ) ) +
         ( ( Point.y - Line1.y ) * ( Line2.y - Line1.y ) ) ) 
@@ -952,7 +952,7 @@ namespace math
 
     GR::tFPoint   Closest = Line1 + fU * ( Line2 - Line1 );
 
-    return ( Closest - Point ).length();
+    return ( Closest - Point ).Length();
 
   }
 
@@ -962,7 +962,7 @@ namespace math
                              GR::tFPoint& ClosestPoint )
   {
 
-    GR::f32 fLineLength = ( Line2 - Line1 ).length();
+    GR::f32 fLineLength = ( Line2 - Line1 ).Length();
 
     GR::f32 fU = ( ( ( Point.x - Line1.x ) * ( Line2.x - Line1.x ) ) +
         ( ( Point.y - Line1.y ) * ( Line2.y - Line1.y ) ) ) 
@@ -981,7 +981,7 @@ namespace math
                                     GR::tFPoint& ClosestPoint )
   {
 
-    GR::f32 fLineLength = ( Line2 - Line1 ).length();
+    GR::f32 fLineLength = ( Line2 - Line1 ).Length();
 
     GR::f32 fU = ( ( ( Point.x - Line1.x ) * ( Line2.x - Line1.x ) ) +
         ( ( Point.y - Line1.y ) * ( Line2.y - Line1.y ) ) ) 
@@ -1052,8 +1052,8 @@ namespace math
     GR::tFPoint   vDir = Line2 - Line1;
     GR::tFPoint   w    = Point - Line1;
 
-    GR::f32       c1 = w.dot( vDir );
-    GR::f32       c2 = vDir.dot( vDir );
+    GR::f32       c1 = w.Dot( vDir );
+    GR::f32       c2 = vDir.Dot( vDir );
 
     return c1 / c2;
   }
@@ -1142,14 +1142,14 @@ namespace math
 	  GR::tFPoint edge = p2 - p1;
 	  GR::tFPoint diff = p1 - pos;	
 			
-	  float edge2 = edge.dot(edge);
-	  float vel2 = vel.dot(vel);
-	  float edgedotvel = edge.dot(vel);
-	  float edgedotdiff = edge.dot(diff);
+	  float edge2 = edge.Dot(edge);
+	  float vel2 = vel.Dot(vel);
+	  float edgedotvel = edge.Dot(vel);
+	  float edgedotdiff = edge.Dot(diff);
 
 	  float a = edge2 * -vel2 + edgedotvel * edgedotvel;
-	  float b = edge2 * 2.0f * vel.dot(diff) - 2.0f * edgedotvel * edgedotdiff;
-	  float c = edge2 * (radius * radius - diff.dot(diff)) + edgedotdiff * edgedotdiff;
+	  float b = edge2 * 2.0f * vel.Dot(diff) - 2.0f * edgedotvel * edgedotdiff;
+	  float c = edge2 * (radius * radius - diff.Dot(diff)) + edgedotdiff * edgedotdiff;
 
 	  float t;
     if ( FindRoot( a, b, c, t ) )
@@ -1353,15 +1353,15 @@ namespace math
     GR::tFPoint edge = P2 - P1;
     GR::tFPoint diff = P1 - SpherePos;
 
-    float edge2       = edge.dot( edge );
+    float edge2       = edge.Dot( edge );
     GR::tFPoint vel   = SphereEndpos - SpherePos;
-    float vel2        = vel.dot( vel );
-    float edgedotvel  = edge.dot( vel );
-    float edgedotdiff = edge.dot( diff );
+    float vel2        = vel.Dot( vel );
+    float edgedotvel  = edge.Dot( vel );
+    float edgedotdiff = edge.Dot( diff );
 
     float a = edge2 * -vel2 + edgedotvel * edgedotvel;
-    float b = edge2 * 2.0f * vel.dot( diff ) - 2.0f * edgedotvel * edgedotdiff;
-    float c = edge2 * ( Radius * Radius - diff.dot( diff ) ) + edgedotdiff * edgedotdiff;
+    float b = edge2 * 2.0f * vel.Dot( diff ) - 2.0f * edgedotvel * edgedotdiff;
+    float c = edge2 * ( Radius * Radius - diff.Dot( diff ) ) + edgedotdiff * edgedotdiff;
 
     float t;
     if ( FindRoot( a, b, c, t ) )
@@ -1384,7 +1384,7 @@ namespace math
         else if ( u < 0.0f )
         {
           // im Radius-Bereich links?
-          if ( ( PointOfIntersection - P1 ).length_squared() <= Radius * Radius )
+          if ( ( PointOfIntersection - P1 ).LengthSquared() <= Radius * Radius )
           {
             return true;
           }
@@ -1392,7 +1392,7 @@ namespace math
         else if ( u >= 1.0f )
         {
           // im Radius-Bereich rechts?
-          if ( ( PointOfIntersection - P2 ).length_squared() <= Radius * Radius )
+          if ( ( PointOfIntersection - P2 ).LengthSquared() <= Radius * Radius )
           {
             return true;
           }

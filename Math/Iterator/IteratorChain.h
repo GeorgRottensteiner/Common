@@ -8,6 +8,8 @@
 
 #include <Lang/RefCountObject.h>
 
+#include <debug/debugclient.h>
+
 #include "IMathIterator.h"
 
 
@@ -159,6 +161,12 @@ namespace math
 
         bool UpdatePos( tIteratorPos& Pos, const GR::f32 ElapsedTime, bool Looping = false )
         {
+          if ( m_Iterators.empty() )
+          {
+            dh::Log( "IteratorChain::UpdatePos, no iterators in list!" );
+            return false;
+          }
+
           GR::f32   TimeLeft = ElapsedTime;
 
           while ( TimeLeft > 0.0f )

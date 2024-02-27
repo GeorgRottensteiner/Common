@@ -123,8 +123,8 @@ template <class BASECLASS> class AbstractDialog : public BASECLASS
 
       if ( Style() & DS_CAPTION )
       {
-        m_ClientRect.offset( 0, m_CaptionHeight );
-        m_ClientRect.size( m_ClientRect.width(), m_ClientRect.height() - m_CaptionHeight );
+        m_ClientRect.Offset( 0, m_CaptionHeight );
+        m_ClientRect.Size( m_ClientRect.Width(), m_ClientRect.Height() - m_CaptionHeight );
       }
     }
 
@@ -138,13 +138,13 @@ template <class BASECLASS> class AbstractDialog : public BASECLASS
         GR::tRect   rcComponent;
 
         GetComponentRect( rcComponent );
-        rcCaption.set( m_ClientRect.Left,
+        rcCaption.Set( m_ClientRect.Left,
                        GetBorderHeight( GUI::BT_EDGE_TOP ),
-                       m_ClientRect.width(),
+                       m_ClientRect.Width(),
                        m_CaptionHeight );
         return true;
       }
-      rcCaption.clear();
+      rcCaption.Clear();
       return false;
     }
 
@@ -195,14 +195,14 @@ template <class BASECLASS> class AbstractDialog : public BASECLASS
             {
               iY = 0;
             }
-            if ( iX + m_Width >= rectTopLevel.width() )
+            if ( iX + m_Width >= rectTopLevel.Width() )
             {
-              iX = rectTopLevel.width() - m_Width;
+              iX = rectTopLevel.Width() - m_Width;
             }
             // nur bis zur Caption nach unten rausschieben
-            if ( iY + m_ClientRect.Top >= rectTopLevel.height() )
+            if ( iY + m_ClientRect.Top >= rectTopLevel.Height() )
             {
-              iY = rectTopLevel.height() - m_ClientRect.Top;
+              iY = rectTopLevel.Height() - m_ClientRect.Top;
             }
 
             GUI::ComponentEvent   BaseEvent( Event );
@@ -236,14 +236,14 @@ template <class BASECLASS> class AbstractDialog : public BASECLASS
             {
               iY = 0;
             }
-            if ( iX + m_Width >= rectTopLevel.width() )
+            if ( iX + m_Width >= rectTopLevel.Width() )
             {
-              iX = rectTopLevel.width() - m_Width;
+              iX = rectTopLevel.Width() - m_Width;
             }
             // nur bis zur Caption nach unten rausschieben
-            if ( iY + m_Height >= rectTopLevel.height() )
+            if ( iY + m_Height >= rectTopLevel.Height() )
             {
-              iY = rectTopLevel.height() - m_Height;
+              iY = rectTopLevel.Height() - m_Height;
             }
 
             GUI::ComponentEvent   BaseEvent( Event );

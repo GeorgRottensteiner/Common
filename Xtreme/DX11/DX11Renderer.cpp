@@ -292,7 +292,7 @@ bool DX11Renderer::Initialize( GR::u32 Width,
 
 
   m_hwndViewport = hWnd;
-  m_DisplayOffset.clear();
+  m_DisplayOffset.Clear();
 
 #if OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP
   //RECT      windowRect;
@@ -327,12 +327,12 @@ bool DX11Renderer::Initialize( GR::u32 Width,
   m_Width = Width;
   m_Height = Height;
 
-  m_Canvas.set( 0, 0, m_Width, m_Height );
+  m_Canvas.Set( 0, 0, m_Width, m_Height );
 
   SetVertexShader( "position_color" );
   SetPixelShader( "position_color" );
 
-  m_VirtualSize.set( m_Width, m_Height );
+  m_VirtualSize.Set( m_Width, m_Height );
 
   CD3D11_BUFFER_DESC  constantBufferDesc( sizeof( ModelViewProjectionConstantBuffer ), D3D11_BIND_CONSTANT_BUFFER );
   if ( FAILED( m_pDevice->CreateBuffer( &constantBufferDesc, nullptr, &m_pMatrixBuffer ) ) )
@@ -2288,8 +2288,8 @@ bool DX11Renderer::SetViewport( const XViewport& Viewport )
 
   CD3D11_VIEWPORT    viewPort;
 
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   viewPort.Width    = (GR::f32)virtualX * Viewport.Width;
   viewPort.Height   = (GR::f32)virtualY * Viewport.Height;
@@ -2298,23 +2298,23 @@ bool DX11Renderer::SetViewport( const XViewport& Viewport )
   viewPort.MinDepth = Viewport.MinZ;
   viewPort.MaxDepth = Viewport.MaxZ;
 
-  if ( viewPort.TopLeftX >= m_Canvas.Left + m_Canvas.width() )
+  if ( viewPort.TopLeftX >= m_Canvas.Left + m_Canvas.Width() )
   {
-    viewPort.TopLeftX = (GR::f32)m_Canvas.Left + m_Canvas.width();
+    viewPort.TopLeftX = (GR::f32)m_Canvas.Left + m_Canvas.Width();
     viewPort.Width = 0;
   }
-  if ( viewPort.TopLeftY >= m_Canvas.Top + m_Canvas.height() )
+  if ( viewPort.TopLeftY >= m_Canvas.Top + m_Canvas.Height() )
   {
-    viewPort.TopLeftY = (GR::f32)m_Canvas.Top + m_Canvas.height();
+    viewPort.TopLeftY = (GR::f32)m_Canvas.Top + m_Canvas.Height();
     viewPort.Height = 0;
   }
-  if ( viewPort.TopLeftX + viewPort.Width > m_Canvas.Left + m_Canvas.width() )
+  if ( viewPort.TopLeftX + viewPort.Width > m_Canvas.Left + m_Canvas.Width() )
   {
-    viewPort.Width = m_Canvas.Left + m_Canvas.width() - viewPort.TopLeftX;
+    viewPort.Width = m_Canvas.Left + m_Canvas.Width() - viewPort.TopLeftX;
   }
-  if ( viewPort.TopLeftY + viewPort.Height> m_Canvas.Top + m_Canvas.height() )
+  if ( viewPort.TopLeftY + viewPort.Height> m_Canvas.Top + m_Canvas.Height() )
   {
-    viewPort.Height = m_Canvas.Top + m_Canvas.height() - viewPort.TopLeftY;
+    viewPort.Height = m_Canvas.Top + m_Canvas.Height() - viewPort.TopLeftY;
   }
 
   // adjust ortho matrix?
@@ -2614,7 +2614,7 @@ XTexture* DX11Renderer::CreateTexture( const GR::u32 Width, const GR::u32 Height
     pTexture->m_MipMapLevels = 1;
   }
   pTexture->AllowUsageAsRenderTarget = AllowUsageAsRenderTarget;
-  pTexture->m_ImageSourceSize.set( Width, Height );
+  pTexture->m_ImageSourceSize.Set( Width, Height );
   pTexture->m_ImageFormat = imgFormat;
 
   if ( !CreateNativeTextureResources( pTexture ) )
@@ -2671,7 +2671,7 @@ bool DX11Renderer::CreateNativeTextureResources( XTextureBase* pTextureBase )
   D3D11_TEXTURE2D_DESC    texDesc;
   pTexture2d->GetDesc( &texDesc );
 
-  pTexture->m_SurfaceSize.set( texDesc.Width, texDesc.Height );
+  pTexture->m_SurfaceSize.Set( texDesc.Width, texDesc.Height );
   pTexture->m_D3DFormat = texDesc.Format;
 
   // re-map since a few formats do not exist anymore (e.g. GR::Graphic::IF_X1R5G5B5)
@@ -3066,8 +3066,8 @@ void DX11Renderer::RenderLine2d( const GR::tPoint& pt1, const GR::tPoint& pt2, G
   SetLineMode();
   m_LineCache3d.FlushCache();
 
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   m_LineCache.AddEntry( m_SetTextures[0],
                         GR::tVector( m_Canvas.Left + m_DisplayOffset.x + ( GR::f32 )pt1.x * virtualX, m_Canvas.Top + m_DisplayOffset.y + ( GR::f32 )pt1.y * virtualY, fZ ), 0.0f, 0.0f,
@@ -3160,8 +3160,8 @@ void DX11Renderer::RenderQuad2d( GR::i32 iX, GR::i32 iY, GR::i32 iWidth, GR::i32
   iX += m_DisplayOffset.x;
   iY += m_DisplayOffset.y;
 
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   SetQuadMode();
   m_QuadCache3d.FlushCache();
@@ -3204,8 +3204,8 @@ void DX11Renderer::RenderQuadDetail2d( GR::f32 fX, GR::f32 fY, GR::f32 fWidth, G
   {
     Color2 = Color3 = Color4 = Color1;
   }
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   fX *= virtualX;
   fY *= virtualY;
@@ -3338,8 +3338,8 @@ void DX11Renderer::RenderTriangle2d( const GR::tPoint& pt1,
     Color2 = Color3 = Color1;
   }
 
-  GR::f32     virtualX = (GR::f32)m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = (GR::f32)m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   m_TriangleCache.AddEntry( m_SetTextures[0],
                             GR::tVector( m_Canvas.Left + m_DisplayOffset.x + ( GR::f32 )pt1.x * virtualX, m_Canvas.Top + m_DisplayOffset.y + ( GR::f32 )pt1.y * virtualY, fZ ), fTU1, fTV1,
@@ -3487,8 +3487,8 @@ void DX11Renderer::RenderQuadDetail2d( GR::f32 X1, GR::f32 Y1,
     Color2 = Color3 = Color4 = Color1;
   }
 
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   X1 *= virtualX;
   Y1 *= virtualY;

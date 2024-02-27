@@ -18,7 +18,7 @@ namespace math
 
 
 
-      long dimensions() 
+      long Dimensions() 
       { 
         return 2; 
       }
@@ -45,7 +45,7 @@ namespace math
 
 
 
-      vector2& set( const scalar_type  s ) 
+      vector2& Set( const scalar_type  s ) 
       { 
         x = y = s; 
         return *this; 
@@ -53,7 +53,7 @@ namespace math
 
 
 
-	    vector2& set( const scalar_type& sx, const scalar_type& sy ) 
+	    vector2& Set( const scalar_type& sx, const scalar_type& sy ) 
       { 
         x = sx; 
         y = sy; 
@@ -62,7 +62,7 @@ namespace math
 
 
 
-      vector2& clear()
+      vector2& Clear()
       { 
         x = y = 0; 
         return *this; 
@@ -70,7 +70,7 @@ namespace math
 
 
 
-	    vector2& operator = ( const vector2& v ) 
+	    vector2& operator= ( const vector2& v ) 
       { 
         if ( this != &v ) 
         { 
@@ -82,7 +82,7 @@ namespace math
 
 
 
-      vector2& operator = ( const scalar_type s ) 
+      vector2& operator= ( const scalar_type s ) 
       { 
         x = y = s;   
         return *this;
@@ -90,7 +90,7 @@ namespace math
 
 
 
-	    vector2& operator +=( const vector2& v ) 
+	    vector2& operator+=( const vector2& v ) 
       { 
         x += v.x; 
         y += v.y; 
@@ -99,7 +99,7 @@ namespace math
 
 
 
-	    vector2& operator -=( const vector2& v ) 
+	    vector2& operator-=( const vector2& v ) 
       { 
         x -= v.x; 
         y -= v.y; 
@@ -108,7 +108,7 @@ namespace math
 
 
 
-	    vector2& operator +=( const scalar_type s ) 
+	    vector2& operator+=( const scalar_type s ) 
       { 
         x += s;   
         y += s;   
@@ -117,7 +117,7 @@ namespace math
 
 
 
-	    vector2& operator -=( const scalar_type s ) 
+	    vector2& operator-=( const scalar_type s ) 
       { 
         x -= s;   
         y -= s;   
@@ -126,7 +126,7 @@ namespace math
 
 
 
-	    vector2& operator /=( const scalar_type s ) 
+	    vector2& operator/=( const scalar_type s ) 
       { 
         x /= s;   
         y /= s;   
@@ -135,7 +135,7 @@ namespace math
 
 
 
-	    vector2& operator *=( const scalar_type s ) 
+	    vector2& operator*=( const scalar_type s ) 
       { 
         x *= s;   
         y *= s;   
@@ -144,7 +144,7 @@ namespace math
 
 
 
-      vector2& operator %=( const scalar_type s ) 
+      vector2& operator%=( const scalar_type s ) 
       { 
         x %= s;   
         y %= s;   
@@ -153,14 +153,14 @@ namespace math
 
 
 
-	    vector2& scale( const scalar_type s ) 
+	    vector2& Scale( const scalar_type s ) 
       { 
         return (*this) *= s;                        
       }
 
 
 
-      vector2& offset( const scalar_type x, const scalar_type y )
+      vector2& Offset( const scalar_type x, const scalar_type y )
       {
         this->x += x;
         this->y += y;
@@ -196,7 +196,7 @@ namespace math
 
 
 
-      vector2& flip_x()
+      vector2& FlipX()
       {
         x = -x;
         return *this;
@@ -204,7 +204,7 @@ namespace math
 
 
 
-      vector2& flip_y()
+      vector2& FlipY()
       {
         y = -y;
         return *this;
@@ -212,9 +212,9 @@ namespace math
 
 
 
-      vector2 normalize()
+      vector2 Normalize()
       {
-        float   len = length();
+        float   len = Length();
 
         if ( len == 0 )
         {
@@ -225,95 +225,95 @@ namespace math
 
 
 
-      vector2 normalized() const
+      vector2 Normalized() const
       {
-        if ( length() <= 0.0f )
+        if ( Length() <= 0.0f )
         {
           return vector2( *this );
         }
-        return vector2( *this ) / length();
+        return vector2( *this ) / Length();
       }
 
 
 
-      vector2 operator +( const scalar_type s ) const 
+      vector2 operator+( const scalar_type s ) const 
       { 
         return vector2( x + s, y + s ); 
       }
 
 
 
-      vector2 operator -( const scalar_type s ) const 
+      vector2 operator-( const scalar_type s ) const 
       { 
         return vector2( x - s, y - s ); 
       }
 
 
 
-      vector2 operator *( const scalar_type s ) const 
+      vector2 operator*( const scalar_type s ) const 
       { 
         return vector2( x * s, y * s ); 
       }
 
 
 
-      vector2 operator /( const scalar_type s )  const 
+      vector2 operator/( const scalar_type s )  const 
       { 
         return vector2( x / s, y / s ); 
       }
 
 
 
-      vector2 operator %( const scalar_type s ) const 
+      vector2 operator%( const scalar_type s ) const 
       { 
         return vector2( x % s, y % s ); 
       }
 
 
 
-      vector2 operator +( const vector2& v ) const 
+      vector2 operator+( const vector2& v ) const 
       { 
         return vector2( x + v.x, y + v.y );
       }
 
 
 
-      vector2 operator -( const vector2& v ) const 
+      vector2 operator-( const vector2& v ) const 
       { 
         return vector2( x - v.x, y - v.y ); 
       }
 
 
 
-      vector2 operator -() const 
+      vector2 operator-() const 
       { 
         return vector2( -x, -y ); 
       }
 
 
 
-      float length() const
+      float Length() const
       {
-        return sqrtf( (float)length_squared() );
+        return sqrtf( (float)LengthSquared() );
       }
 
 
 
-      scalar_type length_squared() const
+      scalar_type LengthSquared() const
       {
         return x * x + y * y;
       }
 
 
 
-      float length( const vector2& rhs ) const
+      float Length( const vector2& rhs ) const
       {
         return ( *this - rhs ).length();
       }
 
 
 
-      scalar_type length_squared( const vector2& rhs ) const
+      scalar_type LengthSquared( const vector2& rhs ) const
       {
         return ( *this - rhs ).length_squared();
       }
@@ -356,37 +356,37 @@ namespace math
 
 
 
-      vector2 flipped_x() const 
+      vector2 FlippedX() const 
       { 
         return vector2( -x,  y ); 
       }
 
 
 
-      vector2 flipped_y() const 
+      vector2 FlippedY() const 
       { 
         return vector2( x, -y ); 
       }
 
 
 
-      vector2<float> unit() const
+      vector2<float> Unit() const
       {
-        return vector2<float>( (float)x, (float)y ).normalized();
+        return vector2<float>( (float)x, (float)y ).Normalized();
       }
 
 
 
-      float dot( const vector2& v ) const
+      float Dot( const vector2& v ) const
       {
         return (float)x * (float)v.x + (float)y * (float)v.y;
       }
 
 
 
-      float angle( const vector2& v2 )
+      float Angle( const vector2& v2 )
       {
-        return 180.0f * acosf( unit().dot( v2.unit() ) ) / 3.1415926f;
+        return 180.0f * acosf( Unit().Dot( v2.Unit() ) ) / 3.1415926f;
       }
 
 
@@ -398,14 +398,14 @@ namespace math
 
 
 
-      float angle() const
+      float Angle() const
       {
         return atan2f( (float)y, (float)x ) * 180.0f / 3.1415926f;
       }
 
 
 
-      scalar_type cross( const vector2& v ) const
+      scalar_type Cross( const vector2& v ) const
       {
         return x * v.y - y * v.x;
       }
@@ -419,21 +419,21 @@ namespace math
 
 
 
-      float distance( const vector2& rhs ) const 
+      float Distance( const vector2& rhs ) const 
       { 
-        return ( rhs - *this ).length(); 
+        return ( rhs - *this ).Length(); 
       }
 
 
 
       float DistanceSquared( const vector2& rhs ) const
       {
-        return ( rhs - *this ).length_squared();
+        return ( rhs - *this ).LengthSquared();
       }
 
 
 
-	    vector2& interpolate( const vector2& rhs, const scalar_type& s )
+	    vector2& Interpolate( const vector2& rhs, const scalar_type& s )
       {
         x += s * ( rhs.x - x );
         y += s * ( rhs.y - y );
@@ -442,7 +442,7 @@ namespace math
 
 
 
-	    vector2& interpolate( const vector2& v1, const vector2& v2, const scalar_type& s )
+	    vector2& Interpolate( const vector2& v1, const vector2& v2, const scalar_type& s )
       {
         x = v1.x + s * ( v2.x - v1.x );
         y = v1.y + s * ( v2.y - v1.y );
@@ -451,9 +451,9 @@ namespace math
 
 
 
-      vector2& truncate( const float& maximum )
+      vector2& Truncate( const float& maximum )
       {
-        float l = length();
+        float l = Length();
         if ( l > maximum )
         {
           *this *= maximum / l;
@@ -463,7 +463,7 @@ namespace math
 
 
 
-      scalar_type perpendicular( const vector2& v2 ) const
+      scalar_type Perpendicular( const vector2& v2 ) const
       {
         return x * v2.y - y * v2.x;
       }
@@ -472,9 +472,9 @@ namespace math
 
       vector2 ProjectOn( const vector2& V2 ) const
       {
-        vector2    NormV2( V2.normalized() );
+        vector2    NormV2( V2.Normalized() );
 
-        return NormV2 * NormV2.dot( *this );
+        return NormV2 * NormV2.Dot( *this );
       }
 
 

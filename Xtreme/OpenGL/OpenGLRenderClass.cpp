@@ -92,7 +92,7 @@ OpenGLRenderClass::OpenGLRenderClass() :
   m_2dModeActive( false ),
   m_pSetRenderTargetTexture( NULL )
 {
-  m_DirectTexelMappingOffset.set( -0.5f, -0.5f );
+  m_DirectTexelMappingOffset.Set( -0.5f, -0.5f );
 
   for ( int i = 0; i < 8; ++i )
   {
@@ -254,8 +254,8 @@ bool OpenGLRenderClass::Initialize( GR::u32 Width, GR::u32 Height, GR::u32 Depth
   m_Height  = Height;
   m_Depth   = Depth;
 
-  m_Canvas.set( 0, 0, Width, Height );
-  m_VirtualSize.set( Width, Height );
+  m_Canvas.Set( 0, 0, Width, Height );
+  m_VirtualSize.Set( Width, Height );
 
   m_Transform[TT_WORLD].Identity();
   m_Transform[TT_VIEW].Identity();
@@ -1256,8 +1256,8 @@ XTexture* OpenGLRenderClass::CreateTexture( const GR::Graphic::ImageData& ImageD
   }
 
   pTexture->m_ImageFormat = ImageData.ImageFormat();
-  pTexture->m_SurfaceSize.set( ImageData.Width(), ImageData.Height() );
-  pTexture->m_ImageSourceSize.set( ImageData.Width(), ImageData.Height() );
+  pTexture->m_SurfaceSize.Set( ImageData.Width(), ImageData.Height() );
+  pTexture->m_ImageSourceSize.Set( ImageData.Width(), ImageData.Height() );
 
   if ( AllowUsageAsRenderTarget )
   {
@@ -1377,8 +1377,8 @@ XTexture* OpenGLRenderClass::CreateTexture( const GR::u32 Width, const GR::u32 H
   dummyImage.CreateData( Width, Height, imgFormat );
 
   pTexture->m_ImageFormat = imgFormat;
-  pTexture->m_SurfaceSize.set( Width, Height );
-  pTexture->m_ImageSourceSize.set( Width, Height );
+  pTexture->m_SurfaceSize.Set( Width, Height );
+  pTexture->m_ImageSourceSize.Set( Width, Height );
 
   if ( AllowUsageAsRenderTarget )
   {
@@ -2383,8 +2383,8 @@ void OpenGLRenderClass::RenderLine2d( const GR::tPoint& pt1, const GR::tPoint& p
     Color2 = Color1;
   }
 
-  GR::f32     virtualX = ( GR::f32 )m_Canvas.width() / m_VirtualSize.x;
-  GR::f32     virtualY = ( GR::f32 )m_Canvas.height() / m_VirtualSize.y;
+  GR::f32     virtualX = ( GR::f32 )m_Canvas.Width() / m_VirtualSize.x;
+  GR::f32     virtualY = ( GR::f32 )m_Canvas.Height() / m_VirtualSize.y;
 
   Set2DMode();
 

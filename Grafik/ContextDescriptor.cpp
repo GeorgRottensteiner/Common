@@ -20,53 +20,56 @@ namespace GR
   namespace Graphic
   {
 
-
-    ContextDescriptor::ContextDescriptor() 
-      : ImageData(),
-        PutPixelProc( NULL ),
-        HLineProc( NULL ),
-        GetPixelProc( NULL ),
-        CopyLineProc( NULL ),
-        CopyLineTransparentProc( NULL ),
-        CopyAreaAlphaProc( NULL ),
-        CopyAreaAlphaTransparentProc( NULL ),
-        CopyAreaAlphaAndMaskProc( NULL ),
-        CopyPixelProc( NULL ),
-        CopyPixelAlphaProc( NULL ),
-        CopyPixelMaskProc( NULL ),
-        CopyAreaAlphaAndMaskScaledProc( NULL ),
-        AlphaBoxProc( NULL ),
-        m_ClipLeft( 0 ),
-        m_ClipTop( 0 ),
-        m_ClipRight( 0 ),
-        m_ClipBottom( 0 ),
-        m_BitDepth( 0 ),
-        m_NothingVisible( true )
+    ContextDescriptor::ContextDescriptor() : 
+      ImageData(),
+      PutPixelProc( NULL ),
+      HLineProc( NULL ),
+      GetPixelProc( NULL ),
+      CopyLineProc( NULL ),
+      CopyLineTransparentProc( NULL ),
+      CopyAreaAlphaProc( NULL ),
+      CopyAreaAlphaTransparentProc( NULL ),
+      CopyAreaAlphaAndMaskProc( NULL ),
+      CopyPixelProc( NULL ),
+      CopyPixelAlphaProc( NULL ),
+      CopyPixelMaskProc( NULL ),
+      CopyAreaAlphaAndMaskScaledProc( NULL ),
+      AlphaBoxProc( NULL ),
+      m_ClipLeft( 0 ),
+      m_ClipTop( 0 ),
+      m_ClipRight( 0 ),
+      m_ClipBottom( 0 ),
+      m_XOffset( 0 ),
+      m_YOffset( 0 ),
+      m_BitDepth( 0 ),
+      m_NothingVisible( true )
     {
     }
 
 
-    ContextDescriptor::ContextDescriptor( const GR::Graphic::ImageData& ImageData ) 
-      : GR::Graphic::ImageData(),
-        PutPixelProc( NULL ),
-        HLineProc( NULL ),
-        GetPixelProc( NULL ),
-        CopyLineProc( NULL ),
-        CopyLineTransparentProc( NULL ),
-        CopyAreaAlphaProc( NULL ),
-        CopyAreaAlphaTransparentProc( NULL ),
-        CopyAreaAlphaAndMaskProc( NULL ),
-        CopyPixelProc( NULL ),
-        CopyPixelAlphaProc( NULL ),
-        CopyPixelMaskProc( NULL ),
-        CopyAreaAlphaAndMaskScaledProc( NULL ),
-        AlphaBoxProc( NULL ),
-        m_ClipLeft( 0 ),
-        m_ClipTop( 0 ),
-        m_ClipRight( 0 ),
-        m_ClipBottom( 0 ),
-        m_BitDepth( 0 ),
-        m_NothingVisible( true )
+    ContextDescriptor::ContextDescriptor( const GR::Graphic::ImageData& ImageData ) : 
+      GR::Graphic::ImageData(),
+      PutPixelProc( NULL ),
+      HLineProc( NULL ),
+      GetPixelProc( NULL ),
+      CopyLineProc( NULL ),
+      CopyLineTransparentProc( NULL ),
+      CopyAreaAlphaProc( NULL ),
+      CopyAreaAlphaTransparentProc( NULL ),
+      CopyAreaAlphaAndMaskProc( NULL ),
+      CopyPixelProc( NULL ),
+      CopyPixelAlphaProc( NULL ),
+      CopyPixelMaskProc( NULL ),
+      CopyAreaAlphaAndMaskScaledProc( NULL ),
+      AlphaBoxProc( NULL ),
+      m_ClipLeft( 0 ),
+      m_ClipTop( 0 ),
+      m_ClipRight( 0 ),
+      m_ClipBottom( 0 ),
+      m_XOffset( 0 ),
+      m_YOffset( 0 ),
+      m_BitDepth( 0 ),
+      m_NothingVisible( true )
     {
       CreateData( ImageData.Width(), ImageData.Height(), ImageData.ImageFormat(), ImageData.LineOffsetInBytes() );
 
@@ -77,27 +80,29 @@ namespace GR
 
 
 
-    ContextDescriptor::ContextDescriptor( const ContextDescriptor& rhsCD ) 
-      : ImageData(),
-        PutPixelProc( NULL ),
-        HLineProc( NULL ),
-        GetPixelProc( NULL ),
-        CopyLineProc( NULL ),
-        CopyLineTransparentProc( NULL ),
-        CopyAreaAlphaProc( NULL ),
-        CopyAreaAlphaTransparentProc( NULL ),
-        CopyAreaAlphaAndMaskProc( NULL ),
-        CopyPixelProc( NULL ),
-        CopyPixelAlphaProc( NULL ),
-        CopyPixelMaskProc( NULL ),
-        CopyAreaAlphaAndMaskScaledProc( NULL ),
-        AlphaBoxProc( NULL ),
-        m_ClipLeft( 0 ),
-        m_ClipTop( 0 ),
-        m_ClipRight( 0 ),
-        m_ClipBottom( 0 ),
-        m_BitDepth( 0 ),
-        m_NothingVisible( true )
+    ContextDescriptor::ContextDescriptor( const ContextDescriptor& rhsCD ) : 
+      ImageData(),
+      PutPixelProc( NULL ),
+      HLineProc( NULL ),
+      GetPixelProc( NULL ),
+      CopyLineProc( NULL ),
+      CopyLineTransparentProc( NULL ),
+      CopyAreaAlphaProc( NULL ),
+      CopyAreaAlphaTransparentProc( NULL ),
+      CopyAreaAlphaAndMaskProc( NULL ),
+      CopyPixelProc( NULL ),
+      CopyPixelAlphaProc( NULL ),
+      CopyPixelMaskProc( NULL ),
+      CopyAreaAlphaAndMaskScaledProc( NULL ),
+      AlphaBoxProc( NULL ),
+      m_ClipLeft( 0 ),
+      m_ClipTop( 0 ),
+      m_ClipRight( 0 ),
+      m_ClipBottom( 0 ),
+      m_XOffset( 0 ),
+      m_YOffset( 0 ),
+      m_BitDepth( 0 ),
+      m_NothingVisible( true )
     {
       CreateData( rhsCD.Width(), rhsCD.Height(), rhsCD.ImageFormat(), rhsCD.LineOffsetInBytes() );
 
@@ -110,54 +115,58 @@ namespace GR
 
 
 
-    ContextDescriptor::ContextDescriptor( GR::Graphic::GFXPage* pPage, GR::Graphic::Palette* pPal )
-      : ImageData(),
-        PutPixelProc( NULL ),
-        HLineProc( NULL ),
-        GetPixelProc( NULL ),
-        CopyLineProc( NULL ),
-        CopyLineTransparentProc( NULL ),
-        CopyAreaAlphaProc( NULL ),
-        CopyAreaAlphaTransparentProc( NULL ),
-        CopyAreaAlphaAndMaskProc( NULL ),
-        CopyPixelProc( NULL ),
-        CopyPixelAlphaProc( NULL ),
-        CopyPixelMaskProc( NULL ),
-        CopyAreaAlphaAndMaskScaledProc( NULL ),
-        AlphaBoxProc( NULL ),
-        m_ClipLeft( 0 ),
-        m_ClipTop( 0 ),
-        m_ClipRight( 0 ),
-        m_ClipBottom( 0 ),
-        m_BitDepth( 0 ),
-        m_NothingVisible( false )
+    ContextDescriptor::ContextDescriptor( GR::Graphic::GFXPage* pPage, GR::Graphic::Palette* pPal ) : 
+      ImageData(),
+      PutPixelProc( NULL ),
+      HLineProc( NULL ),
+      GetPixelProc( NULL ),
+      CopyLineProc( NULL ),
+      CopyLineTransparentProc( NULL ),
+      CopyAreaAlphaProc( NULL ),
+      CopyAreaAlphaTransparentProc( NULL ),
+      CopyAreaAlphaAndMaskProc( NULL ),
+      CopyPixelProc( NULL ),
+      CopyPixelAlphaProc( NULL ),
+      CopyPixelMaskProc( NULL ),
+      CopyAreaAlphaAndMaskScaledProc( NULL ),
+      AlphaBoxProc( NULL ),
+      m_ClipLeft( 0 ),
+      m_ClipTop( 0 ),
+      m_ClipRight( 0 ),
+      m_ClipBottom( 0 ),
+      m_XOffset( 0 ),
+      m_YOffset( 0 ),
+      m_BitDepth( 0 ),
+      m_NothingVisible( false )
     {
       Create( pPage, pPal );
     }
 
 
 
-    ContextDescriptor::ContextDescriptor( GR::Graphic::Image& Image, int X, int Y, int Width, int Height, GR::Graphic::Palette* pPal )
-      : ImageData(),
-        PutPixelProc( NULL ),
-        HLineProc( NULL ),
-        GetPixelProc( NULL ),
-        CopyLineProc( NULL ),
-        CopyLineTransparentProc( NULL ),
-        CopyAreaAlphaProc( NULL ),
-        CopyAreaAlphaTransparentProc( NULL ),
-        CopyAreaAlphaAndMaskProc( NULL ),
-        CopyPixelProc( NULL ),
-        CopyPixelAlphaProc( NULL ),
-        CopyPixelMaskProc( NULL ),
-        CopyAreaAlphaAndMaskScaledProc( NULL ),
-        AlphaBoxProc( NULL ),
-        m_ClipLeft( 0 ),
-        m_ClipTop( 0 ),
-        m_ClipRight( 0 ),
-        m_ClipBottom( 0 ),
-        m_BitDepth( 0 ),
-        m_NothingVisible( false )
+    ContextDescriptor::ContextDescriptor( GR::Graphic::Image& Image, int X, int Y, int Width, int Height, GR::Graphic::Palette* pPal ) : 
+      ImageData(),
+      PutPixelProc( NULL ),
+      HLineProc( NULL ),
+      GetPixelProc( NULL ),
+      CopyLineProc( NULL ),
+      CopyLineTransparentProc( NULL ),
+      CopyAreaAlphaProc( NULL ),
+      CopyAreaAlphaTransparentProc( NULL ),
+      CopyAreaAlphaAndMaskProc( NULL ),
+      CopyPixelProc( NULL ),
+      CopyPixelAlphaProc( NULL ),
+      CopyPixelMaskProc( NULL ),
+      CopyAreaAlphaAndMaskScaledProc( NULL ),
+      AlphaBoxProc( NULL ),
+      m_ClipLeft( 0 ),
+      m_ClipTop( 0 ),
+      m_ClipRight( 0 ),
+      m_ClipBottom( 0 ),
+      m_XOffset( 0 ),
+      m_YOffset( 0 ),
+      m_BitDepth( 0 ),
+      m_NothingVisible( false )
     {
       if ( Width == 0 )
       {
@@ -203,27 +212,29 @@ namespace GR
 
 
 
-    ContextDescriptor::ContextDescriptor( GR::Graphic::Image* pImage, GR::Graphic::Palette* pPal )
-      : ImageData(),
-        PutPixelProc( NULL ),
-        HLineProc( NULL ),
-        GetPixelProc( NULL ),
-        CopyLineProc( NULL ),
-        CopyLineTransparentProc( NULL ),
-        CopyAreaAlphaProc( NULL ),
-        CopyAreaAlphaTransparentProc( NULL ),
-        CopyAreaAlphaAndMaskProc( NULL ),
-        CopyPixelProc( NULL ),
-        CopyPixelAlphaProc( NULL ),
-        CopyPixelMaskProc( NULL ),
-        CopyAreaAlphaAndMaskScaledProc( NULL ),
-        AlphaBoxProc( NULL ),
-        m_ClipLeft( 0 ),
-        m_ClipTop( 0 ),
-        m_ClipRight( 0 ),
-        m_ClipBottom( 0 ),
-        m_BitDepth( 0 ),
-        m_NothingVisible( false )
+    ContextDescriptor::ContextDescriptor( GR::Graphic::Image* pImage, GR::Graphic::Palette* pPal ) : 
+      ImageData(),
+      PutPixelProc( NULL ),
+      HLineProc( NULL ),
+      GetPixelProc( NULL ),
+      CopyLineProc( NULL ),
+      CopyLineTransparentProc( NULL ),
+      CopyAreaAlphaProc( NULL ),
+      CopyAreaAlphaTransparentProc( NULL ),
+      CopyAreaAlphaAndMaskProc( NULL ),
+      CopyPixelProc( NULL ),
+      CopyPixelAlphaProc( NULL ),
+      CopyPixelMaskProc( NULL ),
+      CopyAreaAlphaAndMaskScaledProc( NULL ),
+      AlphaBoxProc( NULL ),
+      m_ClipLeft( 0 ),
+      m_ClipTop( 0 ),
+      m_ClipRight( 0 ),
+      m_ClipBottom( 0 ),
+      m_XOffset( 0 ),
+      m_YOffset( 0 ),
+      m_BitDepth( 0 ),
+      m_NothingVisible( false )
     {
       Create( pImage, pPal );
     }
@@ -266,10 +277,12 @@ namespace GR
       m_BitDepth              = pImage->GetDepth();
       m_Palette.Release();
 
-      m_ClipLeft     = 0;
-      m_ClipTop      = 0;
-      m_ClipRight    = m_Width - 1;
-      m_ClipBottom   = m_Height - 1;
+      m_ClipLeft      = 0;
+      m_ClipTop       = 0;
+      m_ClipRight     = m_Width - 1;
+      m_ClipBottom    = m_Height - 1;
+      m_XOffset       = 0;
+      m_YOffset       = 0;
 
       if ( ( m_BitDepth <= 8 )
       &&   ( pPalette ) )
@@ -316,11 +329,13 @@ namespace GR
 
       AssignColorDepth();
 
-      m_LineOffsetInBytes    = pPage->GetLineOffset();
-      m_ClipLeft             = pPage->GetLeftBorder();
-      m_ClipTop              = pPage->GetTopBorder();
-      m_ClipRight            = pPage->GetRightBorder();
-      m_ClipBottom           = pPage->GetBottomBorder();
+      m_LineOffsetInBytes = pPage->GetLineOffset();
+      m_ClipLeft          = pPage->GetLeftBorder();
+      m_ClipTop           = pPage->GetTopBorder();
+      m_ClipRight         = pPage->GetRightBorder();
+      m_ClipBottom        = pPage->GetBottomBorder();
+      m_XOffset           = 0;
+      m_YOffset           = 0;
 
       // Offset berücksichtigen!
       if ( ( pPage->GetOffsetX() )
@@ -679,6 +694,8 @@ namespace GR
       {
         return;
       }
+      X += m_XOffset;
+      Y += m_YOffset;
       if ( ( X < m_ClipLeft )
       ||   ( Y < m_ClipTop )
       ||   ( X > m_ClipRight )
@@ -693,6 +710,8 @@ namespace GR
 
     void ContextDescriptor::PutPixelFast( int X, int Y, GR::u32 Color )
     {
+      X += m_XOffset;
+      Y += m_YOffset;
       (this->*PutPixelProc)( X, Y, (GR::u32)MapColor( Color ) );
     }
 
@@ -704,6 +723,8 @@ namespace GR
       {
         return;
       }
+      X += m_XOffset;
+      Y += m_YOffset;      
       if ( ( X < 0 )
       ||   ( Y < 0 )
       ||   ( X >= m_Width )
@@ -1091,6 +1112,9 @@ namespace GR
       {
         pCDTarget = this;
       }
+      X += m_XOffset;
+      Y += m_YOffset;
+
       (this->*CopyLineTransparentProc)( X, Y, Width, ZX, ZY, Transparent, pCDTarget );
     }
 
@@ -1238,6 +1262,10 @@ namespace GR
 
     void ContextDescriptor::HLine( int X1, int X2, int Y, GR::u32 Color )
     {
+      X1  += m_XOffset;
+      X2  += m_XOffset;
+      Y   += m_YOffset;
+
       if ( X2 < X1 )
       {
         std::swap( X1, X2 );
@@ -1277,6 +1305,9 @@ namespace GR
       {
         return;
       }
+      X += m_XOffset;
+      Y += m_YOffset;
+
       if ( ( Y < m_ClipTop )
       ||   ( Y > m_ClipBottom )
       ||   ( X + Width <= m_ClipLeft )
@@ -1785,6 +1816,8 @@ namespace GR
       {
         return;
       }
+      X1 += m_XOffset;
+      Y1 += m_YOffset;
       if ( ( X1 > m_ClipRight )
       ||   ( Y1 > m_ClipBottom )
       ||   ( X1 + Width <= m_ClipLeft )
@@ -1880,6 +1913,9 @@ namespace GR
       }
       int   xOffset = 0,
             yOffset = 0;
+
+      X1 += m_XOffset;
+      Y1 += m_YOffset;
 
       if ( m_NothingVisible )
       {
@@ -1998,6 +2034,9 @@ namespace GR
       {
         return;
       }
+      X1 += m_XOffset;
+      Y1 += m_YOffset;
+
       if ( ( X1 > m_ClipRight )
       ||   ( Y1 > m_ClipBottom )
       ||   ( X1 + Width <= m_ClipLeft )
@@ -2103,6 +2142,8 @@ namespace GR
       {
         return;
       }
+      X1 += m_XOffset;
+      Y1 += m_YOffset;
       if ( ( X1 > m_ClipRight )
       ||   ( Y1 > m_ClipBottom )
       ||   ( X1 + Width <= m_ClipLeft )
@@ -2231,6 +2272,9 @@ namespace GR
       {
         return;
       }
+      X1 += m_XOffset;
+      Y1 += m_YOffset;
+
       if ( ( X1 > m_ClipRight )
       ||   ( Y1 > m_ClipBottom )
       ||   ( X1 + Width <= m_ClipLeft )
@@ -2369,6 +2413,9 @@ namespace GR
       int   xOffset = 0,
             yOffset = 0;
 
+      X1 += m_XOffset;
+      Y1 += m_YOffset;
+
       if ( m_NothingVisible )
       {
         return;
@@ -2505,6 +2552,9 @@ namespace GR
         return;
       }
 
+      X += m_XOffset;
+      Y += m_YOffset;
+
       int     deltaUProZeile = (int)( sin( -Angle * 3.1415926f / 180.0f ) * 65536.0 / ScaleX ),
               deltaVProZeile = (int)( cos( -Angle * 3.1415926f / 180.0f ) * 65536.0 / ScaleY ),
 
@@ -2638,6 +2688,9 @@ namespace GR
       {
         return;
       }
+
+      X += m_XOffset;
+      Y += m_YOffset;
 
       int     deltaUProZeile = (int)( sin( -Angle * 3.1415926f / 180.0f ) * 65536.0 / ScaleX ),
               deltaVProZeile = (int)( cos( -Angle * 3.1415926f / 180.0f ) * 65536.0 / ScaleY ),
@@ -2782,6 +2835,9 @@ namespace GR
         return;
       }
 
+      X += m_XOffset;
+      Y += m_YOffset;
+
       int     deltaUProZeile = (int)( sin( -Angle * 3.1415926f / 180.0f ) * 65536.0 / ScaleX ),
               deltaVProZeile = (int)( cos( -Angle * 3.1415926f / 180.0f ) * 65536.0 / ScaleY ),
 
@@ -2922,6 +2978,9 @@ namespace GR
       {
         return;
       }
+
+      X += m_XOffset;
+      Y += m_YOffset;
 
       int     deltaUProZeile = (int)( sin( -Angle * 3.1415926f / 180.0f ) * 65536.0 / ScaleX ),
               deltaVProZeile = (int)( cos( -Angle * 3.1415926f / 180.0f ) * 65536.0 / ScaleY ),
@@ -3080,6 +3139,9 @@ namespace GR
         return;
       }
 
+      X += m_XOffset;
+      Y += m_YOffset;
+
       int     deltaUProZeile = (int)( sin( -Angle * 3.1415926f / 180.0f ) * 65536.0 / ScaleX ),
               deltaVProZeile = (int)( cos( -Angle * 3.1415926f / 180.0f ) * 65536.0 / ScaleY ),
 
@@ -3232,6 +3294,9 @@ namespace GR
       {
         return;
       }
+
+      X += m_XOffset;
+      Y += m_YOffset;
 
       int     deltaUProZeile = (int)( sin( -Angle * 3.1415926f / 180.0f ) * 65536.0 / ScaleX ),
               deltaVProZeile = (int)( cos( -Angle * 3.1415926f / 180.0f ) * 65536.0 / ScaleY ),
@@ -3400,6 +3465,9 @@ namespace GR
       {
         return;
       }
+
+      X += m_XOffset;
+      Y += m_YOffset;
 
       int     deltaUProZeile = (int)( sin( -Angle * 3.1415926f / 180.0f ) * 65536.0 / ScaleX ),
               deltaVProZeile = (int)( cos( -Angle * 3.1415926f / 180.0f ) * 65536.0 / ScaleY ),
@@ -4278,6 +4346,9 @@ namespace GR
           return;
         }
       }
+      X += m_XOffset;
+      Y += m_YOffset;
+
       (this->*CopyAreaAlphaProc)( X, Y, Width, Height, ZX, ZY, Alpha, pCDTarget );
     }
 
@@ -4511,6 +4582,8 @@ namespace GR
 
       int         xOffset = 0,
                   yOffset = 0;
+      X += m_XOffset;
+      Y += m_YOffset;
 
       if ( ( X > m_ClipRight )
       ||   ( Y > m_ClipBottom )
@@ -4939,6 +5012,9 @@ namespace GR
         return;
       }
 
+      X += m_XOffset;
+      Y += m_YOffset;
+
       int         xOffset = 0,
                   yOffset = 0;
 
@@ -5092,6 +5168,9 @@ namespace GR
 
       int         xOffset = 0,
                   yOffset = 0;
+
+      X += m_XOffset;
+      Y += m_YOffset;
 
       if ( ( X > m_ClipRight )
       ||   ( Y > m_ClipBottom )
@@ -5306,6 +5385,8 @@ namespace GR
       {
         return;
       }
+      X += m_XOffset;
+      Y += m_YOffset;
       if ( ( X < m_ClipLeft )
       ||   ( Y < m_ClipTop )
       ||   ( X > m_ClipRight )
@@ -5420,6 +5501,9 @@ namespace GR
         return;
       }
 
+      SX += m_XOffset;
+      SY += m_YOffset;
+
       float   ScaleX = (float)ZWidth / (float)Width;
       float   ScaleY = (float)ZHeight / (float)Height;
 
@@ -5508,6 +5592,9 @@ namespace GR
       {
         return;
       }
+
+      SX += m_XOffset;
+      SY += m_YOffset;
 
       TransparentColor = (GR::u32)MapColor( TransparentColor );
 
@@ -5777,6 +5864,14 @@ namespace GR
       {
         _CopyAeraAlphaMaskWithColor32( X1, Y1, Width, Height, ZX, ZY, Color, pCDTarget );
       }
+    }
+
+
+
+    void ContextDescriptor::SetOffset( int X, int Y )
+    {
+      m_XOffset = X;
+      m_YOffset = Y;
     }
 
 
@@ -6224,6 +6319,9 @@ namespace GR
 
     void ContextDescriptor::CopyAreaAlphaAndMaskScaled( int X, int Y, int Width, int Height, int ZX, int ZY, int ZWidth, int ZHeight, int Alpha, ContextDescriptor* pCDMask, ContextDescriptor* pCDTarget )
     {
+      X += m_XOffset;
+      Y += m_YOffset;
+
       (this->*CopyAreaAlphaAndMaskScaledProc)( X, Y, Width, Height, ZX, ZY, ZWidth, ZHeight, Alpha, pCDMask, pCDTarget );
     }
 
@@ -6364,6 +6462,10 @@ namespace GR
         {
           return;
         }
+
+        X += m_XOffset;
+        Y += m_YOffset;
+
         if ( ( X > m_ClipRight )
         ||   ( Y > m_ClipBottom )
         ||   ( X + Width <= m_ClipLeft )
@@ -6491,7 +6593,10 @@ namespace GR
       if ( m_NothingVisible )
       {
         return;
-      }
+      }      
+      X1 += m_XOffset;
+      Y1 += m_YOffset;
+
       if ( ( X1 > m_ClipRight )
       ||   ( Y1 > m_ClipBottom )
       ||   ( X1 + Width <= m_ClipLeft )
@@ -6702,6 +6807,9 @@ namespace GR
       {
         return;
       }
+      X1 += m_XOffset;
+      Y1 += m_YOffset;
+
       if ( ( X1 > m_ClipRight )
       ||   ( Y1 > m_ClipBottom )
       ||   ( X1 + Width <= m_ClipLeft )
@@ -6802,6 +6910,9 @@ namespace GR
       }
       int   xOffset = 0,
             yOffset = 0;
+
+      X1 += m_XOffset;
+      Y1 += m_YOffset;
 
       if ( m_NothingVisible )
       {

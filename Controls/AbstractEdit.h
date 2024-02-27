@@ -182,13 +182,13 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
       if ( m_Style & ECS_MULTILINE )
       {
         RecalcClientRect();
-        m_pScrollBarV = new SBCLASS( m_ClientRect.width() - 20, 0, 20, m_ClientRect.height() - 20, AbstractScrollbar<BASECLASS, BTCLASS, SLCLASS>::SBFT_VERTICAL, 2000000 );
+        m_pScrollBarV = new SBCLASS( m_ClientRect.Width() - 20, 0, 20, m_ClientRect.Height() - 20, AbstractScrollbar<BASECLASS, BTCLASS, SLCLASS>::SBFT_VERTICAL, 2000000 );
         m_pScrollBarV->GetComponent( AbstractScrollbar<BASECLASS, BTCLASS, SLCLASS>::SB_BUTTON_LEFT_UP )->ModifyFlags( GUI::COMPFT_NOT_FOCUSABLE );
         m_pScrollBarV->GetComponent( AbstractScrollbar<BASECLASS, BTCLASS, SLCLASS>::SB_SLIDER )->ModifyFlags( GUI::COMPFT_NOT_FOCUSABLE );
         m_pScrollBarV->GetComponent( AbstractScrollbar<BASECLASS, BTCLASS, SLCLASS>::SB_BUTTON_RIGHT_DOWN )->ModifyFlags( GUI::COMPFT_NOT_FOCUSABLE );
         m_pScrollBarV->ModifyFlags( GUI::COMPFT_NOT_FOCUSABLE );
 
-        m_pScrollBarH = new SBCLASS( 0, m_ClientRect.Bottom - 20, m_ClientRect.width(), 20, AbstractScrollbar<BASECLASS, BTCLASS, SLCLASS>::SBFT_HORIZONTAL, 2000001 );
+        m_pScrollBarH = new SBCLASS( 0, m_ClientRect.Bottom - 20, m_ClientRect.Width(), 20, AbstractScrollbar<BASECLASS, BTCLASS, SLCLASS>::SBFT_HORIZONTAL, 2000001 );
         m_pScrollBarH->GetComponent( AbstractScrollbar<BASECLASS, BTCLASS, SLCLASS>::SB_BUTTON_LEFT_UP )->ModifyFlags( GUI::COMPFT_NOT_FOCUSABLE );
         m_pScrollBarH->GetComponent( AbstractScrollbar<BASECLASS, BTCLASS, SLCLASS>::SB_SLIDER )->ModifyFlags( GUI::COMPFT_NOT_FOCUSABLE );
         m_pScrollBarH->GetComponent( AbstractScrollbar<BASECLASS, BTCLASS, SLCLASS>::SB_BUTTON_RIGHT_DOWN )->ModifyFlags( GUI::COMPFT_NOT_FOCUSABLE );
@@ -337,11 +337,11 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
           if ( ( m_pScrollBarV )
           &&   ( m_pScrollBarH ) )
           {
-            m_pScrollBarV->SetLocation( m_ClientRect.width() - m_pScrollBarV->Width(), 0 );
-            m_pScrollBarV->SetSize( m_pScrollBarV->Width(), m_ClientRect.height() - m_pScrollBarH->Height() );
+            m_pScrollBarV->SetLocation( m_ClientRect.Width() - m_pScrollBarV->Width(), 0 );
+            m_pScrollBarV->SetSize( m_pScrollBarV->Width(), m_ClientRect.Height() - m_pScrollBarH->Height() );
 
-            m_pScrollBarH->SetLocation( 0, m_ClientRect.height() - m_pScrollBarH->Height() );
-            m_pScrollBarH->SetSize( m_ClientRect.width() - m_pScrollBarV->Width(), m_pScrollBarH->Height() );
+            m_pScrollBarH->SetLocation( 0, m_ClientRect.Height() - m_pScrollBarH->Height() );
+            m_pScrollBarH->SetSize( m_ClientRect.Width() - m_pScrollBarV->Width(), m_pScrollBarH->Height() );
             UpdateScrollBars();
           }
           return true;
@@ -885,7 +885,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
 
       if ( m_ShowCursorDelay > 0.5f )
       {
-        rectSel.clear();
+        rectSel.Clear();
         return false;
       }
 
@@ -898,11 +898,11 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
 
       if ( Style() & ECS_MULTILINE )
       {
-        rectSel.set( m_CursorPos, (int)( m_CursorLine - m_TextOffsetLine ) * iTextHeight, 2, iTextHeight );
+        rectSel.Set( m_CursorPos, (int)( m_CursorLine - m_TextOffsetLine ) * iTextHeight, 2, iTextHeight );
       }
       else
       {
-        rectSel.set( m_CursorPos, ( m_ClientRect.height() - iTextHeight ) / 2, 2, iTextHeight );
+        rectSel.Set( m_CursorPos, ( m_ClientRect.Height() - iTextHeight ) / 2, 2, iTextHeight );
       }
 
       return true;
@@ -1199,7 +1199,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
           iHeight = m_pFont->TextHeight( "\xC4\xD6\xDC\xDFyg" );  // ÄÖÜß
         }
 
-        m_VisibleItems = ( m_ClientRect.height() - m_pScrollBarH->Height() ) / iHeight;
+        m_VisibleItems = ( m_ClientRect.Height() - m_pScrollBarH->Height() ) / iHeight;
 
         if ( (int)m_Text.size() < m_VisibleItems )
         {
@@ -1230,8 +1230,8 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
       {
         return false;
       }
-      ptStart.set( m_SelectionAnchor, m_SelectionAnchorLine );
-      ptEnd.set( (int)m_CursorPosInText, (int)m_CursorLine );
+      ptStart.Set( m_SelectionAnchor, m_SelectionAnchorLine );
+      ptEnd.Set( (int)m_CursorPosInText, (int)m_CursorLine );
 
       if ( ( ptStart.y > ptEnd.y )
       ||   ( ( ptStart.y == ptEnd.y )
@@ -1262,7 +1262,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
 
       bool      bSpecialSign = false;
 
-      int       iWidthToCap = m_ClientRect.width();
+      int       iWidthToCap = m_ClientRect.Width();
       if ( m_pScrollBarV )
       {
         iWidthToCap -= m_pScrollBarV->Width();
@@ -1378,7 +1378,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
       {
         if ( m_pScrollBarH == NULL )
         {
-          m_pScrollBarH = new SBCLASS( 0, m_ClientRect.Bottom - 20, m_ClientRect.width(), 20, SBCLASS::SBFT_HORIZONTAL );
+          m_pScrollBarH = new SBCLASS( 0, m_ClientRect.Bottom - 20, m_ClientRect.Width(), 20, SBCLASS::SBFT_HORIZONTAL );
           m_pScrollBarH->GetComponent( SBCLASS::SB_BUTTON_LEFT_UP )->ModifyFlags( GUI::COMPFT_NOT_FOCUSABLE );
           m_pScrollBarH->GetComponent( SBCLASS::SB_SLIDER )->ModifyFlags( GUI::COMPFT_NOT_FOCUSABLE );
           m_pScrollBarH->GetComponent( SBCLASS::SB_BUTTON_RIGHT_DOWN )->ModifyFlags( GUI::COMPFT_NOT_FOCUSABLE );
@@ -1389,7 +1389,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
         }
         if ( m_pScrollBarV == NULL )
         {
-          m_pScrollBarV = new SBCLASS( m_ClientRect.width() - 20, 0, 20, m_ClientRect.height() - 20, SBCLASS::SBFT_VERTICAL );
+          m_pScrollBarV = new SBCLASS( m_ClientRect.Width() - 20, 0, 20, m_ClientRect.Height() - 20, SBCLASS::SBFT_VERTICAL );
           m_pScrollBarV->GetComponent( SBCLASS::SB_BUTTON_LEFT_UP )->ModifyFlags( GUI::COMPFT_NOT_FOCUSABLE );
           m_pScrollBarV->GetComponent( SBCLASS::SB_SLIDER )->ModifyFlags( GUI::COMPFT_NOT_FOCUSABLE );
           m_pScrollBarV->GetComponent( SBCLASS::SB_BUTTON_RIGHT_DOWN )->ModifyFlags( GUI::COMPFT_NOT_FOCUSABLE );

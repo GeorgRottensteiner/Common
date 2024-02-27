@@ -210,13 +210,13 @@ template <class BASECLASS> class AbstractHottip : public BASECLASS
       {
         m_Position.y = 10;
       }
-      if ( m_Position.x + m_Width > rectFull.size().x - 10 )
+      if ( m_Position.x + m_Width > rectFull.Width() - 10 )
       {
-        m_Position.x = rectFull.size().x - 10 - m_Width;
+        m_Position.x = rectFull.Width() - 10 - m_Width;
       }
-      if ( m_Position.y + m_Height > rectFull.size().y - 20 - 10 )
+      if ( m_Position.y + m_Height > rectFull.Height() - 20 - 10 )
       {
-        m_Position.y = rectFull.size().y - 20 - m_Height;
+        m_Position.y = rectFull.Height() - 20 - m_Height;
       }
     }
 

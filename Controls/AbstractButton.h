@@ -58,6 +58,7 @@ template <class BASECLASS> class AbstractButton : public BASECLASS
     using BASECLASS::GenerateEventForParent;
     using BASECLASS::m_DefaultEventScript;
     using BASECLASS::RaiseDefaultEvent;
+    using BASECLASS::Invalidate;
 
 
 
@@ -193,12 +194,14 @@ template <class BASECLASS> class AbstractButton : public BASECLASS
               {
                 GenerateEventForParent( OET_BUTTON_DOWN, m_ItemData );
                 ModifyStyle( BF_PUSHED );
+                Invalidate();
               }
             }
             else if ( ( Event.Character == Xtreme::KEY_ENTER )
             ||        ( Event.Character == Xtreme::KEY_NUMPAD_ENTER ) )
             {
               ProcessEvent( CET_BUTTON_PUSHED );
+              Invalidate();
             }
           }
           break;
@@ -212,6 +215,7 @@ template <class BASECLASS> class AbstractButton : public BASECLASS
               {
                 ProcessEvent( CET_BUTTON_PUSHED );
                 ModifyStyle( 0, BF_PUSHED | BF_CAPTURE_PUSHED );
+                Invalidate();
               }
             }
           }
@@ -226,6 +230,7 @@ template <class BASECLASS> class AbstractButton : public BASECLASS
               GenerateEventForParent( OET_BUTTON_DOWN, m_ItemData );
               ModifyStyle( BF_PUSHED | BF_CAPTURE_PUSHED );
               SetCapture();
+              Invalidate();
             }
           }
           break;
@@ -251,8 +256,10 @@ template <class BASECLASS> class AbstractButton : public BASECLASS
             }
           }
           ModifyStyle( 0, BF_PUSHED | BF_CAPTURE_PUSHED );
+          Invalidate();
           break;
         case CET_MOUSE_IN:
+          Invalidate();
           if ( Event.MouseButtons & 1 )
           {
             ModifyStyle( 0, BF_MBUTTON_RELEASED );
@@ -280,6 +287,7 @@ template <class BASECLASS> class AbstractButton : public BASECLASS
             GenerateEventForParent( OET_BUTTON_UP, m_ItemData );
             ModifyStyle( 0, BF_PUSHED );
           }
+          Invalidate();
           break;
         case CET_BUTTON_PUSHED:
           if ( !m_DefaultEventScript.empty() )

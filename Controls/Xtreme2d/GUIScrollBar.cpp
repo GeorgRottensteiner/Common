@@ -7,8 +7,8 @@ GUI_IMPLEMENT_CLONEABLE( GUIScrollBar, "Scrollbar" )
 
 
 
-GUIScrollBar::GUIScrollBar( int iNewX, int iNewY, int iNewWidth, int iNewHeight, ScrollbarFlagType sfType, GR::u32 dwId ) :
-  AbstractScrollbar<GUIComponent, GUIButton, GUISlider>( iNewX, iNewY, iNewWidth, iNewHeight, sfType, dwId )
+GUIScrollBar::GUIScrollBar( int NewX, int NewY, int NewWidth, int NewHeight, ScrollbarFlagType ScrollbarFlags , GR::u32 Id ) :
+  AbstractScrollbar<GUIComponent, GUIButton, GUISlider>( NewX, NewY, NewWidth, NewHeight, ScrollbarFlags, Id )
 {
 
 }
@@ -22,13 +22,13 @@ void GUIScrollBar::DisplayOnPage( GUIComponentDisplayer& Displayer )
 
 
 
-void GUIScrollBar::SetCustomTextureSection( const GR::u32 dwType, const XTextureSection& TexSection, GR::u32 dwColorKey )
+void GUIScrollBar::SetCustomTextureSection( const GR::u32 Type, const XTextureSection& TexSection, GR::u32 ColorKey )
 {
-  AbstractScrollbar<GUIComponent, GUIButton, GUISlider>::SetCustomTextureSection( dwType, TexSection, dwColorKey );
+  AbstractScrollbar<GUIComponent, GUIButton, GUISlider>::SetCustomTextureSection( Type, TexSection, ColorKey );
 
-  if ( dwType == GUI::CTS_SLIDER )
+  if ( Type == GUI::CTS_SLIDER )
   {
-    m_pSlider->SetCustomTextureSection( dwType, TexSection, dwColorKey );
+    m_pSlider->SetCustomTextureSection( Type, TexSection, ColorKey );
 
     // force refresh on slider
     SetSize( Width(), Height() );

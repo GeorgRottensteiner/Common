@@ -6,8 +6,8 @@ GUI_IMPLEMENT_CLONEABLE( GUIScreen, "Screen" )
 
 
 
-GUIScreen::GUIScreen( int iNewX, int iNewY, int iNewWidth, int iNewHeight, GR::u32 dwId ) :
-  GUIComponent( iNewX, iNewY, iNewWidth, iNewHeight, dwId )
+GUIScreen::GUIScreen( int NewX, int NewY, int NewWidth, int NewHeight, GR::u32 Id ) :
+  GUIComponent( NewX, NewY, NewWidth, NewHeight, Id )
 {
   ModifyVisualStyle( GUI::VFT_TRANSPARENT_BKGND );
   ModifyFlags( GUI::COMPFT_NOT_FOCUSABLE );

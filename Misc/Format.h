@@ -53,7 +53,7 @@ namespace Misc
           _gcvt_s( temp, 309 + 40 + 2, dblValue, 30 );
 #else
           //sprintf_s( szTemp, 309 + 40 + 2, "%f", dblValue );
-          sprintf( szTemp, "%f", dblValue );
+          sprintf( temp, "%f", dblValue );
 #endif
           Text = temp;
         }

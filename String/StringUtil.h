@@ -434,7 +434,7 @@ namespace GR
           workText = workText.substr( pos + 1 );
           pos = GR::String::npos;
         }
-        else if ( pFont->TextLength( workText.substr( 0, pos ) ) >= Area.width() )
+        else if ( pFont->TextLength( workText.substr( 0, pos ) ) >= Area.Width() )
         {
           if ( workText[pos] != '\n' )
           {
@@ -475,14 +475,14 @@ namespace GR
         }
       }
 
-      Area.width( maxWidth );
+      Area.Width( maxWidth );
       if ( AlternativeTextHeight == 0 )
       {
-        Area.height( pFont->TextHeight() * (int)Lines.size() );
+        Area.Height( pFont->TextHeight() * (int)Lines.size() );
       }
       else
       {
-        Area.height( AlternativeTextHeight * (int)Lines.size() );
+        Area.Height( AlternativeTextHeight * (int)Lines.size() );
       }
     }
 
@@ -564,8 +564,8 @@ namespace GR
         }
       }
 
-      Area.width( maxWidth );
-      Area.height( (int)Lines.size() );
+      Area.Width( maxWidth );
+      Area.Height( (int)Lines.size() );
     }
 
 

@@ -540,10 +540,10 @@ namespace GR
                     pPrevFrame->Layers[0]->pImageData->Data(),
                     pCurrentFrame->Layers[0]->pImageData->DataSize() );
 
-                  for ( int y = 0; y < previousFrameRect.height(); ++y )
+                  for ( int y = 0; y < previousFrameRect.Height(); ++y )
                   {
                     GR::u8* pData = (GR::u8*)pCurrentFrame->Layers[0]->pImageData->GetRowColumnData( previousFrameRect.Left, previousFrameRect.Top + y );
-                    memset( pData, m_TempTransparentIndex, previousFrameRect.width() );
+                    memset( pData, m_TempTransparentIndex, previousFrameRect.Width() );
                   }
                 }
                 break;
@@ -602,7 +602,7 @@ namespace GR
           nheight = gifID.Height;
 
           n = DecodeImage( ioIn, (char*)pCurrentFrame->Layers[0]->pImageData->Data(), m_TempTransparentIndex );
-          previousFrameRect.set( m_FrameXOffset, m_FrameYOffset, nwidth, nheight );
+          previousFrameRect.Set( m_FrameXOffset, m_FrameYOffset, nwidth, nheight );
 
 			    if ( n )
           {

@@ -2586,6 +2586,8 @@ namespace GR
         case GR::Graphic::IF_X8B8G8R8:
         case GR::Graphic::IF_A8B8G8R8:
           return *(GR::u32*)pData;
+        case GR::Graphic::IF_INDEX1:
+          return ( ( *pData ) >> ( iX % 8 ) ) & 1;
         case GR::Graphic::IF_R8G8B8:
           {
             GR::u32   dwResult = pData[0] + ( pData[1] << 8 ) + ( pData[2] << 16 );

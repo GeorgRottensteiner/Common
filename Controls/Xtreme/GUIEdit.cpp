@@ -36,14 +36,14 @@ void GUIEdit::DisplayOnPage( GUIComponentDisplayer& Displayer )
   // Cursor
   if ( GetCursorRect( rc ) )
   {
-    Displayer.DrawQuad( rc.Left, rc.Top, rc.width(), rc.height(), GetColor( GUI::COL_CURSOR ) );
+    Displayer.DrawQuad( rc.Left, rc.Top, rc.Width(), rc.Height(), GetColor( GUI::COL_CURSOR ) );
   }
 
   size_t    visibleLines = 1;
   
   if ( m_pFont )
   {
-    visibleLines = m_ClientRect.height() / Displayer.TextHeight( m_pFont );
+    visibleLines = m_ClientRect.Height() / Displayer.TextHeight( m_pFont );
     if ( visibleLines == 0 )
     {
       visibleLines = 1;
@@ -66,7 +66,7 @@ void GUIEdit::DisplayOnPage( GUIComponentDisplayer& Displayer )
   }
   else
   {
-    textStartY = ( m_ClientRect.height() - textHeight ) / 2;
+    textStartY = ( m_ClientRect.Height() - textHeight ) / 2;
   }
 
   int       y = textStartY;
@@ -99,7 +99,7 @@ void GUIEdit::DisplayOnPage( GUIComponentDisplayer& Displayer )
 
       if ( ( m_TextAlignment & GUI::AF_CENTER ) == GUI::AF_CENTER )
       {
-        x += ( m_ClientRect.width() - length ) / 2;
+        x += ( m_ClientRect.Width() - length ) / 2;
       }
       else if ( m_TextAlignment & GUI::AF_RIGHT )
       {

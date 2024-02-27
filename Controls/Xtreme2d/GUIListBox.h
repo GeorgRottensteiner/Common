@@ -21,7 +21,7 @@ class GUIListBox : public AbstractListBox<GUIComponent,GUIScrollBar>
     DECLARE_CLONEABLE( GUIListBox, "ListBox" )
 
 
-    GUIListBox( int iNewX = 0, int iNewY = 0, int iNewWidth = 0, int iNewHeight = 0, GR::u32 dwId = 0, GR::u32 lbfType = LCS_DEFAULT );
+    GUIListBox( int NewX = 0, int NewY = 0, int NewWidth = 0, int NewHeight = 0, GR::u32 Id = 0, GR::u32 ListBoxFlags = LCS_DEFAULT );
 
 
     virtual void          DisplayOnPage( GUIComponentDisplayer& Displayer );

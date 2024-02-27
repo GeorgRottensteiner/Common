@@ -58,6 +58,7 @@ class LuaInstance
     bool                    DoString( const GR::String& Script );
     bool                    DoFile( const GR::String& Filename );
     bool                    FunctionExists( const GR::String& Function );
+    bool                    IsFunction( int Index );
 
     bool                    StartThread( const GR::String& ThreadName, const GR::String& Function );
     void                    ResumeThreads( const float ElapsedTime );
@@ -87,6 +88,7 @@ class LuaInstance
     GR::String              GetGlobal( const GR::String& VarName );
     GR::String              GetVar( const GR::String& VarName );
     bool                    GetTable( const GR::String& TableName );
+    bool                    VariableExists( const GR::String& VarName );
 
     bool                    SetVar( const GR::String& VarName, const GR::String& Value );
     bool                    SetVar( const GR::String& VarName, const GR::ip Value );
@@ -97,6 +99,8 @@ class LuaInstance
     void                    SetGlobal( const GR::String& VarName, const GR::ip Value );
     void                    SetGlobal( const GR::String& VarName, const GR::f32 Value );
     void                    SetGlobal( const GR::String& VarName, const bool Value );
+
+    bool                    CallFunction( const GR::String& FunctionName );
 
     static int              Alert( lua_State* L );
 

@@ -7,9 +7,9 @@ GUI_IMPLEMENT_CLONEABLE( GUIButton, "Button" )
 
 
 
-GUIButton::GUIButton( int iNewX, int iNewY, int iNewWidth, int iNewHeight, const GR::String& strCaption, GR::u32 dwId, GR::u32 dwStyle ) :
-  AbstractButton<GUIComponent>( iNewX, iNewY, iNewWidth, iNewHeight, strCaption, dwId, dwStyle ),
-  m_ptPushedTextOffset( 1, 1 )
+GUIButton::GUIButton( int X, int Y, int Width, int Height, const GR::String& Caption, GR::u32 Id, GR::u32 StyleFlags ) :
+  AbstractButton<GUIComponent>( X, Y, Width, Height, Caption, Id, StyleFlags ),
+  m_PushedTextOffset( 1, 1 )
 {
   if ( !( Style() & BCS_NO_BORDER ) )
   {
@@ -20,9 +20,9 @@ GUIButton::GUIButton( int iNewX, int iNewY, int iNewWidth, int iNewHeight, const
 
 
 
-GUIButton::GUIButton( int iNewX, int iNewY, int iNewWidth, int iNewHeight, GR::u32 dwId, GR::u32 dwStyle ) :
-  AbstractButton<GUIComponent>( iNewX, iNewY, iNewWidth, iNewHeight, dwId, dwStyle ),
-  m_ptPushedTextOffset( 1, 1 )
+GUIButton::GUIButton( int X, int Y, int Width, int Height, GR::u32 Id, GR::u32 StyleFlags ) :
+  AbstractButton<GUIComponent>( X, Y, Width, Height, Id, StyleFlags ),
+  m_PushedTextOffset( 1, 1 )
 {
   if ( !( Style() & BCS_NO_BORDER ) )
   {
@@ -51,15 +51,15 @@ void GUIButton::DisplayOnPage( GUIComponentDisplayer& Displayer )
     {
       if ( IsPushed() )
       {
-        Displayer.m_pActualRenderer->RenderTextureSectionColorKeyed( 0, 0, tsPushed, colorKey );
+        Displayer.DrawTextureSectionColorKeyed( 0, 0, tsPushed, colorKey );
       }
       else if ( IsMouseInside() )
       {
-        Displayer.m_pActualRenderer->RenderTextureSectionColorKeyed( 0, 0, tsMouseOver, colorKey );
+        Displayer.DrawTextureSectionColorKeyed( 0, 0, tsMouseOver, colorKey );
       }
       else
       {
-        Displayer.m_pActualRenderer->RenderTextureSectionColorKeyed( 0, 0, tsNormal, colorKey );
+        Displayer.DrawTextureSectionColorKeyed( 0, 0, tsNormal, colorKey );
       }
     }
   }
@@ -68,28 +68,28 @@ void GUIButton::DisplayOnPage( GUIComponentDisplayer& Displayer )
     XTextureSection   tsImage( CustomTextureSection( CTS_IMAGE ) );
     if ( tsImage.m_pTexture )
     {
-      GR::u32 dwColorKey = CustomTSColorKey( CTS_IMAGE );
+      GR::u32 colorKey = CustomTSColorKey( CTS_IMAGE );
 
-      if ( dwColorKey )
+      if ( colorKey )
       {
         if ( IsPushed() )
         {
-          Displayer.m_pActualRenderer->RenderTextureSectionColorKeyed( 1, 1, tsImage, dwColorKey );
+          Displayer.DrawTextureSectionColorKeyed( 1, 1, tsImage, colorKey );
         }
         else
         {
-          Displayer.m_pActualRenderer->RenderTextureSectionColorKeyed( 0, 0, tsImage, dwColorKey );
+          Displayer.DrawTextureSectionColorKeyed( 0, 0, tsImage, colorKey );
         }
       }
       else
       {
         if ( IsPushed() )
         {
-          Displayer.m_pActualRenderer->RenderTextureSection( 1, 1, tsImage );
+          Displayer.DrawTextureSection( 1, 1, tsImage );
         }
         else
         {
-          Displayer.m_pActualRenderer->RenderTextureSection( 0, 0, tsImage );
+          Displayer.DrawTextureSection( 0, 0, tsImage );
         }
       }
     }
@@ -97,15 +97,15 @@ void GUIButton::DisplayOnPage( GUIComponentDisplayer& Displayer )
     {
       if ( IsPushed() )
       {
-        Displayer.m_pActualRenderer->RenderTextureSection( 0, 0, CustomTextureSection( GUI::CTS_BUTTON_PUSHED ) );
+        Displayer.DrawTextureSection( 0, 0, CustomTextureSection( GUI::CTS_BUTTON_PUSHED ) );
       }
       else if ( IsMouseInside() )
       {
-        Displayer.m_pActualRenderer->RenderTextureSection( 0, 0, CustomTextureSection( GUI::CTS_BUTTON_MOUSEOVER ) );
+        Displayer.DrawTextureSection( 0, 0, CustomTextureSection( GUI::CTS_BUTTON_MOUSEOVER ) );
       }
       else
       {
-        Displayer.m_pActualRenderer->RenderTextureSection( 0, 0, CustomTextureSection( GUI::CTS_BUTTON ) );
+        Displayer.DrawTextureSection( 0, 0, CustomTextureSection( GUI::CTS_BUTTON ) );
       }
     }
   }
@@ -113,7 +113,7 @@ void GUIButton::DisplayOnPage( GUIComponentDisplayer& Displayer )
   {
     if ( IsPushed() )
     {
-      rc.offset( m_ptPushedTextOffset );
+      rc.Offset( m_PushedTextOffset );
     }
     Displayer.DrawText( m_pFont, m_Caption, rc, GUI::AF_DEFAULT, GetColor( GUI::COL_WINDOWTEXT ) );
   }
@@ -121,7 +121,7 @@ void GUIButton::DisplayOnPage( GUIComponentDisplayer& Displayer )
   if ( IsFocused() )
   {
     GetClientRect( rc );
-    rc.inflate( -1, -1 );
+    rc.Inflate( -1, -1 );
     Displayer.DrawFocusRect( rc, VisualStyle() );
   }
 }
@@ -130,7 +130,7 @@ void GUIButton::DisplayOnPage( GUIComponentDisplayer& Displayer )
 
 void GUIButton::SetPushedTextOffset( const GR::tPoint& ptOffset )
 {
-  m_ptPushedTextOffset = ptOffset;
+  m_PushedTextOffset = ptOffset;
 }
 
 
@@ -152,23 +152,23 @@ void GUIButton::DisplayNonClientOnPage( GUIComponentDisplayer& Displayer )
 
   if ( !( VisualStyle() & GUI::VFT_TRANSPARENT_BKGND ) )
   {
-    int   iDX = 0;
-    int   iDY = 0;
+    int   dx = 0;
+    int   dy = 0;
 
     if ( IsPushed() )
     {
-      iDX = 1;
-      iDY = 1;
+      dx = 1;
+      dy = 1;
     }
     if ( m_TextureSection[GUI::BT_BACKGROUND].first.m_pTexture )
     {
       if ( VisualStyle() & GUI::VFT_REPEAT_BKGND )
       {
-        Displayer.DrawTextureSectionHVRepeat( iDX, iDY, Width(), Height(), TextureSection( GUI::BT_BACKGROUND ) );
+        Displayer.DrawTextureSectionHVRepeat( dx, dy, Width(), Height(), TextureSection( GUI::BT_BACKGROUND ) );
       }
       else
       {
-        Displayer.DrawTextureSection( iDX, iDY, TextureSection( GUI::BT_BACKGROUND ) );
+        Displayer.DrawTextureSection( dx, dy, TextureSection( GUI::BT_BACKGROUND ) );
       }
     }
     else

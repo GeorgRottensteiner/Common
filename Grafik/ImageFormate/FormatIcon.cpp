@@ -248,13 +248,13 @@ namespace GR
       }
       else if ( bitCount == 0 )
       {
-        BITMAPINFOHEADER   icHeader;      // DIB header
-        file.ReadBlock( &icHeader, sizeof( BITMAPINFOHEADER ) );
+        BITMAPINFOHEADER   iconHeader;      // DIB header
+        file.ReadBlock( &iconHeader, sizeof( BITMAPINFOHEADER ) );
 
-        if ( icHeader.biBitCount == 8 )
+        if ( iconHeader.biBitCount == 8 )
         {
-          pImageData->CreateData( icHeader.biWidth, icHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
-          pImageDataMask->CreateData( icHeader.biWidth, icHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
+          pImageData->CreateData( iconHeader.biWidth, iconHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
+          pImageDataMask->CreateData( iconHeader.biWidth, iconHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
           memset( pImageDataMask->Data(), 0xff, pImageDataMask->DataSize() );
           for ( int i = 0; i < 256; i++ )
           {
@@ -271,17 +271,17 @@ namespace GR
           }
           int   Padding = Full32 - pImageData->Width();
 
-          for ( int i = 0; i < icHeader.biHeight / 2; i++ )
+          for ( int i = 0; i < iconHeader.biHeight / 2; i++ )
           {
-            file.ReadBlock( ( (GR::u8*)pImageData->Data() ) + ( icHeader.biHeight / 2 - i - 1 ) * pImageData->BytesPerLine(), pImageData->Width() );
+            file.ReadBlock( ( (GR::u8*)pImageData->Data() ) + ( iconHeader.biHeight / 2 - i - 1 ) * pImageData->BytesPerLine(), pImageData->Width() );
             file.SetPosition( Padding, IIOStream::PT_CURRENT );
           }
-          int   realWidth = icHeader.biWidth / 8;
-          if ( icHeader.biWidth % 8 )
+          int   realWidth = iconHeader.biWidth / 8;
+          if ( iconHeader.biWidth % 8 )
           {
             ++realWidth;
           }
-          for ( int i = 0; i < icHeader.biHeight / 2; i++ )
+          for ( int i = 0; i < iconHeader.biHeight / 2; i++ )
           {
             int   count = 0;
             for ( int j = 0; j < realWidth; j++ )
@@ -295,9 +295,9 @@ namespace GR
                 if ( byte & bitMask )
                 {
                   // da ist ein Bit!
-                  if ( j * 8 + k < icHeader.biWidth )
+                  if ( j * 8 + k < iconHeader.biWidth )
                   {
-                    ( ( (GR::u8*)pImageDataMask->Data() ) + ( icHeader.biHeight / 2 - i - 1 ) * pImageDataMask->Width() )[j * 8 + k] = 0;
+                    ( ( (GR::u8*)pImageDataMask->Data() ) + ( iconHeader.biHeight / 2 - i - 1 ) * pImageDataMask->Width() )[j * 8 + k] = 0;
                   }
                 }
                 bitMask >>= 1;
@@ -311,10 +311,10 @@ namespace GR
             }
           }
         }
-        else if ( icHeader.biBitCount == 24 )
+        else if ( iconHeader.biBitCount == 24 )
         {
-          pImageData->CreateData( icHeader.biWidth, icHeader.biHeight / 2, GR::Graphic::IF_R8G8B8 );
-          pImageDataMask->CreateData( icHeader.biWidth, icHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
+          pImageData->CreateData( iconHeader.biWidth, iconHeader.biHeight / 2, GR::Graphic::IF_R8G8B8 );
+          pImageDataMask->CreateData( iconHeader.biWidth, iconHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
           memset( pImageDataMask->Data(), 0xff, pImageDataMask->DataSize() );
           int   Full32 = pImageData->Width() * 3;
           while ( Full32 % 4 )
@@ -323,15 +323,15 @@ namespace GR
           }
           int   Padding = Full32 - pImageData->Width() * 3;
 
-          for ( int i = 0; i < icHeader.biHeight / 2; i++ )
+          for ( int i = 0; i < iconHeader.biHeight / 2; i++ )
           {
-            file.ReadBlock( ( (GR::u8*)pImageData->Data() ) + ( icHeader.biHeight / 2 - i - 1 ) * pImageData->Width() * 3, pImageData->Width() * 3 );
+            file.ReadBlock( ( (GR::u8*)pImageData->Data() ) + ( iconHeader.biHeight / 2 - i - 1 ) * pImageData->Width() * 3, pImageData->Width() * 3 );
             file.SetPosition( Padding, IIOStream::PT_CURRENT );
           }
-          for ( int i = 0; i < icHeader.biHeight / 2; i++ )
+          for ( int i = 0; i < iconHeader.biHeight / 2; i++ )
           {
             int   count = 0;
-            for ( int j = 0; j < icHeader.biWidth / 8; j++ )
+            for ( int j = 0; j < iconHeader.biWidth / 8; j++ )
             {
               count = ( ( count + 1 ) % 4 );
               GR::u8    byte = file.ReadU8();
@@ -342,9 +342,69 @@ namespace GR
                 if ( byte & bitMask )
                 {
                   // da ist ein Bit!
-                  if ( j * 8 + k < icHeader.biWidth )
+                  if ( j * 8 + k < iconHeader.biWidth )
                   {
-                    ( ( (GR::u8*)pImageDataMask->Data() ) + ( icHeader.biHeight / 2 - i - 1 ) * pImageDataMask->Width() )[j * 8 + k] = 0;
+                    ( ( (GR::u8*)pImageDataMask->Data() ) + ( iconHeader.biHeight / 2 - i - 1 ) * pImageDataMask->Width() )[j * 8 + k] = 0;
+                  }
+                }
+                bitMask >>= 1;
+              }
+            }
+            // Padding auf 32bit
+            while ( count % 4 )
+            {
+              file.ReadU8();
+              ++count;
+            }
+          }
+        }
+        else if ( iconHeader.biBitCount == 1 )
+        {
+          pImageData->CreateData( iconHeader.biWidth, iconHeader.biHeight / 2, GR::Graphic::IF_INDEX1 );
+          pImageDataMask->CreateData( iconHeader.biWidth, iconHeader.biHeight / 2, GR::Graphic::IF_PALETTED );
+          memset( pImageDataMask->Data(), 0xff, pImageDataMask->DataSize() );
+          for ( int i = 0; i < 2; i++ )
+          {
+            RGBQUAD   myQuad;
+
+            file.ReadBlock( &myQuad, sizeof( RGBQUAD ) );
+            pImageData->Palette().SetColor( i, myQuad.rgbRed, myQuad.rgbGreen, myQuad.rgbBlue );
+          }
+
+          int   widthPaddedTo32Bit = pImageData->Width();
+          while ( widthPaddedTo32Bit % 4 )
+          {
+            ++widthPaddedTo32Bit;
+          }
+          int   padding = widthPaddedTo32Bit - pImageData->Width();
+
+          for ( int i = 0; i < iconHeader.biHeight / 2; i++ )
+          {
+            file.ReadBlock( ( (GR::u8*)pImageData->Data() ) + ( iconHeader.biHeight / 2 - i - 1 ) * pImageData->BytesPerLine(), widthPaddedTo32Bit / 8 );
+            file.SetPosition( padding, IIOStream::PT_CURRENT );
+          }
+          int   realWidth = iconHeader.biWidth / 8;
+          if ( iconHeader.biWidth % 8 )
+          {
+            ++realWidth;
+          }
+          for ( int i = 0; i < iconHeader.biHeight / 2; i++ )
+          {
+            int   count = 0;
+            for ( int j = 0; j < realWidth; j++ )
+            {
+              count = ( ( count + 1 ) % 4 );
+              GR::u8    byte = file.ReadU8();
+              GR::u32   bitMask = 0x80;
+
+              for ( int k = 0; k < 8; k++ )
+              {
+                if ( byte & bitMask )
+                {
+                  // da ist ein Bit!
+                  if ( j * 8 + k < iconHeader.biWidth )
+                  {
+                    ( ( (GR::u8*)pImageDataMask->Data() ) + ( iconHeader.biHeight / 2 - i - 1 ) * pImageDataMask->Width() )[j * 8 + k] = 0;
                   }
                 }
                 bitMask >>= 1;
@@ -360,7 +420,7 @@ namespace GR
         }
         else
         {
-          dh::Log( "Header has %d bpp", icHeader.biBitCount );
+          dh::Log( "Header has %d bpp", iconHeader.biBitCount );
         }
       }
       else

@@ -29,7 +29,7 @@ class GUIComponent : public GUI::Component
 
   protected:
 
-    GR::tRect                             m_rectClipping;
+    GR::tRect                             m_Clipping;
 
     XMultiTexture*                        m_pBackground;
 
@@ -37,9 +37,9 @@ class GUIComponent : public GUI::Component
   public:
 
 
-    GUIComponent( GR::u32 dwId = 0 );
-    GUIComponent( int iX, int iY, int iWidth, int iHeight, GR::u32 dwId = 0 );
-    GUIComponent( int iX, int iY, int iWidth, int iHeight, const GR::String& strCaption, GR::u32 dwId = 0 );
+    GUIComponent( GR::u32 Id = 0 );
+    GUIComponent( int X, int Y, int Width, int Height, GR::u32 Id = 0 );
+    GUIComponent( int X, int Y, int Width, int Height, const GR::String& Caption, GR::u32 Id = 0 );
 
     virtual void                DisplayOnPage( GUIComponentDisplayer& Displayer );
     virtual void                Display( GUI::ComponentDisplayerBase* pDisplayer );

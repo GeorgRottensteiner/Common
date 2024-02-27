@@ -32,6 +32,8 @@ namespace GR
         // final call
         virtual ByteBuffer  TransformFinalBlock( const ByteBuffer& Data ) = 0;
 
+        virtual int         BlockSize() const = 0;
+
     };
 
   }

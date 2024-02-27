@@ -29,34 +29,40 @@ namespace math
       {
       }
 
-      tRect( scalar_type iLeft = 0, scalar_type iTop = 0, scalar_type iWidth = 0, scalar_type iHeight = 0 ) :
-        Left( iLeft ),
-        Top( iTop ),
-        Right( iLeft + iWidth ),
-        Bottom( iTop + iHeight )
+
+
+      tRect( scalar_type Left = 0, scalar_type Top = 0, scalar_type Width = 0, scalar_type Height = 0 ) :
+        Left( Left ),
+        Top( Top ),
+        Right( Left + Width ),
+        Bottom( Top + Height )
       {
       }
 
-      tRect&      clear()
+
+
+      tRect& Clear()
       {
-        return set( 0, 0, 0, 0 );
+        return Set( 0, 0, 0, 0 );
       }
 
 
 
-      tRect& set( const scalar_type& X, const scalar_type& Y, const scalar_type& Width, const scalar_type& Height )
+      tRect& Set( const scalar_type& X, const scalar_type& Y, const scalar_type& Width, const scalar_type& Height )
       {
         Left   = X;
         Top    = Y;
         Right  = Left + Width;
         Bottom = Top + Height;
 
+        Normalize();
+
         return *this;
       }
 
 
 
-      tRect& offset( const scalar_type& OffsetX, const scalar_type& OffsetY )
+      tRect& Offset( const scalar_type& OffsetX, const scalar_type& OffsetY )
       {
         Left   += OffsetX;
         Top    += OffsetY;
@@ -68,7 +74,7 @@ namespace math
 
 
 
-      tRect& offset( const math::vector2<scalar_type>& Offset )
+      tRect& Offset( const math::vector2<scalar_type>& Offset )
       {
         Left   += Offset.x;
         Top    += Offset.y;
@@ -78,34 +84,38 @@ namespace math
         return *this;
       }
 
-      tRect& operator = ( const tRect& rcRHS )
+
+
+      tRect& operator= ( const tRect& OtherRect )
       {
-        if ( this != &rcRHS )
+        if ( this != &OtherRect )
         {
-          Left   = rcRHS.Left;
-          Top    = rcRHS.Top;
-          Right  = rcRHS.Right;
-          Bottom = rcRHS.Bottom;
+          Left   = OtherRect.Left;
+          Top    = OtherRect.Top;
+          Right  = OtherRect.Right;
+          Bottom = OtherRect.Bottom;
         }
         return *this;
       }
 
 
 
-      tRect& operator/ ( const T iDivisor )
+      tRect& operator/ ( const T Divisor )
       {
-        if ( iDivisor == 0 )
+        if ( Divisor == 0 )
         {
           return *this;
         }
 
-        Left     /= iDivisor;
-        Top      /= iDivisor;
-        Right    /= iDivisor;
-        Bottom   /= iDivisor;
+        Left     /= Divisor;
+        Top      /= Divisor;
+        Right    /= Divisor;
+        Bottom   /= Divisor;
 
         return *this;
       }
+
+
 
       tRect& operator*= ( const T Multiplier )
       {
@@ -122,35 +132,46 @@ namespace math
         return *this;
       }
 
-      bool operator==( const tRect& rcRHS)const
+
+
+      bool operator==( const tRect& OtherRect ) const
       {
-        return ( ( Left == rcRHS.Left )
-        &&       ( Top == rcRHS.Top )
-        &&       ( Right == rcRHS.Right )
-        &&       ( Bottom == rcRHS.Bottom ) );
+        return ( ( Left == OtherRect.Left )
+        &&       ( Top == OtherRect.Top )
+        &&       ( Right == OtherRect.Right )
+        &&       ( Bottom == OtherRect.Bottom ) );
       }
 
-      scalar_type width() const
+
+      scalar_type Width() const
       {
         return Right - Left;
       }
 
-      scalar_type height() const
+
+
+      scalar_type Height() const
       {
         return Bottom - Top;
       }
 
-      void width( const scalar_type iWidth )
+
+
+      void Width( const scalar_type Width )
       {
-        Right = Left + iWidth;
+        Right = Left + Width;
       }
 
-      void height( const scalar_type iHeight )
+
+
+      void Height( const scalar_type Height )
       {
-        Bottom = Top + iHeight;
+        Bottom = Top + Height;
       }
 
-      tRect& normalize()
+
+
+      tRect& Normalize()
       {
         if ( Right < Left )
         {
@@ -165,78 +186,113 @@ namespace math
 
 
 
-      bool empty() const
+      bool Empty() const
       {
-        return ( ( width() == 0 ) && ( height() == 0 ) );
+        return ( ( Width() == 0 ) 
+            ||   ( Height() == 0 ) );
       }
 
 
 
-      math::vector2<scalar_type> center() const
+      math::vector2<scalar_type> Center() const
       {
-        return math::vector2<scalar_type>( Left + width() / 2, Top + height() / 2 );
+        return math::vector2<scalar_type>( Left + Width() / 2, Top + Height() / 2 );
       }
 
-      tRect&      inflate( scalar_type iDeltaX, scalar_type iDeltaY )
+
+
+      scalar_type CenterX() const
       {
-        Left   -= iDeltaX;
-        Top    -= iDeltaY;
-        Right  += iDeltaX;
-        Bottom += iDeltaY;
+        return (scalar_type)( Left + Width() / 2 );
+      }
+
+
+
+      scalar_type CenterY() const
+      {
+        return (scalar_type)( Top + Height() / 2 );
+      }
+
+
+
+      tRect& Inflate( scalar_type DeltaX, scalar_type DeltaY )
+      {
+        Left   -= DeltaX;
+        Top    -= DeltaY;
+        Right  += DeltaX;
+        Bottom += DeltaY;
 
         return *this;
       }
 
-      tRect&      MoveTop( scalar_type iTopDeltaY )
+
+
+      tRect& MoveTop( scalar_type TopDeltaY )
       {
-        Top += iTopDeltaY;
+        Top += TopDeltaY;
+
+        Normalize();
         return *this;
       }
 
-      tRect&      MoveLeft( scalar_type iTopDeltaX )
+
+
+      tRect& MoveLeft( scalar_type TopDeltaX )
       {
-        Left += iTopDeltaX;
+        Left += TopDeltaX;
+
+        Normalize();
         return *this;
       }
 
-      tRect&      MoveBottom( scalar_type iTopDeltaY )
+
+
+      tRect& MoveBottom( scalar_type TopDeltaY )
       {
-        Bottom += iTopDeltaY;
+        Bottom += TopDeltaY;
+
+        Normalize();
         return *this;
       }
 
-      tRect&      MoveRight( scalar_type iTopDeltaX )
+
+
+      tRect& MoveRight( scalar_type TopDeltaX )
       {
-        Right += iTopDeltaX;
+        Right += TopDeltaX;
+
+        Normalize();
         return *this;
       }
 
-      tRect&      combine( const tRect& rhs )
+
+
+      tRect& Combine( const tRect& OtherRect )
       {
-        normalize();
-        if ( rhs.Left < Left )
+        Normalize();
+        if ( OtherRect.Left < Left )
         {
-          Left = rhs.Left;
+          Left = OtherRect.Left;
         }
-        if ( rhs.Right > Right )
+        if ( OtherRect.Right > Right )
         {
-          Right = rhs.Right;
+          Right = OtherRect.Right;
         }
-        if ( rhs.Top < Top )
+        if ( OtherRect.Top < Top )
         {
-          Top = rhs.Top;
+          Top = OtherRect.Top;
         }
-        if ( rhs.Bottom > Bottom )
+        if ( OtherRect.Bottom > Bottom )
         {
-          Bottom = rhs.Bottom;
+          Bottom = OtherRect.Bottom;
         }
         return *this;
       }
 
-      tRect intersection( const tRect& rhs )
-      {
-        normalize();
 
+
+      tRect Intersection( const tRect& rhs ) const
+      {
         tRect   rectTemp;
 
         rectTemp.Left    = math::maxValue( rhs.Left, Left );
@@ -256,54 +312,75 @@ namespace math
         return rectTemp;
       }
 
-      bool contains( scalar_type iX, scalar_type iY ) const
+
+
+      bool Contains( scalar_type X, scalar_type Y ) const
       {
-        if ( ( iX >= Left )
-        &&   ( iX < Right )
-        &&   ( iY >= Top )
-        &&   ( iY < Bottom ) )
+        if ( ( X >= Left )
+        &&   ( X < Right )
+        &&   ( Y >= Top )
+        &&   ( Y < Bottom ) )
         {
           return true;
         }
         return false;
       }
 
-      bool contains( const math::vector2<scalar_type>& tPoint ) const
+
+
+      bool Contains( const math::vector2<scalar_type>& tPoint ) const
       {
-        return contains( tPoint.x, tPoint.y );
+        return Contains( tPoint.x, tPoint.y );
       }
 
-      //- ist anderes Rect enthalten?
-      bool contains( const tRect& rhs ) const
+
+
+      bool Contains( const tRect& OtherRect ) const
       {
-        return ( ( contains( rhs.Left, rhs.Top ) )
-        &&       ( contains( rhs.Right - 1, rhs.Bottom - 1 ) ) );
+        return ( ( Contains( OtherRect.Left, OtherRect.Top ) )
+        &&       ( Contains( OtherRect.Right - 1, OtherRect.Bottom - 1 ) ) );
       }
 
-      //- prüfen, ob sich zwei rects schneiden
-      bool intersects( const tRect& rhs ) const
+
+
+      bool Intersects( const tRect& OtherRect ) const
       {
-        if ( ( Right <= rhs.Left )
-        ||   ( Left >= rhs.Right )
-        ||   ( Bottom <= rhs.Top )
-        ||   ( Top >= rhs.Bottom ) )
+        if ( ( Right <= OtherRect.Left )
+        ||   ( Left >= OtherRect.Right )
+        ||   ( Bottom <= OtherRect.Top )
+        ||   ( Top >= OtherRect.Bottom ) )
         {
           return false;
         }
         return true;
       }
 
-      math::vector2<scalar_type> position() const
+
+
+      bool Intersects( const tRect& OtherRect, tRect& IntersectionArea ) const
+      {
+        IntersectionArea = Intersection( OtherRect );
+
+        return !IntersectionArea.Empty();
+      }
+
+
+
+      math::vector2<scalar_type> Position() const
       {
         return math::vector2<scalar_type>( Left, Top );
       }
 
-      math::vector2<scalar_type> size() const
+
+
+      math::vector2<scalar_type> Size() const
       {
-        return math::vector2<scalar_type>( width(), height() );
+        return math::vector2<scalar_type>( Width(), Height() );
       }
 
-      tRect& position( scalar_type iX, scalar_type iY )
+
+
+      tRect& Position( scalar_type iX, scalar_type iY )
       {
         Left  = iX;
         Top   = iY;
@@ -311,15 +388,19 @@ namespace math
         return *this;
       }
 
-      math::vector2<scalar_type> endposition() const
+
+
+      math::vector2<scalar_type> EndPosition() const
       {
-        return position() + size();
+        return Position() + Size();
       }
 
-      tRect& size( scalar_type iWidth, scalar_type iHeight )
+
+
+      tRect& Size( scalar_type Width, scalar_type Height )
       {
-        Right    = Left + iWidth;
-        Bottom   = Top + iHeight;
+        Right    = Left + Width;
+        Bottom   = Top + Height;
 
         return *this;
       }
@@ -328,4 +409,4 @@ namespace math
 
 }
 
-#endif // TRECT_H
+#endif 
