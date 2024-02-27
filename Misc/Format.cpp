@@ -14,301 +14,292 @@ namespace Misc
 {
   const GR::String CFormat::Result() const
   {
-    GR::String      strResult;
+    GR::String      result;
 
-    size_t          iPos = 0;
+    size_t          pos = 0;
 
-    bool            bParam = false;
+    bool            insideParameter = false;
 
-    GR::String      strParam;
+    GR::String      currentParameter;
 
 
-    while ( iPos < m_Content.length() )
+    while ( pos < m_Content.length() )
     {
-      GR::Char    cDummy = m_Content[iPos];
-      switch ( cDummy )
+      GR::Char    currentChar = m_Content[pos];
+      switch ( currentChar )
       {
         case '%':
-          if ( bParam )
+          if ( insideParameter )
           {
-            if ( strParam.empty() )
+            if ( currentParameter.empty() )
             {
-              strResult += '%';
+              result += '%';
             }
             else
             {
-              size_t    iParamPos = 0;
+              size_t    paramPos = 0;
+              int       value = 0;
+              int       paramIndex = 0;
+              size_t    paramNumber = 0;
+              int       paramDigits = 0;
+              size_t    paramAfterCommaDigits = 0;
+              GR::Char  fillChar = 0;
+              bool      forceHex = false;
+              bool      valueNegative = false;
 
-              int       iValue = 0;
-
-              int       iParamIndex = 0;
-
-              size_t    iParamNumber = 0;
-
-              int       iParamStellen = 0;
-              size_t    iParamNachkommaStellen = 0;
-
-              GR::Char  cFillChar = 0;
-
-              bool      bForceHex = false;
-
-              bool      bValueNegative = false;
-
-              while ( iParamPos < strParam.length() )
+              while ( paramPos < currentParameter.length() )
               {
-                GR::Char    cParamDummy = strParam[iParamPos];
+                GR::Char    currentParamChar = currentParameter[paramPos];
 
-                if ( ( ( cParamDummy >= '1' )
-                &&     ( cParamDummy <= '9' ) )
-                ||   ( ( cParamDummy == '0' )
-                &&     ( iParamPos != 0 ) )
-                ||   ( cParamDummy == '-' ) )
+                if ( ( ( currentParamChar >= '1' )
+                &&     ( currentParamChar <= '9' ) )
+                ||   ( ( currentParamChar == '0' )
+                &&     ( paramPos != 0 ) )
+                ||   ( currentParamChar == '-' ) )
                 {
-                  if ( cParamDummy == '-' )
+                  if ( currentParamChar == '-' )
                   {
-                    bValueNegative = true;
+                    valueNegative = true;
                   }
                   else
                   {
-                    iValue *= 10;
-                    iValue += cParamDummy - '0';
+                    value *= 10;
+                    value += currentParamChar - '0';
                   }
                 }
-                else if ( cParamDummy == ':' )
+                else if ( currentParamChar == ':' )
                 {
-                  if ( bValueNegative )
+                  if ( valueNegative )
                   {
-                    iValue = -iValue;
+                    value = -value;
                   }
-                  switch ( iParamIndex )
+                  switch ( paramIndex )
                   {
                     case 0:
-                      iParamNumber = iValue;
+                      paramNumber = value;
                       break;
                     case 1:
-                      iParamStellen = iValue;
+                      paramDigits = value;
                       break;
                     case 2:
-                      iParamNachkommaStellen = iValue;
+                      paramAfterCommaDigits = value;
                       break;
                   }
-                  iValue = 0;
-                  bValueNegative = false;
-                  ++iParamIndex;
+                  value = 0;
+                  valueNegative = false;
+                  ++paramIndex;
                 }
-                else if ( cParamDummy == 'x' )
+                else if ( currentParamChar == 'x' )
                 {
-                  bForceHex = true;
+                  forceHex = true;
                 }
-                else if ( iParamPos == 0 )
+                else if ( paramPos == 0 )
                 {
-                  cFillChar = cParamDummy;
+                  fillChar = currentParamChar;
                 }
 
-                ++iParamPos;
+                ++paramPos;
               }
 
-              if ( bValueNegative )
+              if ( valueNegative )
               {
-                iValue = -iValue;
+                value = -value;
               }
 
-              switch ( iParamIndex )
+              switch ( paramIndex )
               {
                 case 0:
-                  iParamNumber = iValue;
+                  paramNumber = value;
                   break;
                 case 1:
-                  iParamStellen = iValue;
+                  paramDigits = value;
                   break;
                 case 2:
-                  iParamNachkommaStellen = iValue;
+                  paramAfterCommaDigits = value;
                   break;
               }
-              if ( ( iParamNumber <= m_Parameters.size() )
-              &&   ( iParamNumber > 0 ) )
+              if ( ( paramNumber <= m_Parameters.size() )
+              &&   ( paramNumber > 0 ) )
               {
-                const tParam&     Param = m_Parameters[iParamNumber - 1];
-
-                GR::String        strParamContent = Param.Text;
+                const tParam&     Param = m_Parameters[paramNumber - 1];
+                GR::String        paramContent = Param.Text;
 
                 if ( Param.Type == tParam::PT_DOUBLE )
                 {
-                  strParamContent.erase();
+                  paramContent.erase();
 
-                  GR::f64     dblValue = Param.DoubleValue;
+                  GR::f64     doubleValue = Param.DoubleValue;
+                  GR::i64     value = (GR::i64)doubleValue;
 
-                  GR::i64     iValue = (GR::i64)dblValue;
-
-                  if ( iValue < 0 )
+                  if ( value < 0 )
                   {
-                    iValue = -iValue;
-                    dblValue = -dblValue;
-                    if ( iParamStellen )
+                    value = -value;
+                    doubleValue = -doubleValue;
+                    if ( paramDigits )
                     {
-                      iParamStellen--;
+                      paramDigits--;
                     }
                   }
-                  if ( iValue == 0 )
+                  if ( value == 0 )
                   {
-                    strParamContent = "0";
+                    paramContent = "0";
                   }
-                  while ( iValue > 0 )
+                  while ( value > 0 )
                   {
-                    strParamContent = (GR::Char)( ( iValue % 10 ) + '0' ) + strParamContent;
-                    iValue /= 10;
+                    paramContent = (GR::Char)( ( value % 10 ) + '0' ) + paramContent;
+                    value /= 10;
                   }
-                  if ( Param.DoubleValue < 0 )
-                  {
-                    strParamContent = "-" + strParamContent;
-                  }
-
-                  bool    bClipToRight = false;
-                  if ( iParamStellen < 0 )
+                  bool    clipToRight = false;
+                  if ( paramDigits < 0 )
                   {
                     // die letzten X Stellen
-                    bClipToRight = true;
-                    iParamStellen = -iParamStellen;
+                    clipToRight = true;
+                    paramDigits = -paramDigits;
                   }
 
-
-                  if ( ( iParamStellen > 0 )
-                  &&   ( cFillChar ) )
+                  if ( ( paramDigits > 0 )
+                  &&   ( fillChar ) )
                   {
-                    while ( strParamContent.length() < (size_t)iParamStellen )
+                    while ( paramContent.length() < (size_t)paramDigits )
                     {
-                      strParamContent = cFillChar + strParamContent;
+                      paramContent = fillChar + paramContent;
+                    }
+                    if ( Param.DoubleValue < 0 )
+                    {
+                      paramContent = "-" + paramContent;
                     }
                   }
-                  else if ( iParamStellen > 0 )
+                  else if ( paramDigits > 0 )
                   {
                     // fill up
-                    while ( strParamContent.length() < (size_t)iParamStellen )
+                    if ( Param.DoubleValue < 0 )
                     {
-                      strParamContent += " ";
+                      paramContent = "-" + paramContent;
+                    }
+
+                    while ( paramContent.length() < (size_t)paramDigits )
+                    {
+                      paramContent += " ";
                     }
                   }
-                  if ( bClipToRight )
+                  else if ( Param.DoubleValue < 0 )
+                  {
+                    paramContent = "-" + paramContent;
+                  }
+
+                  if ( clipToRight )
                   {
                     // die letzten iParamStellen der Anzeige!
-                    if ( strParamContent.length() > (size_t)iParamStellen )
+                    if ( paramContent.length() > (size_t)paramDigits )
                     {
-                      strParamContent = strParamContent.substr( strParamContent.length() - iParamStellen );
+                      paramContent = paramContent.substr( paramContent.length() - paramDigits );
                     }
                   }
 
-                  if ( iParamNachkommaStellen != 0 )
+                  if ( paramAfterCommaDigits != 0 )
                   {
-                    strParamContent += ".";
-                    if ( dblValue < 0.0 )
+                    paramContent += ".";
+                    if ( doubleValue < 0.0 )
                     {
-                      dblValue = -dblValue;
+                      doubleValue = -doubleValue;
                     }
                     double intPart;
-                    dblValue = modf( dblValue, &intPart );
-                    while ( iParamNachkommaStellen )
+                    doubleValue = modf( doubleValue, &intPart );
+                    while ( paramAfterCommaDigits )
                     {
-                      dblValue *= 10;
-                      if ( iParamNachkommaStellen == 1 )
+                      doubleValue *= 10;
+                      if ( paramAfterCommaDigits == 1 )
                       {
-                        if ( (char)( (int)fmod( dblValue * 10, 10 ) + '0' ) >= '5' )
+                        if ( (char)( (int)fmod( doubleValue * 10, 10 ) + '0' ) >= '5' )
                         {
-                          dblValue += 1;
+                          doubleValue += 1;
                         }
                       }
-                      strParamContent += (char)( (int)fmod( dblValue, 10 ) + '0' );
-                      --iParamNachkommaStellen;
+                      paramContent += (char)( (int)fmod( doubleValue, 10 ) + '0' );
+                      --paramAfterCommaDigits;
                     }
-                    /*
-                    if ( (char)( (int)fmod( dblValue * 10, 10 ) + '0' ) >= '5' )
-                    {
-                      dblValue += 1;
-                    }
-                    //strParamContent += (char)( (int)fmod( dblValue, 10 ) + '0' );
-                    //strParamContent += GR::Convert::ToString( (GR::u64)dblValue );*/
                   }
                 }
                 else
                 {
-                  bool    bClipToRight = false;
-                  if ( iParamStellen < 0 )
+                  bool    clipToRight = false;
+                  if ( paramDigits < 0 )
                   {
                     // die letzten X Stellen
-                    bClipToRight = true;
-                    iParamStellen = -iParamStellen;
+                    clipToRight = true;
+                    paramDigits = -paramDigits;
                   }
 
-                  if ( bForceHex )
+                  if ( forceHex )
                   {
-                    GR::u64 iValue = GR::Convert::ToU64( strParamContent );
-
-                    strParamContent = GR::Convert::ToHex( iValue, iParamStellen );
+                    GR::u64 value = GR::Convert::ToU64( paramContent );
+                    paramContent  = GR::Convert::ToHex( value, paramDigits );
                   }
-                  if ( ( iParamStellen != 0 )
-                  &&   ( cFillChar ) )
+                  if ( ( paramDigits != 0 )
+                  &&   ( fillChar ) )
                   {
-                    while ( (size_t)iParamStellen > strParamContent.length() )
+                    while ( (size_t)paramDigits > paramContent.length() )
                     {
-                      if ( ( strParamContent[0] == '-' )
-                      &&   ( cFillChar == '0' ) )
+                      if ( ( paramContent[0] == '-' )
+                      &&   ( fillChar == '0' ) )
                       {
                         // bei Zahlen das Minus vorne lassen
-                        strParamContent = GR::String( "-" ) + cFillChar + strParamContent.substr( 1 );
+                        paramContent = GR::String( "-" ) + fillChar + paramContent.substr( 1 );
                       }
                       else
                       {
-                        strParamContent = cFillChar + strParamContent;
+                        paramContent = fillChar + paramContent;
                       }
                     }
                   }
-                  else if ( iParamStellen > 0 )
+                  else if ( paramDigits > 0 )
                   {
                     // fill up
-                    while ( strParamContent.length() < (size_t)iParamStellen )
+                    while ( paramContent.length() < (size_t)paramDigits )
                     {
-                      strParamContent += " ";
+                      paramContent += " ";
                     }
                   }
-                  if ( bClipToRight )
+                  if ( clipToRight )
                   {
                     // die letzten iParamStellen der Anzeige!
-                    if ( strParamContent.length() > (size_t)iParamStellen )
+                    if ( paramContent.length() > (size_t)paramDigits )
                     {
-                      strParamContent = strParamContent.substr( strParamContent.length() - iParamStellen );
+                      paramContent = paramContent.substr( paramContent.length() - paramDigits );
                     }
                   }
                 }
-                strResult += strParamContent;
+                result += paramContent;
               }
             }
 
-            bParam = false;
+            insideParameter = false;
           }
           else
           {
-            bParam = true;
-            strParam.erase();
+            insideParameter = true;
+            currentParameter.erase();
           }
           break;
         default:
-          if ( !bParam )
+          if ( !insideParameter )
           {
-            strResult += cDummy;
+            result += currentChar;
           }
           else
           {
-            strParam += cDummy;
+            currentParameter += currentChar;
           }
           break;
       }
-      ++iPos;
+      ++pos;
     }
-    return strResult;
+    return result;
   }
 
-  CFormat& CFormat::Format( const GR::String& strFormatString )
+  CFormat& CFormat::Format( const GR::String& FormatString )
   {
-    m_Content = strFormatString;
+    m_Content = FormatString;
 
     m_Parameters.clear();
 
@@ -331,22 +322,22 @@ namespace Misc
 
   
 
-  CFormat FormatA( const GR::String& strFormatString )
+  CFormat FormatA( const GR::String& FormatString )
   {
     CFormat     Formatter;
 
-    Formatter.Format( strFormatString );
+    Formatter.Format( FormatString );
 
     return Formatter;
   }
 
 
 
-  CFormat Format( const GR::String& strFormatString )
+  CFormat Format( const GR::String& FormatString )
   {
     CFormat     Formatter;
 
-    Formatter.Format( strFormatString );
+    Formatter.Format( FormatString );
 
     return Formatter;
   }
@@ -384,9 +375,9 @@ namespace Misc
 
 
 
-  CFormat operator<< ( CFormat Format, const GR::ip iParam )
+  CFormat operator<< ( CFormat Format, const GR::ip Param )
   {
-    Format.AddParam( CFormat::tParam( GR::Convert::ToStringA( (GR::i64)iParam ) ) );
+    Format.AddParam( CFormat::tParam( GR::Convert::ToStringA( (GR::i64)Param ) ) );
 
     return Format;
   }
