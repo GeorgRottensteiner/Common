@@ -5,52 +5,58 @@
 namespace GR
 {
 
-CRefCountObject::CRefCountObject() :
-	m_refs(0)
-{
-}
-
-CRefCountObject::CRefCountObject( const CRefCountObject& ) :
-	m_refs(0)
-{
-}
-
-CRefCountObject::~CRefCountObject()																		
-{
-}
-
-CRefCountObject& CRefCountObject::operator=( const CRefCountObject& )
-{
-	return *this;
-}
-
-void CRefCountObject::addReference()
-{
-  m_refs++;
-}
-
-
-
-long CRefCountObject::removeReference()
-{
-
-  --m_refs;
-
-  return m_refs;
-
-}
-
-
-void CRefCountObject::release()
-{
-  if ( 0 == --m_refs )
+  RefCountObject::RefCountObject() :
+    m_References( 0 )
   {
-		delete this;
   }
+
+
+
+  RefCountObject::RefCountObject( const RefCountObject& ) :
+    m_References( 0 )
+  {
+  }
+
+
+
+  RefCountObject::~RefCountObject()																		
+  {
+  }
+
+
+
+  RefCountObject& RefCountObject::operator=( const RefCountObject& )
+  {
+	  return *this;
+  }
+
+
+
+  void RefCountObject::AddReference()
+  {
+    ++m_References;
+  }
+
+
+
+  long RefCountObject::RemoveReference()
+  {
+    --m_References;
+
+    return m_References;
+  }
+
+
+  void RefCountObject::Release()
+  {
+    if ( 0 == --m_References )
+    {
+		  delete this;
+    }
+  }
+
+
+
 }
-
-
-
-} // GR
 
 

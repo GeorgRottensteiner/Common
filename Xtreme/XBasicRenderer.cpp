@@ -1621,6 +1621,26 @@ void XBasicRenderer::RenderTextCentered2d( XFont* pFont, int CenterX, int Y, con
 
 
 
+void XBasicRenderer::RenderTextCentered2d( XFont* pFont, int CenterX, int Y, const GR::String& Text, float ScaleX, float ScaleY, GR::u32 Color, float Z )
+{
+  if ( pFont )
+  {
+    RenderText2d( pFont, CenterX - (int)(pFont->TextLength( Text ) * ScaleX) / 2, Y, Text, ScaleX, ScaleY, Color, 0, 0, 0, Z );
+  }
+}
+
+
+
+void XBasicRenderer::RenderTextCentered2d( XFont* pFont, int CenterX, int Y, const GR::Char* pText, float ScaleX, float ScaleY, GR::u32 Color, float Z )
+{
+  if ( pFont )
+  {
+    RenderText2d( pFont, CenterX - (int)( pFont->TextLength( pText ) * ScaleX ) / 2, Y, pText, ScaleX, ScaleY, Color, 0, 0, 0, Z );
+  }
+}
+
+
+
 void XBasicRenderer::RenderTextRightAligned2d( XFont* pFont, int X, int Y, const GR::String& Text, GR::u32 Color, float Z )
 {
   if ( pFont )
@@ -1636,6 +1656,26 @@ void XBasicRenderer::RenderTextRightAligned2d( XFont* pFont, int X, int Y, const
   if ( pFont )
   {
     RenderText2d( pFont, X - pFont->TextLength( pText ), Y, pText, Color, Z );
+  }
+}
+
+
+
+void XBasicRenderer::RenderTextRightAligned2d( XFont* pFont, int X, int Y, const GR::String& Text, float ScaleX, float ScaleY, GR::u32 Color, float Z )
+{
+  if ( pFont )
+  {
+    RenderText2d( pFont, X - (int)pFont->TextLength( Text ), Y, Text, ScaleX, ScaleY, Color, 0, 0, 0, Z );
+  }
+}
+
+
+
+void XBasicRenderer::RenderTextRightAligned2d( XFont* pFont, int X, int Y, const GR::Char* pText, float ScaleX, float ScaleY, GR::u32 Color, float Z )
+{
+  if ( pFont )
+  {
+    RenderText2d( pFont, X - (int)pFont->TextLength( pText ), Y, pText, ScaleX, ScaleY, Color, 0, 0, 0, Z );
   }
 }
 

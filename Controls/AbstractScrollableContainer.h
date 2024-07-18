@@ -59,7 +59,7 @@ template <class BS_, class SB_> class AbstractScrollableContainer : public BS_
 
       if ( Style() & SCS_SHOW_H_SCROLLBAR )
       {
-        m_ItemsPerLine = ( m_ClientRect.width() - m_pScrollBar->Width() ) / m_ItemWidth;
+        m_ItemsPerLine = ( m_ClientRect.Width() - m_pScrollBar->Width() ) / m_ItemWidth;
         if ( m_ItemsPerLine == 0 )
         {
           m_ItemsPerLine = 1;
@@ -67,24 +67,24 @@ template <class BS_, class SB_> class AbstractScrollableContainer : public BS_
       }
 
       if ( ( Style() & SCS_AUTO_HIDE_SCROLLBAR )
-      &&   ( virtualClientSize.height() <= m_ClientRect.height() ) )
+      &&   ( virtualClientSize.Height() <= m_ClientRect.Height() ) )
       {
         m_pScrollBar->SetSize( 0, m_pScrollBar->Height() );
       }
       else
       {
         m_pScrollBar->SetSize( 20, m_pScrollBar->Height() );
-        m_pScrollBar->SetLocation( m_ClientRect.width() - 20, 0 );
+        m_pScrollBar->SetLocation( m_ClientRect.Width() - 20, 0 );
       }
         
-      if ( virtualClientSize.height() <= m_ClientRect.height() )
+      if ( virtualClientSize.Height() <= m_ClientRect.Height() )
       {
         // nothing to scroll
         m_pScrollBar->SetScrollRange( 0, 0 );
       }
       else
       {
-        m_pScrollBar->SetScrollRange( 0, virtualClientSize.height() - m_ClientRect.height(), m_ClientRect.height() );
+        m_pScrollBar->SetScrollRange( 0, virtualClientSize.Height() - m_ClientRect.Height(), m_ClientRect.Height() );
       }
     }
 
@@ -187,7 +187,7 @@ template <class BS_, class SB_> class AbstractScrollableContainer : public BS_
       m_OffsetY           = 0;
 
       RecalcClientRect();
-      m_pScrollBar = new SCROLLBARCLASS( m_Width - 20, 0, 20, m_Height, SCROLLBARCLASS::SBFT_INVALID, Id );
+      m_pScrollBar = new SCROLLBARCLASS( m_Width - 20, 0, 20, m_Height, SCROLLBARCLASS::SBFT_DEFAULT, Id );
       m_pScrollBar->ModifyFlags( GUI::COMPFT_NOT_SERIALIZABLE );
 
       m_pScrollHBar = new SCROLLBARCLASS( 0, m_Height - 20, m_Width, 20, SCROLLBARCLASS::SBFT_HORIZONTAL, Id );
@@ -205,11 +205,11 @@ template <class BS_, class SB_> class AbstractScrollableContainer : public BS_
       Add( m_pScrollBar );
       Add( m_pScrollHBar );
 
-      m_ItemWidth        = m_ClientRect.width() - m_pScrollBar->Width();
+      m_ItemWidth        = m_ClientRect.Width() - m_pScrollBar->Width();
       m_ItemsPerLine     = 1;
       if ( Type & SCS_SHOW_H_SCROLLBAR )
       {
-        m_ItemsPerLine = ( m_ClientRect.width() - m_pScrollBar->Width() ) / m_ItemWidth;
+        m_ItemsPerLine = ( m_ClientRect.Width() - m_pScrollBar->Width() ) / m_ItemWidth;
         if ( m_ItemsPerLine == 0 )
         {
           m_ItemsPerLine = 1;
@@ -240,22 +240,22 @@ template <class BS_, class SB_> class AbstractScrollableContainer : public BS_
         case CET_SET_CLIENT_SIZE:
           BASECLASS::ProcessEvent( Event );
 
-          m_ItemWidth        = m_ClientRect.width() - m_pScrollBar->Width();
+          m_ItemWidth        = m_ClientRect.Width() - m_pScrollBar->Width();
           m_ItemsPerLine     = 1;
           if ( Style() & SCS_SHOW_H_SCROLLBAR )
           {
-            m_ItemsPerLine = ( m_ClientRect.width() - m_pScrollBar->Width() ) / m_ItemWidth;
+            m_ItemsPerLine = ( m_ClientRect.Width() - m_pScrollBar->Width() ) / m_ItemWidth;
             if ( m_ItemsPerLine == 0 )
             {
               m_ItemsPerLine = 1;
             }
           }
 
-          m_pScrollBar->SetLocation( m_ClientRect.width() - m_pScrollBar->Width(), 0 );
-          m_pScrollBar->SetSize( m_pScrollBar->Width(), m_ClientRect.size().y );
+          m_pScrollBar->SetLocation( m_ClientRect.Width() - m_pScrollBar->Width(), 0 );
+          m_pScrollBar->SetSize( m_pScrollBar->Width(), m_ClientRect.Height() );
 
-          m_pScrollHBar->SetLocation( 0, m_ClientRect.height() - m_pScrollBar->Height() );
-          m_pScrollHBar->SetSize( m_ClientRect.width(), m_pScrollBar->Height() );
+          m_pScrollHBar->SetLocation( 0, m_ClientRect.Height() - m_pScrollBar->Height() );
+          m_pScrollHBar->SetSize( m_ClientRect.Width(), m_pScrollBar->Height() );
 
           UpdateScrollBar();
           return true;
@@ -335,7 +335,7 @@ template <class BS_, class SB_> class AbstractScrollableContainer : public BS_
           GR::tRect     childBounds;
           
           pComp->GetComponentRect( childBounds );
-          childBounds.offset( pComp->Position() );
+          childBounds.Offset( pComp->Position() );
           if ( childBounds.Left - offsetX < virtualClientSize.Left )
           {
             virtualClientSize.Left = childBounds.Left - offsetX;
@@ -410,8 +410,8 @@ template <class BS_, class SB_> class AbstractScrollableContainer : public BS_
 
     virtual void GetListRect( GR::tRect& rectItem )
     {
-      rectItem.position( 0, 0 );
-      rectItem.size( m_ClientRect.width() - m_pScrollBar->Width(), m_ClientRect.size().y );
+      rectItem.Position( 0, 0 );
+      rectItem.Size( m_ClientRect.Width() - m_pScrollBar->Width(), m_ClientRect.Height() );
     }
 
 
@@ -444,7 +444,7 @@ template <class BS_, class SB_> class AbstractScrollableContainer : public BS_
       }
       if ( Style() & SCS_SHOW_H_SCROLLBAR )
       {
-        m_ItemsPerLine = ( m_ClientRect.width() - m_pScrollBar->Width() ) / m_ItemWidth;
+        m_ItemsPerLine = ( m_ClientRect.Width() - m_pScrollBar->Width() ) / m_ItemWidth;
         if ( m_ItemsPerLine == 0 )
         {
           m_ItemsPerLine = 1;
@@ -452,7 +452,7 @@ template <class BS_, class SB_> class AbstractScrollableContainer : public BS_
       }
       else
       {
-        m_ItemWidth = m_ClientRect.width() - m_pScrollBar->Width();
+        m_ItemWidth = m_ClientRect.Width() - m_pScrollBar->Width();
       }
       UpdateScrollBar();
     }

@@ -218,11 +218,11 @@ namespace GUI
 
     if ( ( textAlignment & GUI::AF_CENTER ) == GUI::AF_CENTER )
     {
-      ptResult.x = Rect.Left + ( Rect.Width() - pFont->TextLength( strText.c_str() ) ) / 2;
+      ptResult.x = Rect.Left + ( Rect.Width() - pFont->TextLength( strText ) ) / 2;
     }
     else if ( textAlignment & GUI::AF_RIGHT )
     {
-      ptResult.x = Rect.Left + Rect.Width() - pFont->TextLength( strText.c_str() );
+      ptResult.x = Rect.Left + Rect.Width() - pFont->TextLength( strText );
     }
     return ptResult;
   }
@@ -1252,7 +1252,7 @@ namespace GUI
 
   int ComponentDisplayerBase::TextLength( Interface::IFont* pFont, const GR::String& Text )
   {
-    int     length = pFont->TextLength( Text.c_str() );
+    int     length = pFont->TextLength( Text );
 
     GR::tPoint    dummy( length, 0 );
 
@@ -1265,7 +1265,7 @@ namespace GUI
 
   int ComponentDisplayerBase::TextHeight( Interface::IFont* pFont, const GR::String& Text )
   {
-    int     length = pFont->TextHeight( Text.c_str() );
+    int     length = pFont->TextHeight( Text );
 
     GR::tPoint    dummy( 0, length );
 
@@ -1392,6 +1392,166 @@ namespace GUI
       pComponent = pComponent->GetComponentParent();
     }
     return true;
+  }
+
+
+
+  bool ComponentDisplayerBase::ProcessEventOnComponent( const GUI::ComponentEvent& Event, Component* pComponent )
+  {
+    if ( m_ContainerProcessingDisabled )
+    {
+      return true;
+    }
+
+    if ( ( m_pCapturingComponent )
+    &&   ( m_pCapturingComponent != pComponent ) )
+    {
+      if ( ( Event.Type == CET_MOUSE_UPDATE )
+      ||   ( Event.Type == CET_MOUSE_UP )
+      ||   ( Event.Type == CET_MOUSE_DOWN )
+      ||   ( Event.Type == CET_MOUSE_WHEEL )
+      ||   ( Event.Type == CET_MOUSE_RUP )
+      ||   ( Event.Type == CET_MOUSE_RDOWN ) )
+      {
+        ComponentEvent     newEvent( Event );
+
+        ScreenToNonClient( newEvent.Position, m_pCapturingComponent );
+
+        if ( m_pCapturingComponent->IsMouseInsideNonClientArea( newEvent.Position ) )
+        {
+          if ( !m_pCapturingComponent->IsMouseInside() )
+          {
+            m_pCapturingComponent->m_ComponentFlags |= GUI::COMPFT_MOUSE_INSIDE;
+            ComponentEvent     mouseinEvent( CET_MOUSE_IN );
+            mouseinEvent.MouseButtons = newEvent.MouseButtons;
+            mouseinEvent.Position = newEvent.Position - m_pCapturingComponent->m_ClientRect.Position();
+            m_pCapturingComponent->ProcessEvent( mouseinEvent );
+          }
+        }
+        else
+        {
+          if ( m_pCapturingComponent->IsMouseInside() )
+          {
+            m_pCapturingComponent->m_ComponentFlags &= ~GUI::COMPFT_MOUSE_INSIDE;
+            ComponentEvent    newEvent( CET_MOUSE_OUT );
+            m_pCapturingComponent->ProcessEvent( newEvent );
+          }
+        }
+        if ( m_pCapturingComponent->ProcessEvent( newEvent ) )
+        {
+          return true;
+        }
+        return true;
+      }
+    }
+
+    if ( ( m_pFocusedComponent )
+    &&   ( !m_pFocusedComponent->IsIndirectDisabled() )
+    &&   ( IsVisible( m_pFocusedComponent ) ) )
+    {
+      if ( ( Event.Type == CET_KEY_PRESSED )
+      ||   ( Event.Type == CET_KEY_DOWN )
+      ||   ( Event.Type == CET_KEY_UP ) )
+      {
+        if ( ( !m_pFocusedComponent->IsVisible() )
+        ||   ( !m_pFocusedComponent->IsEnabled() ) )
+        {
+          return true;
+        }
+        if ( ( Event.Type == CET_KEY_DOWN )
+        &&   ( Event.Character == Xtreme::KEY_TAB ) )
+        {
+          // nächstes Element fokussieren
+          Component* pOtherComponent = NULL;
+
+          if ( m_pFocusedComponent )
+          {
+            // zuerst im Parent des fokussierten Elements nachsehen
+            if ( m_pFocusedComponent->GetParentContainer() )
+            {
+              pOtherComponent = m_pFocusedComponent->GetParentContainer()->FindNextTabComponent( m_pFocusedComponent, m_pInputClass->ShiftPressed() );
+            }
+          }
+          if ( pOtherComponent == NULL )
+          {
+            pOtherComponent = FindNextTabComponent( m_pFocusedComponent, m_pInputClass->ShiftPressed() );
+          }
+          if ( pOtherComponent != m_pFocusedComponent )
+          {
+            SetFocus( pOtherComponent );
+            return true;
+          }
+        }
+        if ( m_pFocusedComponent->ProcessEvent( Event ) )
+        {
+          return true;
+        }
+      }
+      if ( Event.Type == CET_KEY_PRESSED )
+      {
+        if ( ( Event.Character == Xtreme::KEY_DOWN )
+        ||   ( Event.Character == Xtreme::KEY_UP )
+        ||   ( Event.Character == Xtreme::KEY_LEFT )
+        ||   ( Event.Character == Xtreme::KEY_RIGHT ) )
+        {
+          Component* pOtherComponent = FindNextTabComponentByDir( this, m_pFocusedComponent, Event.Character );
+          if ( pOtherComponent != m_pFocusedComponent )
+          {
+            SetFocus( pOtherComponent );
+            return true;
+          }
+        }
+      }
+    }
+
+    if ( Event.Type == CET_MOUSE_UPDATE )
+    {
+      GR::u32     PrevLastMouseButtons = m_LastMouseButtons;
+
+      m_LastMouseButtons = Event.MouseButtons;
+
+      if ( ( PrevLastMouseButtons & 1 )
+      &&   ( ( Event.MouseButtons & 1 ) == 0 ) )
+      {
+        ComponentEvent     newEvent( CET_MOUSE_UP );
+
+        newEvent.Position = Event.Position;
+        newEvent.MouseButtons = Event.MouseButtons;
+
+        pComponent->ProcessEvent( newEvent );
+      }
+      else if ( ( ( PrevLastMouseButtons & 1 ) == 0 )
+      &&        ( Event.MouseButtons & 1 ) )
+      {
+        ComponentEvent     newEvent( CET_MOUSE_DOWN );
+
+        newEvent.Position = Event.Position;
+        newEvent.MouseButtons = Event.MouseButtons;
+
+        pComponent->ProcessEvent( newEvent );
+      }
+      if ( ( PrevLastMouseButtons & 2 )
+      &&   ( ( Event.MouseButtons & 2 ) == 0 ) )
+      {
+        ComponentEvent     newEvent( CET_MOUSE_RUP );
+
+        newEvent.Position = Event.Position;
+        newEvent.MouseButtons = Event.MouseButtons;
+
+        pComponent->ProcessEvent( newEvent );
+      }
+      else if ( ( ( PrevLastMouseButtons & 2 ) == 0 )
+      &&        ( Event.MouseButtons & 2 ) )
+      {
+        ComponentEvent     newEvent( CET_MOUSE_RDOWN );
+
+        newEvent.Position = Event.Position;
+        newEvent.MouseButtons = Event.MouseButtons;
+
+        pComponent->ProcessEvent( newEvent );
+      }
+    }
+    return pComponent->ProcessEvent( Event );
   }
 
 

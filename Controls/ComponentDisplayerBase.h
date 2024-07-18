@@ -179,10 +179,11 @@ namespace GUI
 
 
 
-      int TextLength( Interface::IFont* pFont, const GR::String& Text );
-      int TextHeight( Interface::IFont* pFont, const GR::String& Text );
+      int TextLength( Interface::IFont* pFont, const GR::String& Text = GR::String() );
+      int TextHeight( Interface::IFont* pFont, const GR::String& Text = GR::String() );
 
       virtual bool ProcessEvent( const Xtreme::tInputEvent& Event );
+      virtual bool ProcessEventOnComponent( const GUI::ComponentEvent& Event, Component* pComponent );
 
       bool IsVisible( Component* pComponent );
       virtual bool ProcessEvent( const GUI::ComponentEvent& Event );

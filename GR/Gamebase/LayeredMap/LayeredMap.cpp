@@ -43,6 +43,8 @@ namespace GR
       Layers.clear();
       ExtraDatas.clear();
       Regions.clear();
+      Triggers.clear();
+      TriggerGrid.clear();
     }
 
 
@@ -335,7 +337,7 @@ namespace GR
       else
       {
         pObj = new LayerObject();
-        pObj->Position.set( X, Y );
+        pObj->Position.Set( X, Y );
         pObj->Flags = Flags;
       }
       if ( pObj )
@@ -370,7 +372,7 @@ namespace GR
       else
       {
         pObj = new LayerObject();
-        pObj->Position.set( X, Y );
+        pObj->Position.Set( X, Y );
         pObj->Flags = Flags;
       }
       if ( pObj )
@@ -458,19 +460,45 @@ namespace GR
 
 
 
-    void LayeredMap::AddTrigger( const Trigger& Trigger )
+    bool LayeredMap::AddTrigger( const Trigger& Trigger )
     {
       GR::tPoint    gridKey( Trigger.Rect.Left / 1024, Trigger.Rect.Top / 1024 );
 
+      if ( Trigger.ID == -1 )
+      {
+        GR::u32     newID = 1;
+
+        while ( Triggers.find( newID ) != Triggers.end() )
+        {
+          ++newID;
+        }
+
+        auto newTrigger( Trigger );
+
+        newTrigger.ID = newID;
+
+        TriggerGrid[gridKey].insert( newTrigger.ID );
+        Triggers[newTrigger.ID] = newTrigger;
+
+        return true;
+      }
+
+      if ( Triggers.find( Trigger.ID ) != Triggers.end() )
+      {
+        dh::Log( "LayeredMap::AddTrigger, trigger with ID %u already exists!", Trigger.ID );
+        return false;
+      }
+
       TriggerGrid[gridKey].insert( Trigger.ID );
       Triggers[Trigger.ID] = Trigger;
+      return true;
     }
 
 
 
     bool LayeredMap::ActualiseRegion( const GR::tRect& Bounds )
     {
-      if ( CurrentRegion.intersects( Bounds ) )
+      if ( CurrentRegion.Intersects( Bounds ) )
       {
         return true;
       }
@@ -494,7 +522,7 @@ namespace GR
           std::list<GR::tRect>::iterator    itR( it->second.begin() );
           while ( itR != it->second.end() )
           {
-            if ( itR->intersects( Bounds ) )
+            if ( itR->Intersects( Bounds ) )
             {
               CurrentRegion = *itR;
               return true;
@@ -512,7 +540,7 @@ namespace GR
 
     bool LayeredMap::ActualiseRegion( const GR::tPoint& Pos )
     {
-      if ( CurrentRegion.contains( Pos ) )
+      if ( CurrentRegion.Contains( Pos ) )
       {
         return true;
       }
@@ -531,7 +559,7 @@ namespace GR
       std::list<GR::tRect>::iterator    itR( it->second.begin() );
       while ( itR != it->second.end() )
       {
-        if ( itR->contains( Pos ) )
+        if ( itR->Contains( Pos ) )
         {
           CurrentRegion = *itR;
           return true;
@@ -561,23 +589,47 @@ namespace GR
 
 
 
-    bool LayeredMap::CheckTrigger( LayerObject* pObject )
+    bool LayeredMap::CheckTrigger( LayerObject* pObject, bool FirstAppearanceInStage )
     {
       if ( pObject == NULL )
       {
         return false;
       }
+
+      if ( pObject->FlagsExtendeded & GR::Gamebase::LayerObject::OFX_DONT_TRIGGER )
+      {
+        return false;
+      }
+
       GR::tRect   bounds( pObject->Bounds() );
 
       // still inside current trigger?
       if ( pObject->CurrentTrigger != -1 )
       {
-        if ( Triggers[pObject->CurrentTrigger].Rect.intersects( bounds ) )
+        auto& trigger( Triggers[pObject->CurrentTrigger] );
+        if ( trigger.Rect.Intersects( bounds ) )
         {
           RaiseEvent( LayeredMapEvent( LayeredMapEvent::ET_TRIGGER_INSIDE, pObject ) );
+          if ( trigger.Rect.Contains( bounds ) )
+          {
+            RaiseEvent( LayeredMapEvent( LayeredMapEvent::ET_TRIGGER_FULL_INSIDE, pObject ) );
+          }
+          else
+          {
+            // not full inside, may retrigger now
+            if ( ( trigger.Flags & Trigger::TRIGGER_MUST_BE_LEFT_BEFORE_RETRIGGER )
+            &&   ( trigger.Flags & Trigger::TRIGGER_ON_FULL_INSIDE ) )
+            {
+              trigger.Flags &= ~Trigger::TRIGGERED;
+            }
+          }
           return true;
         }
         RaiseEvent( LayeredMapEvent( LayeredMapEvent::ET_TRIGGER_LEAVE, pObject ) );
+        if ( trigger.Flags & Trigger::TRIGGER_MUST_BE_LEFT_BEFORE_RETRIGGER )
+        {
+          trigger.Flags &= ~Trigger::TRIGGERED;
+        }
         pObject->CurrentTrigger = -1;
       }
 
@@ -600,8 +652,17 @@ namespace GR
           std::set<GR::u32>::iterator    itT( it->second.begin() );
           while ( itT != it->second.end() )
           {
-            if ( Triggers[*itT].Rect.intersects( bounds ) )
+            auto& trigger( Triggers[*itT] );
+            if ( trigger.Rect.Intersects( bounds ) )
             {
+              if ( FirstAppearanceInStage )
+              {
+                // do not trigger full_inside if the player appears right on top (must go outside first)
+                if ( trigger.Flags & Trigger::TRIGGER_MUST_BE_LEFT_BEFORE_RETRIGGER )
+                {
+                  trigger.Flags |= Trigger::TRIGGERED;
+                }
+              }
               pObject->CurrentTrigger = *itT;
               RaiseEvent( LayeredMapEvent( LayeredMapEvent::ET_TRIGGER_ENTER, pObject ) );
               return true;

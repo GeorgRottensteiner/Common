@@ -22,8 +22,8 @@ GUIImageList::GUIImageList( int NewX, int NewY, int NewWidth, int NewHeight, GR:
   m_pScrollBar->GetComponent( GUIScrollBar::SB_BUTTON_LEFT_UP )->ModifyVisualStyle( GUI::VFT_TRANSPARENT_BKGND );
   m_pScrollBar->GetComponent( GUIScrollBar::SB_BUTTON_RIGHT_DOWN )->ModifyVisualStyle( GUI::VFT_TRANSPARENT_BKGND );
   m_pScrollBar->GetComponent( GUIScrollBar::SB_SLIDER )->ModifyVisualStyle( GUI::VFT_TRANSPARENT_BKGND );
-  m_pScrollBar->SetLocation( m_ClientRect.size().x - m_pScrollBar->Width(), 0 );
-  m_pScrollBar->SetSize( m_pScrollBar->Width(), m_ClientRect.size().y );
+  m_pScrollBar->SetLocation( m_ClientRect.Width() - m_pScrollBar->Width(), 0 );
+  m_pScrollBar->SetSize( m_pScrollBar->Width(), m_ClientRect.Height() );
 }
 
 
@@ -61,8 +61,8 @@ void GUIImageList::DisplayOnPage( GUIComponentDisplayer& Displayer )
     XTextureSection*    pTexSec = (XTextureSection*)GR::Convert::ToUP( Item.Text, 16 );
     if ( pTexSec )
     {
-      Displayer.DrawTextureSection( rectItem.position().x, rectItem.position().y, *pTexSec, 0xffffffff,
-                                    rectItem.width(), rectItem.height() );
+      Displayer.DrawTextureSection( rectItem.Left, rectItem.Top, *pTexSec, 0xffffffff,
+                                    rectItem.Width(), rectItem.Height() );
     }
 
     ++iItemNr;
@@ -75,8 +75,8 @@ void GUIImageList::DisplayOnPage( GUIComponentDisplayer& Displayer )
 
     Displayer.DrawQuad( rectItem.Left,
                         rectItem.Top,
-                        rectItem.width(),
-                        rectItem.height(),
+                        rectItem.Width(),
+                        rectItem.Height(),
                         0x80ffffff );
   }
   if ( GetItemRect( m_MouseOverItem, rectItem ) )
@@ -84,7 +84,7 @@ void GUIImageList::DisplayOnPage( GUIComponentDisplayer& Displayer )
     Displayer.m_pActualRenderer->SetShader( XRenderer::ST_ALPHA_BLEND );
 
     Displayer.DrawQuad( rectItem.Left, rectItem.Top,
-                        rectItem.width(), rectItem.height(),
+                        rectItem.Width(), rectItem.Height(),
                         0x808080ff );
   }
 }

@@ -45,7 +45,7 @@ namespace math
 
       protected:
 
-        struct tIteratorEntryImpl : public GR::CRefCountObject
+        struct tIteratorEntryImpl : public GR::RefCountObject
         {
           IMathIterator<float>*      m_pIterator;
 
@@ -65,7 +65,7 @@ namespace math
           GR::f32                   m_StartDelayTime;
           GR::f32                   m_IteratorLifeTime;
           ISmartPointer<tIteratorEntryImpl>     m_IteratorImpl;
-          GR::CRefCountObject       m_refCount;
+          GR::RefCountObject        m_refCount;
 
           tIteratorEntry() :
             m_StartDelayTime( 0.0f ),

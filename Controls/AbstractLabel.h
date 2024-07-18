@@ -107,7 +107,7 @@ template <class BASECLASS> class AbstractLabel : public BASECLASS
 
     void SetTextOffsets( const GR::i32 OffsetLeft, const GR::i32 OffsetTop, const GR::i32 OffsetRight = 0, const GR::i32 OffsetBottom = 0 )
     {
-      m_TextPos.set( OffsetLeft, OffsetTop, OffsetRight, OffsetBottom );
+      m_TextPos.Set( OffsetLeft, OffsetTop, OffsetRight, OffsetBottom );
     }
 
 

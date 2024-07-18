@@ -98,6 +98,7 @@ template <class BS_, class EC_, class BT_, class LBC_> class AbstractComboBox : 
       m_pListBox->ModifyFlags( GUI::COMPFT_NOT_SERIALIZABLE );
 
       m_pListBox->ModifyVisualStyle( GUI::VFT_FLAT_BORDER, GUI::VFT_RAISED_BORDER | GUI::VFT_SUNKEN_BORDER );
+      m_pListBox->SetOwner( this );
 
       Add( m_pEdit );
       Add( m_pButtonDropDown );
@@ -107,6 +108,7 @@ template <class BS_, class EC_, class BT_, class LBC_> class AbstractComboBox : 
       m_pListBox->AddEventListener( this );
 
       m_pListBox->ModifyVisualStyle( GUI::VFT_RAISED_BORDER );
+      BASECLASS::SetBaseColors();
     }
 
 
@@ -132,6 +134,7 @@ template <class BS_, class EC_, class BT_, class LBC_> class AbstractComboBox : 
       m_pEdit->ModifyVisualStyle( 0, GUI::VFT_RAISED_BORDER | GUI::VFT_SUNKEN_BORDER );
       m_pButtonDropDown->ModifyFlags( GUI::COMPFT_NOT_SERIALIZABLE );
       m_pListBox->ModifyFlags( GUI::COMPFT_NOT_SERIALIZABLE );
+      m_pListBox->SetOwner( this );
 
       m_pListBox->SetVisible( false );
       m_pListBox->SetCaption( "ComboLBox" );
@@ -146,6 +149,7 @@ template <class BS_, class EC_, class BT_, class LBC_> class AbstractComboBox : 
       m_pEdit->AddListener( this );
       m_pButtonDropDown->AddListener( this );
       m_pListBox->AddListener( this );
+      BASECLASS::SetBaseColors();
     }
 
 
@@ -199,6 +203,10 @@ template <class BS_, class EC_, class BT_, class LBC_> class AbstractComboBox : 
             m_pEdit->Enable( !!Event.Value );
             m_pButtonDropDown->Enable( !!Event.Value );
           }
+          break;
+        case CET_FONT_CHANGED:
+          m_pListBox->SetFont( m_pFont );
+          m_pEdit->SetFont( m_pFont );
           break;
         case CET_MOUSE_WHEEL:
           if ( m_ListBoxOpened )
@@ -310,6 +318,8 @@ template <class BS_, class EC_, class BT_, class LBC_> class AbstractComboBox : 
       GR::tRect   compRect;
 
       GetWindowRect( compRect );
+
+      //dh::Log( "Combo Rect %d,%d", compRect.Left, compRect.Top );
 
       GUI::ComponentContainer* pContainer = GetTopLevelParent();
 

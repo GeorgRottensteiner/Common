@@ -457,9 +457,10 @@ namespace GR
 
 
 
-    void DateTime::SetTime( const std::tm& Time )
+    void DateTime::SetTime( const std::tm& Time, int MicroSeconds )
     {
-      m_Date = Time;
+      m_Date          = Time;
+      m_MicroSeconds  = MicroSeconds;
     }
 
 

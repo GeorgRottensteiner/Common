@@ -194,6 +194,11 @@ template <class BASECLASS> class AbstractButton : public BASECLASS
               {
                 GenerateEventForParent( OET_BUTTON_DOWN, m_ItemData );
                 ModifyStyle( BF_PUSHED );
+                if ( ( !( Style() & BCS_NO_BORDER ) )
+                &&   ( !( VisualStyle() & GUI::VFT_FLAT_BORDER ) ) )
+                {
+                  ModifyVisualStyle( GUI::VFT_SUNKEN_BORDER, GUI::VFT_RAISED_BORDER );
+                }
                 Invalidate();
               }
             }
@@ -215,6 +220,11 @@ template <class BASECLASS> class AbstractButton : public BASECLASS
               {
                 ProcessEvent( CET_BUTTON_PUSHED );
                 ModifyStyle( 0, BF_PUSHED | BF_CAPTURE_PUSHED );
+                if ( ( !( Style() & BCS_NO_BORDER ) )
+                &&   ( !( VisualStyle() & GUI::VFT_FLAT_BORDER ) ) )
+                {
+                  ModifyVisualStyle( GUI::VFT_RAISED_BORDER, GUI::VFT_SUNKEN_BORDER );
+                }
                 Invalidate();
               }
             }
@@ -229,6 +239,11 @@ template <class BASECLASS> class AbstractButton : public BASECLASS
             {
               GenerateEventForParent( OET_BUTTON_DOWN, m_ItemData );
               ModifyStyle( BF_PUSHED | BF_CAPTURE_PUSHED );
+              if ( ( !( Style() & BCS_NO_BORDER ) )
+              &&   ( !( VisualStyle() & GUI::VFT_FLAT_BORDER ) ) )
+              {
+                ModifyVisualStyle( GUI::VFT_SUNKEN_BORDER, GUI::VFT_RAISED_BORDER );
+              }
               SetCapture();
               Invalidate();
             }
@@ -256,6 +271,11 @@ template <class BASECLASS> class AbstractButton : public BASECLASS
             }
           }
           ModifyStyle( 0, BF_PUSHED | BF_CAPTURE_PUSHED );
+          if ( ( !( Style() & BCS_NO_BORDER ) )
+          &&   ( !( VisualStyle() & GUI::VFT_FLAT_BORDER ) ) )
+          {
+            ModifyVisualStyle( GUI::VFT_RAISED_BORDER, GUI::VFT_SUNKEN_BORDER );
+          }
           Invalidate();
           break;
         case CET_MOUSE_IN:
@@ -277,6 +297,11 @@ template <class BASECLASS> class AbstractButton : public BASECLASS
               {
                 GenerateEventForParent( OET_BUTTON_DOWN, m_ItemData );
                 ModifyStyle( BF_PUSHED | BF_CAPTURE_PUSHED | BF_MBUTTON_RELEASED );
+                if ( ( !( Style() & BCS_NO_BORDER ) )
+                &&   ( !( VisualStyle() & GUI::VFT_FLAT_BORDER ) ) )
+                {
+                  ModifyVisualStyle( GUI::VFT_SUNKEN_BORDER, GUI::VFT_RAISED_BORDER );
+                }
               }
             }
           }
@@ -286,6 +311,11 @@ template <class BASECLASS> class AbstractButton : public BASECLASS
           {
             GenerateEventForParent( OET_BUTTON_UP, m_ItemData );
             ModifyStyle( 0, BF_PUSHED );
+            if ( ( !( Style() & BCS_NO_BORDER ) )
+            &&   ( !( VisualStyle() & GUI::VFT_FLAT_BORDER ) ) )
+            {
+              ModifyVisualStyle( GUI::VFT_RAISED_BORDER, GUI::VFT_SUNKEN_BORDER );
+            }
           }
           Invalidate();
           break;

@@ -308,14 +308,14 @@ namespace math
 
       float Length( const vector2& rhs ) const
       {
-        return ( *this - rhs ).length();
+        return ( *this - rhs ).Length();
       }
 
 
 
       scalar_type LengthSquared( const vector2& rhs ) const
       {
-        return ( *this - rhs ).length_squared();
+        return ( *this - rhs ).LengthSquared();
       }
 
 
@@ -393,7 +393,7 @@ namespace math
 
       float AngleTowards( const vector2& v2 )
       {
-        return ( v2 - *this ).angle();
+        return ( v2 - *this ).Angle();
       }
 
 

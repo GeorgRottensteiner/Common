@@ -23,6 +23,8 @@ class LuaInstance
 
     typedef fastdelegate::FastDelegate1<LuaInstance&,int>   tHandlerFunction;
 
+    typedef fastdelegate::FastDelegate1<const GR::String&>  tErrorMessageHandlerFunction;
+
 
   protected:
 
@@ -42,6 +44,8 @@ class LuaInstance
 
     tMapHandler             m_Handler;
 
+    tErrorMessageHandlerFunction  m_ErrorMessageHandler;
+
 
     LuaInstance();
 	  virtual ~LuaInstance();
@@ -52,6 +56,11 @@ class LuaInstance
     void                    Register( lua_CFunction pFunction, const char* FunctionName );
     void                    RegisterHandler( tHandlerFunction Function, const GR::String& FunctionName );
     void                    UnregisterHandler( const GR::String& FunctionName );
+
+    void                    RegisterErrorMessageHandler( tErrorMessageHandlerFunction Function );
+    void                    UnregisterErrorMessageHandler( tErrorMessageHandlerFunction Function );
+    void                    RaiseError( const GR::String& Message );
+    void                    RaiseAlert();
 
     static int              HandlerThunk( lua_State* L );
 

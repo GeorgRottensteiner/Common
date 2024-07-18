@@ -263,11 +263,18 @@ namespace GUI
   {
     switch ( Event.Type )
     {
+      case CET_STYLE_CHANGED:
+        Invalidate();
+        return true;
       case CET_SET_CAPTION:
         {
           GR::String* pString = (GR::String*)Event.Value;
 
-          m_Caption = *pString;
+          if ( m_Caption != *pString )
+          {
+            m_Caption = *pString;
+            Invalidate();
+          }
         }
         return true;
       case CET_DESTROY:
@@ -474,6 +481,7 @@ namespace GUI
         m_Width  = Event.Position.x;
         m_Height = Event.Position.y;
         RecalcClientRect();
+        GenerateEvent( OET_SET_SIZE, m_Width, m_Height );
         return true;
       case CET_SET_CLIENT_SIZE:
         {
@@ -484,6 +492,7 @@ namespace GUI
           m_Height = ptClientSize.y;
 
           RecalcClientRect();
+          GenerateEvent( OET_SET_SIZE, m_Width, m_Height );
         }
         return true;
       case CET_SET_POSITION:
@@ -685,6 +694,7 @@ namespace GUI
     if ( Visible )
     {
       m_ComponentFlags &= ~GUI::COMPFT_INVISIBLE;
+      GenerateEvent( OET_VISIBILITY_CHANGED, 1 );
     }
     else
     {
@@ -706,6 +716,7 @@ namespace GUI
           }
         }
       }
+      GenerateEvent( OET_VISIBILITY_CHANGED, 0 );
     }
   }
 
@@ -1031,6 +1042,7 @@ namespace GUI
   void Component::SetFont( Interface::IFont* pFont )
   {
     m_pFont = pFont;
+    ProcessEvent( ComponentEvent( CET_FONT_CHANGED, this ) );
   }
 
 
@@ -1259,10 +1271,16 @@ namespace GUI
     {
       Rect.Offset( pComponent->Position() );
 
+      const Component* pPrevComponent = pComponent;
+
       pComponent = pComponent->GetComponentParent();
       if ( pComponent )
       {
         Rect.Offset( pComponent->GetClientOffset() );
+      }
+      else
+      {
+        ComponentContainer* pContainer = pPrevComponent->GetParentContainer();
       }
     }
   }
@@ -1304,7 +1322,8 @@ namespace GUI
       return 2;
     }
 
-    return 1;
+    //return 1;
+    return 0;
   }
 
 
@@ -1322,14 +1341,16 @@ namespace GUI
       return 2;
     }
 
-    return 1;
+    //return 1;
+    return 0;
   }
 
 
 
   GR::u32 Component::GetColor( GUI::eColorIndex Index ) const
   {
-    if ( Index < GUI::COL_LAST_ENTRY )
+    if ( ( Index >= GUI::COL_FIRST_ENTRY )
+    &&   ( Index < GUI::COL_LAST_ENTRY ) )
     {
       return m_Colors[Index];
     }
@@ -1340,7 +1361,8 @@ namespace GUI
 
   bool Component::UseCustomColor( GUI::eColorIndex Index ) const
   {
-    if ( Index < GUI::COL_LAST_ENTRY )
+    if ( ( Index >= GUI::COL_FIRST_ENTRY )
+    &&   ( Index < GUI::COL_LAST_ENTRY ) )
     {
       return m_UseCustomColors[Index];
     }
@@ -1351,7 +1373,8 @@ namespace GUI
 
   void Component::SetColor( GUI::eColorIndex Index, const GR::u32 Color, bool IsDefaultColor )
   {
-    if ( Index < GUI::COL_LAST_ENTRY )
+    if ( ( Index >= GUI::COL_FIRST_ENTRY )
+    &&   ( Index < GUI::COL_LAST_ENTRY ) )
     {
       m_Colors[Index]          = Color;
       m_UseCustomColors[Index] = !IsDefaultColor;
@@ -1701,6 +1724,16 @@ namespace GUI
   void Component::Invalidate()
   {
     ComponentDisplayerBase::Instance().Invalidate( this );
+  }
+
+
+
+  void Component::SetBaseColors()
+  {
+    for ( auto color = GUI::COL_FIRST_ENTRY; color < GUI::COL_LAST_ENTRY; color = (GUI::eColorIndex)( (int)color + 1 ) )
+    {
+      SetColor( color, GetSysColor( color ) );
+    }
   }
 
 

@@ -313,8 +313,12 @@ class XRenderer : public GR::IService
 
     virtual void              RenderTextCentered2d( XFont* pFont, int CenterX, int Y, const GR::String& Text, GR::u32 Color = 0xffffffff, float fZ = 0.0f ) = 0;
     virtual void              RenderTextCentered2d( XFont* pFont, int CenterX, int Y, const GR::Char* Text, GR::u32 Color = 0xffffffff, float fZ = 0.0f ) = 0;
+    virtual void              RenderTextCentered2d( XFont* pFont, int CenterX, int Y, const GR::String& Text, float ScaleX, float ScaleY, GR::u32 Color = 0xffffffff, float fZ = 0.0f ) = 0;
+    virtual void              RenderTextCentered2d( XFont* pFont, int CenterX, int Y, const GR::Char* Text, float ScaleX, float ScaleY, GR::u32 Color = 0xffffffff, float fZ = 0.0f ) = 0;
     virtual void              RenderTextRightAligned2d( XFont* pFont, int X, int Y, const GR::String& Text, GR::u32 Color = 0xffffffff, float fZ = 0.0f ) = 0;
     virtual void              RenderTextRightAligned2d( XFont* pFont, int X, int Y, const GR::Char* Text, GR::u32 Color = 0xffffffff, float fZ = 0.0f ) = 0;
+    virtual void              RenderTextRightAligned2d( XFont* pFont, int X, int Y, const GR::String& Text, float ScaleX, float ScaleY, GR::u32 Color = 0xffffffff, float fZ = 0.0f ) = 0;
+    virtual void              RenderTextRightAligned2d( XFont* pFont, int X, int Y, const GR::Char* Text, float ScaleX, float ScaleY, GR::u32 Color = 0xffffffff, float fZ = 0.0f ) = 0;
 
 
     virtual void              RenderText( XFont* pFont, const GR::tVector& vectPos,

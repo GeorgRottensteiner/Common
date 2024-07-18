@@ -27,7 +27,7 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
   
     enum ScrollbarFlagType
     {
-      SBFT_INVALID        = 0x00000000l,
+      SBFT_DEFAULT        = 0x00000000l,
       SBFT_HORIZONTAL     = 0x80000000,
       SBFT_VERTICAL       = 0x00000000,
 
@@ -83,14 +83,16 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
       m_VisibleArea       = 0;
       m_MouseWheelFactor  = 3;
 
-      m_Style             = SBFT_INVALID;
+      m_Style             = SBFT_DEFAULT;
 
       m_ComponentFlags    |= GUI::COMPFT_TAB_STOP;
 
       m_pButtonLeftUp     = new BUTTONCLASS( SB_BUTTON_LEFT_UP );
       m_pButtonLeftUp->ModifyFlags( 0, GUI::COMPFT_TAB_STOP );
+      m_pButtonLeftUp->ModifyVisualStyle( GUI::VFT_RAISED_BORDER );
       m_pButtonRightDown  = new BUTTONCLASS( SB_BUTTON_RIGHT_DOWN );
       m_pButtonRightDown->ModifyFlags( 0, GUI::COMPFT_TAB_STOP );
+      m_pButtonRightDown->ModifyVisualStyle( GUI::VFT_RAISED_BORDER );
       m_pSlider           = new SLIDERCLASS( SB_SLIDER );
       m_pSlider->ModifyFlags( 0, GUI::COMPFT_TAB_STOP );
       m_pSlider->ModifyVisualStyle( GUI::VFT_TRANSPARENT_BKGND );
@@ -156,7 +158,9 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
       }
 
       m_pButtonLeftUp->ModifyFlags( GUI::COMPFT_NOT_SERIALIZABLE );
+      m_pButtonLeftUp->ModifyVisualStyle( GUI::VFT_RAISED_BORDER );
       m_pButtonRightDown->ModifyFlags( GUI::COMPFT_NOT_SERIALIZABLE );
+      m_pButtonRightDown->ModifyVisualStyle( GUI::VFT_RAISED_BORDER );
       m_pSlider->ModifyFlags( GUI::COMPFT_NOT_SERIALIZABLE );
 
       m_pButtonLeftUp->ModifyFlags( 0, GUI::COMPFT_TAB_STOP );
@@ -304,6 +308,18 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
 
       switch ( Event.Type )
       {
+        case CET_SET_SIZE:
+          if ( IsHorizontal() )
+          {
+            m_pButtonLeftUp->SetSize( m_pButtonLeftUp->Width(), BASECLASS::Height() );
+            m_pButtonRightDown->SetSize( m_pButtonRightDown->Width(), BASECLASS::Height() );
+          }
+          else
+          {
+            m_pButtonLeftUp->SetSize( BASECLASS::Width(), m_pButtonLeftUp->Height() );
+            m_pButtonRightDown->SetSize( BASECLASS::Width(), m_pButtonRightDown->Height() );
+          }
+          break;
         case CET_MOUSE_WHEEL:
           if ( m_Min > m_Max )
           {

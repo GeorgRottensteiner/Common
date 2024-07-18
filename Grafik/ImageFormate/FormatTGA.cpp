@@ -187,8 +187,8 @@ namespace GR
       }
 
       if ( ( ucHeader[2] == 9 )
-           || ( ucHeader[2] == 10 )
-           || ( ucHeader[2] == 11 ) )
+      ||   ( ucHeader[2] == 10 )
+      ||   ( ucHeader[2] == 11 ) )
       {
         // dieses Bild ist RL-Encoded
         bRLE = TRUE;
@@ -489,7 +489,7 @@ namespace GR
       // ein umkomprimiertes Bild
       GR::Graphic::ImageData* pTempData = NULL;
       if ( ( pMask != NULL )
-           && ( pData->BitsProPixel() == 24 ) )
+      &&   ( pData->BitsProPixel() == 24 ) )
       {
         pTempData = new GR::Graphic::ImageData( *pData );
 

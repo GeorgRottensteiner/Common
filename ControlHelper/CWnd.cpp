@@ -857,8 +857,8 @@ namespace WindowsWrapper
 
     GetWindowRect( &myRect );
 
-    MoveWindow( ( GetSystemMetrics( SM_CXSCREEN ) - ( myRect.right - myRect.left ) ) / 2,
-                ( GetSystemMetrics( SM_CYSCREEN ) - ( myRect.bottom - myRect.top ) ) / 2 );
+    MoveWindow( ( GetSystemMetrics( SM_CXVIRTUALSCREEN ) - ( myRect.right - myRect.left ) ) / 2,
+                ( GetSystemMetrics( SM_CYVIRTUALSCREEN ) - ( myRect.bottom - myRect.top ) ) / 2 );
 
   }
 

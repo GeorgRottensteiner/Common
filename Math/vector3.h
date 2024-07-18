@@ -147,6 +147,16 @@ namespace math
     //@}
     vector3t& clear()                             { x = y = z = 0; return *this; }
 
+
+
+    bool empty() const
+    {
+      return ( ( x == y )
+        &&     ( y == z ) );
+    }
+
+
+
     //- assignment
     //@{
     // Zuweisungsoperator.

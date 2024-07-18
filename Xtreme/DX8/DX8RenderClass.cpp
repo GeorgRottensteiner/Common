@@ -1634,11 +1634,11 @@ HRESULT CDX8RenderClass::Resize3DEnvironment()
     }
     Log( "Renderer.General", "Resize3DEnvironment: m_pd3dDevice->Reset failed (%x)", hr );
 
-    /*
     dh::Log( "D3DERR_INVALIDCALL %x", D3DERR_INVALIDCALL );
     dh::Log( "D3DERR_OUTOFVIDEOMEMORY %x", D3DERR_OUTOFVIDEOMEMORY  );
+    dh::Log( "D3DERR_DEVICELOST %x", D3DERR_DEVICELOST );
+    dh::Log( "D3DERR_DEVICENOTRESET %x", D3DERR_DEVICENOTRESET );
     dh::Log( "E_OUTOFMEMORY %x", E_OUTOFMEMORY );
-    */
 
     return hr;
   }
@@ -3763,6 +3763,14 @@ bool CDX8RenderClass::ToggleFullscreen()
 
 bool CDX8RenderClass::SetMode( XRendererDisplayMode& DisplayMode )
 {
+  // setting windowed mode directly
+  if ( !DisplayMode.FullScreen )
+  {
+    m_bWindowed = !DisplayMode.FullScreen;
+
+    return SUCCEEDED( Resize3DEnvironment() );
+  }
+
   tListDisplayModes::iterator   it( m_DisplayModes.begin() );
   while ( it != m_DisplayModes.end() )
   {
@@ -3781,6 +3789,7 @@ bool CDX8RenderClass::SetMode( XRendererDisplayMode& DisplayMode )
 
     ++it;
   }
+
   Log( "Renderer.General", CMisc::printf( "CDX8RenderClass::SetMode Try to set invalid mode %dx%d,%d", DisplayMode.Width, DisplayMode.Height, DisplayMode.ImageFormat ) );
   return false;
 }

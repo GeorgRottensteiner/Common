@@ -147,7 +147,22 @@ namespace GR
     bool Framework::BoundKeyPushed( GR::u32 KeyType )
     {
       tBoundsKeys::iterator   it( m_BoundKeys.find( KeyType ) );
-      if ( it == m_BoundKeys.end() )
+      if ( it != m_BoundKeys.end() )
+      {
+        if ( m_pInputClass->VKeyPressed( it->second ) )
+        {
+          return true;
+        }
+      }
+      return SecondaryBoundKeyPushed( KeyType );
+    }
+
+
+
+    bool Framework::SecondaryBoundKeyPushed( GR::u32 KeyType )
+    {
+      tBoundsKeys::iterator   it( m_BoundSecondaryKeys.find( KeyType ) );
+      if ( it == m_BoundSecondaryKeys.end() )
       {
         return false;
       }
@@ -159,7 +174,22 @@ namespace GR
     bool Framework::ReleasedBoundKeyPushed( GR::u32 KeyType )
     {
       tBoundsKeys::iterator   it( m_BoundKeys.find( KeyType ) );
-      if ( it == m_BoundKeys.end() )
+      if ( it != m_BoundKeys.end() )
+      {
+        if ( m_pInputClass->ReleasedVKeyPressed( it->second ) )
+        {
+          return true;
+        }
+      }
+      return ReleasedSecondaryBoundKeyPushed( KeyType );
+    }
+
+
+
+    bool Framework::ReleasedSecondaryBoundKeyPushed( GR::u32 KeyType )
+    {
+      tBoundsKeys::iterator   it( m_BoundSecondaryKeys.find( KeyType ) );
+      if ( it == m_BoundSecondaryKeys.end() )
       {
         return false;
       }
@@ -181,19 +211,44 @@ namespace GR
 
 
 
-    void Framework::SetKeyBinding( GR::u32 KeyType, GR::u32 Key )
+    GR::u32 Framework::SecondaryBoundKey( GR::u32 KeyType )
     {
-      m_BoundKeys[KeyType] = Key;
+      tBoundsKeys::iterator   it( m_BoundSecondaryKeys.find( KeyType ) );
+      if ( it == m_BoundSecondaryKeys.end() )
+      {
+        return 0;
+      }
+      return it->second;
     }
 
 
 
-    void Framework::RemoveKeyBinding( GR::u32 KeyType, GR::u32 Key )
+    void Framework::SetKeyBinding( GR::u32 KeyType, GR::u32 Key, GR::u32 SecondaryKey )
+    {
+      m_BoundKeys[KeyType]          = Key;
+      m_BoundSecondaryKeys[KeyType] = SecondaryKey;
+    }
+
+
+
+    void Framework::SetSecondaryKeyBinding( GR::u32 KeyType, GR::u32 SecondaryKey )
+    {
+      m_BoundSecondaryKeys[KeyType] = SecondaryKey;
+    }
+
+
+
+    void Framework::RemoveKeyBinding( GR::u32 KeyType, GR::u32 Key, GR::u32 SecondaryKey )
     {
       tBoundsKeys::iterator   it( m_BoundKeys.find( KeyType ) );
       if ( it != m_BoundKeys.end() )
       {
         m_BoundKeys.erase( it );
+      }
+      it = m_BoundSecondaryKeys.find( KeyType );
+      if ( it != m_BoundSecondaryKeys.end() )
+      {
+        m_BoundSecondaryKeys.erase( it );
       }
     }
 
@@ -202,6 +257,7 @@ namespace GR
     void Framework::Clear()
     {
       m_BoundKeys.clear();
+      m_BoundSecondaryKeys.clear();
       m_MusicVolume = 80;
       m_FXVolume    = 100;
     }
@@ -249,6 +305,17 @@ namespace GR
       Chunk.AppendI32( m_StoredWindowedMode.Width );
       Chunk.AppendI32( m_StoredWindowedMode.Height );
 
+      Chunk.AppendU32( (GR::u32)m_BoundSecondaryKeys.size() );
+
+      it = m_BoundSecondaryKeys.begin();
+      while ( it != m_BoundSecondaryKeys.end() )
+      {
+        Chunk.AppendU32( it->first );
+        Chunk.AppendU32( it->second );
+
+        ++it;
+      }
+
       return Chunk.Write( ioOut );
     }
 
@@ -276,7 +343,10 @@ namespace GR
         GR::u32     KeyIndex = MemIn.ReadU32();
         GR::u32     KeyValue = MemIn.ReadU32();
 
-        SetKeyBinding( KeyIndex, KeyValue );
+        if ( KeyValue != Xtreme::KEY_INVALID )
+        {
+          SetKeyBinding( KeyIndex, KeyValue );
+        }
       }
 
       m_FXVolume    = MemIn.ReadU32();
@@ -315,6 +385,18 @@ namespace GR
       {
         m_StoredWindowedMode            = m_RenderFrame.m_DisplayMode;
         m_StoredWindowedMode.FullScreen = false;
+      }
+
+      GR::u32       secondaryBoundKeys = MemIn.ReadU32();
+      for ( GR::u32 i = 0; i < secondaryBoundKeys; ++i )
+      {
+        GR::u32     KeyIndex = MemIn.ReadU32();
+        GR::u32     KeyValue = MemIn.ReadU32();
+
+        if ( KeyValue != Xtreme::KEY_INVALID )
+        {
+          SetSecondaryKeyBinding( KeyIndex, KeyValue );
+        }
       }
 
       SetVarI( "FX.Volume", m_FXVolume );

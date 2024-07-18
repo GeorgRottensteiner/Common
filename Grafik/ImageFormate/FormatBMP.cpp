@@ -60,17 +60,6 @@ namespace GR
 
       aFile.ReadBlock( &bmih, sizeof( BITMAPINFOHEADER ) );
 
-      /*
-      if ( bmih.biBitCount < 8 )
-      {
-        aFile.Close();
-        dh::Log( "FormatBMP::Load  biBitCount %d not supported yet.\n", bmih.biBitCount );
-        return NULL;
-      }
-      */
-      //aFile.SetPosition( bmih.biSize - sizeof( BITMAPINFOHEADER ), SEEK_CUR );
-      //aFile.SetPosition( bmfh.bfOffBits, SEEK_SET );
-
       GR::Graphic::eImageFormat    formatBMP = GR::Graphic::IF_UNKNOWN;
 
       if ( bmih.biBitCount == 8 )
@@ -95,7 +84,7 @@ namespace GR
       }
       else if ( bmih.biBitCount == 32 )
       {
-        formatBMP = GR::Graphic::IF_X8R8G8B8;
+        formatBMP = GR::Graphic::IF_A8R8G8B8;
       }
       else
       {
@@ -127,6 +116,7 @@ namespace GR
       }
 
       GR::Graphic::ImageData* pImageData = new GR::Graphic::ImageData();
+      GR::Graphic::ImageData* pImageMask = NULL;
 
       pImageData->CreateData( bmih.biWidth, abs( bmih.biHeight ), formatBMP );
 
@@ -386,7 +376,7 @@ namespace GR
             }
           }
           break;
-        case GR::Graphic::IF_X8R8G8B8:
+        case GR::Graphic::IF_A8R8G8B8:
           {
 
             BYTE* pData = NULL;
@@ -398,6 +388,21 @@ namespace GR
               for ( int i = 0; i < paddedBytes; ++i )
               {
                 aFile.ReadU8();
+              }
+            }
+            // create mask from alpha bytes
+            pImageMask = new GR::Graphic::ImageData();
+            pImageMask->CreateData( bmih.biWidth, abs( bmih.biHeight ), GR::Graphic::IF_PALETTED );
+
+            for ( int j = 0; j < pImageData->Height(); ++j )
+            {
+              GR::u8* pSource = (GR::u8*)pImageData->GetRowData( j ) + 3;
+              GR::u8* pTargetMask = (GR::u8*)pImageMask->GetRowData( j );
+
+              for ( int i = 0; i < pImageData->Width(); ++i )
+              {
+                *pTargetMask++ = *pSource;
+                pSource += 4;
               }
             }
           }
@@ -447,7 +452,7 @@ namespace GR
 
       ImageSet* pSet = new ImageSet();
 
-      pSet->AddFrame( pImageData );
+      pSet->AddFrame( pImageData, pImageMask );
 
       return pSet;
     }
@@ -461,11 +466,12 @@ namespace GR
         return false;
       }
       if ( ( pData->ImageFormat() == GR::Graphic::IF_PALETTED )
-           || ( pData->ImageFormat() == GR::Graphic::IF_MONOCHROME )
-           || ( pData->ImageFormat() == GR::Graphic::IF_INDEX4 )
-           || ( pData->ImageFormat() == GR::Graphic::IF_X1R5G5B5 )
-           || ( pData->ImageFormat() == GR::Graphic::IF_R8G8B8 )
-           || ( pData->ImageFormat() == GR::Graphic::IF_X8R8G8B8 ) )
+      ||   ( pData->ImageFormat() == GR::Graphic::IF_MONOCHROME )
+      ||   ( pData->ImageFormat() == GR::Graphic::IF_INDEX4 )
+      ||   ( pData->ImageFormat() == GR::Graphic::IF_X1R5G5B5 )
+      ||   ( pData->ImageFormat() == GR::Graphic::IF_R8G8B8 )
+      ||   ( pData->ImageFormat() == GR::Graphic::IF_X8R8G8B8 ) 
+      ||   ( pData->ImageFormat() == GR::Graphic::IF_A8R8G8B8 ) )
       {
         return true;
       }
@@ -526,18 +532,44 @@ namespace GR
         }
       }
 
-      for ( int j = pData->Height() - 1; j >= 0; --j )
+      if ( ( ( pData->ImageFormat() == GR::Graphic::IF_X8R8G8B8 )
+      ||     ( pData->ImageFormat() == GR::Graphic::IF_A8R8G8B8 ) )
+      &&   ( pMask != NULL ) )
       {
-        MyFile.WriteBlock( pData->GetRowData( j ), pData->BytesPerLine() );
-        int   padding = ( pData->BytesPerLine() % 4 );
-
-        while ( padding % 4 )
+        ByteBuffer    lineData( pData->BytesPerLine() );
+        for ( int j = pData->Height() - 1; j >= 0; --j )
         {
-          MyFile.WriteU8( 0 );
-          padding++;
+          // need to inject mask values!
+          memcpy( lineData.Data(), pData->GetRowData( j ), pData->BytesPerLine() );
+          for ( int i = 0; i < pData->Width(); ++i )
+          {
+            lineData.SetByteAt( i * 4 + 3, pMask->GetPixel( i, j ) );
+          }
+
+          MyFile.WriteBlock( lineData.Data(), pData->BytesPerLine() );
+          int   padding = ( pData->BytesPerLine() % 4 );
+
+          while ( padding % 4 )
+          {
+            MyFile.WriteU8( 0 );
+            padding++;
+          }
         }
       }
+      else
+      {
+        for ( int j = pData->Height() - 1; j >= 0; --j )
+        {
+          MyFile.WriteBlock( pData->GetRowData( j ), pData->BytesPerLine() );
+          int   padding = ( pData->BytesPerLine() % 4 );
 
+          while ( padding % 4 )
+          {
+            MyFile.WriteU8( 0 );
+            padding++;
+          }
+        }
+      }
       MyFile.Flush();
       GR::u32 size = ( GR::u32 )MyFile.GetSize();
 

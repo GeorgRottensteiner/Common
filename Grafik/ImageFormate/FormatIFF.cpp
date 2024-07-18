@@ -96,7 +96,8 @@ namespace GR
 
               GR::u32   innerChunkType = 0;
 
-              while ( chunkSize > 0 )
+              while ( ( chunkSize > 0 )
+              &&      ( ioIn.DataAvailable() ) )
               {
                 innerChunkType = ioIn.ReadU32();
                 GR::u32   origInnerChunkSize = ( ioIn.ReadU8() << 24 ) + ( ioIn.ReadU8() << 16 ) + ( ioIn.ReadU8() << 8 ) + ioIn.ReadU8();

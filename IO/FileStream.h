@@ -124,7 +124,7 @@ namespace GR
 
         bool                    ReadToBuffer( void* pTarget, unsigned long BytesToRead, unsigned long& BytesRead );
 
-        class FileStreamImpl : public GR::CRefCountObject
+        class FileStreamImpl : public GR::RefCountObject
         {
 
           public:

@@ -27,6 +27,8 @@ namespace GR
   typedef unsigned int                                    u32;
   #if OPERATING_SYSTEM == OS_WINDOWS
   typedef unsigned __int64                                u64;
+  #elif OPERATING_SYSTEM == OS_TANDEM
+  typedef unsigned long long                              u64;
   #else
   typedef uint64_t                                        u64;
   #endif

@@ -34,7 +34,7 @@ namespace GR
           OF_JUMPING              = 0x00080000,
           OF_HMIRROR              = 0x00100000,
           OF_VMIRROR              = 0x00200000,
-          OF_DECORATION           = 0x00400000,
+          OF_DECORATION           = 0x00400000,     // no collision checks
           OF_NO_TILE_COLLISION    = 0x00800000,
           OF_ALIGN_HCENTER        = 0x01000000,
           OF_ALIGN_HRIGHT         = 0x02000000,
@@ -42,7 +42,13 @@ namespace GR
           OF_ALIGN_VBOTTOM        = 0x08000000,
           OF_HIDDEN               = 0x10000000,
           OF_FACING_LEFT          = 0x20000000,
-          OF_HAS_MOVEMENT_PATH    = 0x40000000
+          OF_HAS_MOVEMENT_PATH    = 0x40000000,
+          OF_ALLOW_LEAVING_MAP    = 0x80000000      // this object can move outside the map (albeit m_BlockMovingOutsideMap set)
+        };
+
+        enum ObjectInfoFlagsExtended
+        {
+          OFX_DONT_TRIGGER        = 0x0000000000000001
         };
 
 
@@ -50,6 +56,7 @@ namespace GR
         GR::tPoint          Position;
         GR::u32             CurrentTrigger;
         GR::u32             Flags;
+        GR::u64             FlagsExtendeded;
         GR::u32             ExtraDataID;
         GR::u32             ID;
 
@@ -57,6 +64,7 @@ namespace GR
         LayerObject() :
           CurrentTrigger( -1 ),
           Flags( 0 ),
+          FlagsExtendeded( 0 ),
           ExtraDataID( 0 ),
           ID( 0 )
         {

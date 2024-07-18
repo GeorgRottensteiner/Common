@@ -859,7 +859,7 @@ GR::u32 XBasicInput::MapKeyToVKey( Xtreme::eInputDefaultButtons Key ) const
   tMapDefaultKeys::const_iterator   it2( m_DefaultKeys.find( Key ) );
   if ( it2 == m_DefaultKeys.end() )
   {
-    dh::Log( "XBasicInput::MapKeyToVKey no mapping found" );
+    //dh::Log( "XBasicInput::MapKeyToVKey no mapping found" );
     return 0;
   }
   return it2->second;
@@ -1013,7 +1013,7 @@ bool XBasicInput::LoadBindings( IIOStream& Stream )
       restoreBindingFailed = true;
     }
   }
-  return restoreBindingFailed;
+  return !restoreBindingFailed;
 }
 
 

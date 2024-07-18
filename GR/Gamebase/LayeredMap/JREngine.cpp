@@ -149,7 +149,9 @@ namespace GR
       m_CameraMoveDelay( 0.0f ),
       m_ObjectUserData( 0 ),
       m_MapChanged( false ),
-      m_GravityFactor( 1.0f )
+      m_GravityFactor( 1.0f ),
+      m_SinglePixelWidthBoundsForMovement( true ),
+      m_BlockMovingOutsideMap( false )
     {
       s_pJREngine = this;
 
@@ -385,7 +387,7 @@ namespace GR
       screenOffset.x = Pos.x - m_RenderSize.x / 2;
       screenOffset.y = Pos.y - m_RenderSize.y / 2;
       m_Map.ActualiseRegion( Pos );
-      if ( m_Map.CurrentRegion.width() )
+      if ( m_Map.CurrentRegion.Width() )
       {
         ClipToRect( screenOffset, m_Map.CurrentRegion );
       }
@@ -455,6 +457,11 @@ namespace GR
       {
         m_pGameLayer->AddObject( pObj );
       }
+      if ( pObj->m_ProcessingFlags & GR::Gamebase::ProcessingFlags::AWAKENED )
+      {
+        m_AwakeObjects.remove( pObj );
+        m_AwakeObjects.push_back( pObj );
+      }
     }
 
 
@@ -472,7 +479,7 @@ namespace GR
 
     void JREngine::RemoveObject( GameObject* pObj )
     {
-      dh::Log( "Remove object (%s/%x)", pObj->Template.c_str(), pObj );
+      //dh::Log( "Remove object (%s/%x)", pObj->Template.c_str(), pObj );
       if ( m_pGameLayer != NULL )
       {
         m_pGameLayer->RemoveObject( pObj );
@@ -494,7 +501,7 @@ namespace GR
       else
       {
         pObj = new GameObject();
-        pObj->Position.set( X, Y );
+        pObj->Position.Set( X, Y );
         pObj->Flags = Flags;
       }
       if ( pObj )
@@ -553,17 +560,21 @@ namespace GR
     {
       GR::u32       moveResult = 0;
 
-      pObj->FractPos.offset( DX, DY );
+      pObj->FractPos.Offset( DX, DY );
 
       GR::tRect     objBounds( pObj->Bounds() );
+      GR::tPoint    oldGridPos = m_pGameLayer->GridPos( pObj );
 
       GR::tPoint    movedDelta;
       bool          axisXBlocked = false;
       bool          axisYBlocked = false;
 
-      // make width 1 pixel
-      objBounds.Left = objBounds.Left + objBounds.width() / 2;
-      objBounds.Right = objBounds.Left + 1;
+      if ( m_SinglePixelWidthBoundsForMovement )
+      {
+        // make width 1 pixel
+        objBounds.Left = objBounds.Left + objBounds.Width() / 2;
+        objBounds.Right = objBounds.Left + 1;
+      }
 
 
       while ( ( pObj->FractPos.x >= 1.0f )
@@ -575,7 +586,7 @@ namespace GR
         axisYBlocked = false;
         if ( pObj->FractPos.x >= 1.0f )
         {
-          if ( ( IsAreaBlocked( pObj, GR::tRect( objBounds.Right, objBounds.Top, 1, objBounds.height() ), Dir::R, pLayer, pMovingParent ) )
+          if ( ( IsAreaBlocked( pObj, GR::tRect( objBounds.Right, objBounds.Top, 1, objBounds.Height() ), Dir::R, pLayer, pMovingParent ) )
           ||   ( IsObjectBlockedByOtherObjects( pObj, objBounds, Dir::R, pMovingParent ) ) )
           {
             axisXBlocked = true;
@@ -585,7 +596,7 @@ namespace GR
           }
           else
           {
-            objBounds.offset( 1, 0 );
+            objBounds.Offset( 1, 0 );
             PerformMove( pObj, 1, 0 );
             pObj->FractPos.x -= 1.0f;
             ++movedDelta.x;
@@ -598,7 +609,7 @@ namespace GR
         }
         if ( pObj->FractPos.x < 0.0f )
         {
-          if ( ( IsAreaBlocked( pObj, GR::tRect( objBounds.Left - 1, objBounds.Top, 1, objBounds.height() ), Dir::L, pLayer, pMovingParent ) )
+          if ( ( IsAreaBlocked( pObj, GR::tRect( objBounds.Left - 1, objBounds.Top, 1, objBounds.Height() ), Dir::L, pLayer, pMovingParent ) )
           ||   ( IsObjectBlockedByOtherObjects( pObj, objBounds, Dir::L, pMovingParent ) ) )
           {
             axisXBlocked = true;
@@ -607,7 +618,7 @@ namespace GR
           }
           else
           {
-            objBounds.offset( -1, 0 );
+            objBounds.Offset( -1, 0 );
             PerformMove( pObj, -1, 0 );
             pObj->FractPos.x += 1.0f;
             --movedDelta.x;
@@ -620,7 +631,7 @@ namespace GR
         }
         if ( pObj->FractPos.y >= 1.0f )
         {
-          GR::tRect   downBounds( objBounds.Left, objBounds.Bottom, objBounds.width(), 1 );
+          GR::tRect   downBounds( objBounds.Left, objBounds.Bottom, objBounds.Width(), 1 );
           if ( ( IsAreaBlocked( pObj, downBounds, Dir::D, pLayer, pMovingParent ) )
           ||   ( IsObjectBlockedByOtherObjects( pObj, downBounds, Dir::D, pMovingParent ) ) )
           {
@@ -630,7 +641,7 @@ namespace GR
           }
           else
           {
-            objBounds.offset( 0, 1 );
+            objBounds.Offset( 0, 1 );
             PerformMove( pObj, 0, 1 );
             pObj->FractPos.y -= 1.0f;
             ++movedDelta.y;
@@ -650,7 +661,7 @@ namespace GR
         }
         if ( pObj->FractPos.y < 0.0f )
         {
-          if ( ( IsAreaBlocked( pObj, GR::tRect( objBounds.Left, objBounds.Top - 1, objBounds.width(), 1 ), Dir::U, pLayer, pMovingParent ) )
+          if ( ( IsAreaBlocked( pObj, GR::tRect( objBounds.Left, objBounds.Top - 1, objBounds.Width(), 1 ), Dir::U, pLayer, pMovingParent ) )
           ||   ( IsObjectBlockedByOtherObjects( pObj, objBounds, Dir::U, pMovingParent ) ) )
           {
             axisYBlocked = true;
@@ -659,7 +670,7 @@ namespace GR
           }
           else
           {
-            objBounds.offset( 0, -1 );
+            objBounds.Offset( 0, -1 );
             PerformMove( pObj, 0, -1 );
             pObj->FractPos.y += 1.0f;
             --movedDelta.y;
@@ -696,13 +707,21 @@ namespace GR
       if ( ( movedDelta.x != 0 )
       ||   ( movedDelta.y != 0 ) )
       {
-        RaiseObjectEvent( pObj, GR::Gamebase::ObjectEvent( ObjectEventType::MOVED, movedDelta ) );
+        //RaiseObjectEvent( pObj, GR::Gamebase::ObjectEvent( ObjectEventType::MOVED, movedDelta ) );
         /*
         if ( IsOutsideAwakeArea( pObj ) )
         {
           SleepObject( pObj );
         }*/
       }
+
+      GR::tPoint    newGridPos = m_pGameLayer->GridPos( pObj );
+      if ( oldGridPos != newGridPos )
+      {
+        m_pGameLayer->RemoveObject( oldGridPos, pObj );
+        m_pGameLayer->AddObject( pObj );
+      }
+
       return moveResult;
     }
 
@@ -721,7 +740,7 @@ namespace GR
     {
       GR::u32       moveResult = 0;
 
-      pObj->FractPos.offset( DX, DY );
+      pObj->FractPos.Offset( DX, DY );
 
       GR::tRect     objBounds( pObj->Bounds() );
 
@@ -735,28 +754,28 @@ namespace GR
       {
         if ( pObj->FractPos.x >= 1.0f )
         {
-          objBounds.offset( 1, 0 );
+          objBounds.Offset( 1, 0 );
           m_pGameLayer->MoveObject( pObj, GR::tPoint( 1, 0 ) );
           pObj->FractPos.x -= 1.0f;
           ++movedDelta.x;
         }
         if ( pObj->FractPos.x < 0.0f )
         {
-          objBounds.offset( -1, 0 );
+          objBounds.Offset( -1, 0 );
           m_pGameLayer->MoveObject( pObj, GR::tPoint( -1, 0 ) );
           pObj->FractPos.x += 1.0f;
           --movedDelta.x;
         }
         if ( pObj->FractPos.y >= 1.0f )
         {
-          objBounds.offset( 0, 1 );
+          objBounds.Offset( 0, 1 );
           m_pGameLayer->MoveObject( pObj, GR::tPoint( 0, 1 ) );
           pObj->FractPos.y -= 1.0f;
           ++movedDelta.y;
         }
         if ( pObj->FractPos.y < 0.0f )
         {
-          objBounds.offset( 0, -1 );
+          objBounds.Offset( 0, -1 );
           m_pGameLayer->MoveObject( pObj, GR::tPoint( 0, -1 ) );
           pObj->FractPos.y += 1.0f;
           --movedDelta.x;
@@ -790,28 +809,28 @@ namespace GR
       {
         if ( DX >= 1 )
         {
-          objBounds.offset( 1, 0 );
+          objBounds.Offset( 1, 0 );
           m_pGameLayer->MoveObject( pObj, GR::tPoint( 1, 0 ) );
           --DX;
           ++movedDelta.x;
         }
         if ( DX < 0 )
         {
-          objBounds.offset( -1, 0 );
+          objBounds.Offset( -1, 0 );
           m_pGameLayer->MoveObject( pObj, GR::tPoint( -1, 0 ) );
           ++DX;
           --movedDelta.x;
         }
         if ( DY >= 1 )
         {
-          objBounds.offset( 0, 1 );
+          objBounds.Offset( 0, 1 );
           m_pGameLayer->MoveObject( pObj, GR::tPoint( 0, 1 ) );
           --DY;
           ++movedDelta.y;
         }
         if ( DY < 0 )
         {
-          objBounds.offset( 0, -1 );
+          objBounds.Offset( 0, -1 );
           m_pGameLayer->MoveObject( pObj, GR::tPoint( 0, -1 ) );
           ++DY;
           --movedDelta.x;
@@ -849,6 +868,17 @@ namespace GR
 
 
 
+    bool JREngine::QueryEvent( const GR::Gamebase::QueryEvent& Event )
+    {
+      if ( m_QueryHandler )
+      {
+        return m_QueryHandler( Event );
+      }
+      return false;
+    }
+
+
+
     void JREngine::PerformMove( GameObject* pObj, int DX, int DY )
     {
       if ( !( pObj->m_ProcessingFlags & GR::Gamebase::ProcessingFlags::AWAKENED ) )
@@ -857,7 +887,7 @@ namespace GR
       }
       else
       {
-        pObj->Position.offset( DX, DY );
+        pObj->Position.Offset( DX, DY );
       }
 
       RaiseObjectEvent( pObj, GR::Gamebase::ObjectEvent( ObjectEventType::MOVED, GR::tPoint( DX, DY ) ) );
@@ -875,7 +905,7 @@ namespace GR
       {
         GR::tRect   bounds( pObj->Bounds() );
 
-        bounds = GR::tRect( bounds.Left, bounds.Bottom, bounds.width(), 1 );
+        bounds = GR::tRect( bounds.Left, bounds.Bottom, bounds.Width(), 1 );
 
         // the call changes the carrier!
         if ( !IsObjectBlockedByOtherObjects( pObj, bounds, GR::Gamebase::Dir::D ) )
@@ -921,7 +951,7 @@ namespace GR
       bool          axisYBlocked = false;
 
       // make width 1 pixel
-      objBounds.Left = objBounds.Left + objBounds.width() / 2;
+      objBounds.Left = objBounds.Left + objBounds.Width() / 2;
       objBounds.Right = objBounds.Left + 1;
 
       while ( ( DX != 0 )
@@ -931,14 +961,14 @@ namespace GR
         axisYBlocked = false;
         if ( DX >= 1 )
         {
-          if ( IsAreaBlocked( pObj, GR::tRect( objBounds.Right, objBounds.Top, 1, objBounds.height() ), Dir::R, pLayer, pMovingParent ) )
+          if ( IsAreaBlocked( pObj, GR::tRect( objBounds.Right, objBounds.Top, 1, objBounds.Height() ), Dir::R, pLayer, pMovingParent ) )
           {
             moveResult |= MoveResult::BLOCKED_RIGHT;
             axisXBlocked = true;
           }
           else
           {
-            objBounds.offset( 1, 0 );
+            objBounds.Offset( 1, 0 );
             PerformMove( pObj, 1, 0 );
             --DX;
             ++movedDelta.x;
@@ -951,14 +981,14 @@ namespace GR
         }
         if ( DX < 0 )
         {
-          if ( IsAreaBlocked( pObj, GR::tRect( objBounds.Left - 1, objBounds.Top, 1, objBounds.height() ), Dir::L, pLayer, pMovingParent ) )
+          if ( IsAreaBlocked( pObj, GR::tRect( objBounds.Left - 1, objBounds.Top, 1, objBounds.Height() ), Dir::L, pLayer, pMovingParent ) )
           {
             moveResult |= MoveResult::BLOCKED_LEFT;
             axisXBlocked = true;
           }
           else
           {
-            objBounds.offset( -1, 0 );
+            objBounds.Offset( -1, 0 );
             PerformMove( pObj, -1, 0 );
             ++DX;
             --movedDelta.x;
@@ -971,14 +1001,14 @@ namespace GR
         }
         if ( DY >= 1 )
         {
-          if ( IsAreaBlocked( pObj, GR::tRect( objBounds.Left, objBounds.Bottom, objBounds.width(), 1 ), Dir::D, pLayer, pMovingParent ) )
+          if ( IsAreaBlocked( pObj, GR::tRect( objBounds.Left, objBounds.Bottom, objBounds.Width(), 1 ), Dir::D, pLayer, pMovingParent ) )
           {
             moveResult |= MoveResult::BLOCKED_DOWN;
             axisYBlocked = true;
           }
           else
           {
-            objBounds.offset( 0, 1 );
+            objBounds.Offset( 0, 1 );
             PerformMove( pObj, 0, 1 );
             --DY;
             ++movedDelta.y;
@@ -991,14 +1021,14 @@ namespace GR
         }
         if ( DY < 0 )
         {
-          if ( IsAreaBlocked( pObj, GR::tRect( objBounds.Left, objBounds.Top - 1, objBounds.width(), 1 ), Dir::U, pLayer, pMovingParent ) )
+          if ( IsAreaBlocked( pObj, GR::tRect( objBounds.Left, objBounds.Top - 1, objBounds.Width(), 1 ), Dir::U, pLayer, pMovingParent ) )
           {
             moveResult |= MoveResult::BLOCKED_UP;
             axisYBlocked = true;
           }
           else
           {
-            objBounds.offset( 0, -1 );
+            objBounds.Offset( 0, -1 );
             PerformMove( pObj, 0, -1 );
             ++DY;
             --movedDelta.y;
@@ -1046,6 +1076,14 @@ namespace GR
       {
         m_MovedObjects[pObj] = MovedObjectInfo( pObj, oldGridPos );
       }
+
+      GR::tPoint    newGridPos = m_pGameLayer->GridPos( pObj );
+      if ( oldGridPos != newGridPos )
+      {
+        m_pGameLayer->RemoveObject( oldGridPos, pObj );
+        m_pGameLayer->AddObject( pObj );
+      }
+
       return moveResult;
     }
 
@@ -1123,7 +1161,7 @@ namespace GR
       {
         GameObject* pObj = *itO;
 
-        if ( ( pObj->Bounds().intersects( pCollider->Bounds() ) )
+        if ( ( pObj->Bounds().Intersects( pCollider->Bounds() ) )
         &&   ( pObj->Type == Type ) )
         {
           return pObj;
@@ -1142,7 +1180,7 @@ namespace GR
       {
         GameObject*   pObj = *itO;
 
-        if ( ( pObj->Bounds().intersects( pCollider->Bounds() ) )
+        if ( ( pObj->Bounds().Intersects( pCollider->Bounds() ) )
         &&   ( pObj->Template == Type ) )
         {
           return pObj;
@@ -1161,7 +1199,7 @@ namespace GR
       {
         GameObject*   pObj = *itO;
 
-        if ( pObj->Bounds().intersects( Area ) )
+        if ( pObj->Bounds().Intersects( Area ) )
         {
           ObjectList.push_back( pObj );
         }
@@ -1197,7 +1235,7 @@ namespace GR
       if ( ( CanCollide( pObj1, pObj2, Dir ) )
       ||   ( CanCollide( pObj2, pObj1, OppositeDir( Dir ) ) ) )
       {
-        return pObj1->Bounds().intersects( pObj2->Bounds() );
+        return pObj1->Bounds().Intersects( pObj2->Bounds() );
       }
       return false;
     }
@@ -1336,7 +1374,7 @@ namespace GR
     {
       GR::tRect   bounds( pObj->Bounds() );
 
-      bounds.offset( DX, DY );
+      bounds.Offset( DX, DY );
 
       return IsAreaBlocked( pObj, bounds, Dir, pMovingParent );
     }
@@ -1347,7 +1385,7 @@ namespace GR
     {
       GR::tRect   bounds( pObj->Bounds() );
 
-      bounds.offset( DX, DY );
+      bounds.Offset( DX, DY );
 
       if ( Layer == "All" )
       {
@@ -1465,6 +1503,22 @@ namespace GR
         int     Y1 = Bounds.Top / pLayer->TileSpacingY;
         int     X2 = ( Bounds.Right - 1 ) / pLayer->TileSpacingX;
         int     Y2 = ( Bounds.Bottom - 1 ) / pLayer->TileSpacingY;
+        if ( Bounds.Left < 0 )
+        {
+          --X1;
+        }
+        if ( Bounds.Top < 0 )
+        {
+          --Y1;
+        }
+        if ( Bounds.Right - 1 < 0 )
+        {
+          --X2;
+        }
+        if ( Bounds.Bottom - 1 < 0 )
+        {
+          --Y2;
+        }
 
         GR::u32     blockFlags = 0;
         bool        handledByHandler = false;
@@ -1495,6 +1549,53 @@ namespace GR
         {
           for ( int y = Y1; y <= Y2; ++y )
           {
+            if ( m_BlockMovingOutsideMap )
+            {
+              if ( x < 0 )
+              {
+                if ( !( pObj->Flags & GameObject::ObjectInfoFlags::OF_ALLOW_LEAVING_MAP ) )
+                {
+                  blocked = true;
+                }
+                else if ( QueryEvent( GR::Gamebase::QueryEvent( GR::Gamebase::QueryEventType::ALLOW_MOVE_OUTSIDE_MAP_W, GR::tPoint( x, y ), pObj ) ) )
+                {
+                  blocked = true;
+                }
+              }
+              if ( x >= pLayer->Width() )
+              {
+                if ( !( pObj->Flags & GameObject::ObjectInfoFlags::OF_ALLOW_LEAVING_MAP ) )
+                {
+                  blocked = true;
+                }
+                else if ( QueryEvent( GR::Gamebase::QueryEvent( GR::Gamebase::QueryEventType::ALLOW_MOVE_OUTSIDE_MAP_E, GR::tPoint( x, y ), pObj ) ) )
+                {
+                  blocked = true;
+                }
+              }
+              if ( y < 0 )
+              {
+                if ( !( pObj->Flags & GameObject::ObjectInfoFlags::OF_ALLOW_LEAVING_MAP ) )
+                {
+                  blocked = true;
+                }
+                else if ( QueryEvent( GR::Gamebase::QueryEvent( GR::Gamebase::QueryEventType::ALLOW_MOVE_OUTSIDE_MAP_N, GR::tPoint( x, y ), pObj ) ) )
+                {
+                  blocked = true;
+                }
+              }
+              if ( y >= pLayer->Height() ) 
+              {
+                if ( !( pObj->Flags & GameObject::ObjectInfoFlags::OF_ALLOW_LEAVING_MAP ) )
+                {
+                  blocked = true;
+                }
+                else if ( QueryEvent( GR::Gamebase::QueryEvent( GR::Gamebase::QueryEventType::ALLOW_MOVE_OUTSIDE_MAP_S, GR::tPoint( x, y ), pObj ) ) )
+                {
+                  blocked = true;
+                }
+              }
+            }
             GR::u32     flagFields = FieldFlags( pLayer, x, y );
             GR::u16     field = pLayer->Field( x, y );
 
@@ -1538,8 +1639,8 @@ namespace GR
               int     xOffset = ( Bounds.Left - x * pLayer->TileSpacingX ) % pLayer->TileSpacingX;
               int     yOffset = ( Bounds.Top - y * pLayer->TileSpacingY ) % pLayer->TileSpacingY;
 
-              int     width = math::minValue( Bounds.width(), pLayer->TileSpacingX );
-              int     height = math::minValue( Bounds.height(), pLayer->TileSpacingY );
+              int     width = math::minValue( Bounds.Width(), pLayer->TileSpacingX );
+              int     height = math::minValue( Bounds.Height(), pLayer->TileSpacingY );
 
               for ( int i = 0; i < width; ++i )
               {
@@ -1553,7 +1654,7 @@ namespace GR
                     blockFlags |= TileType::BLOCKING;
 
                     GR::Gamebase::JREvent   blockEvent( GR::Gamebase::JREvent::JRE_BLOCKED_MOVEMENT, pObj );
-                    blockEvent.Pos.set( x, y );
+                    blockEvent.Pos.Set( x, y );
                     RaiseJREvent( blockEvent );
                     blocked = true;
                     i = width;
@@ -1592,7 +1693,7 @@ namespace GR
                     blocked = true;
 
                     GR::Gamebase::JREvent   blockEvent( GR::Gamebase::JREvent::JRE_BLOCKED_MOVEMENT, pObj );
-                    blockEvent.Pos.set( x, y );
+                    blockEvent.Pos.Set( x, y );
                     RaiseJREvent( blockEvent );
                   }
                   if ( tbEvent.TileBlockReaction & TileBlockReaction::REPLACE_TILE )
@@ -1759,6 +1860,13 @@ namespace GR
 
 
 
+    void JREngine::SetQueryHandler( tQueryHandlerFunction Function )
+    {
+      m_QueryHandler = Function;
+    }
+
+
+
     void JREngine::SetJREventHandler( tJREventHandlerFunction Function )
     {
       m_JREventHandler = Function;
@@ -1810,6 +1918,30 @@ namespace GR
             GR::Gamebase::LayeredMap::Trigger& trigger( it->second );
 
             if ( trigger.Flags & GR::Gamebase::LayeredMap::Trigger::TRIGGER_ON_INSIDE )
+            {
+              if ( ( trigger.Flags & GR::Gamebase::LayeredMap::Trigger::TRIGGER_ONCE )
+              &&   ( trigger.Flags & GR::Gamebase::LayeredMap::Trigger::TRIGGERED ) )
+              {
+              }
+              else
+              {
+                RunScript( trigger.EnterScript );
+                FireTrigger( trigger, (GR::Gamebase::GameObject*)Event.pObject );
+                return true;
+              }
+            }
+          }
+          break;
+        case GR::Gamebase::LayeredMap::LayeredMapEvent::ET_TRIGGER_FULL_INSIDE:
+          {
+            GR::Gamebase::LayeredMap::tTrigger::iterator    it( m_Map.Triggers.find( Event.pObject->CurrentTrigger ) );
+            if ( it == m_Map.Triggers.end() )
+            {
+              break;
+            }
+            GR::Gamebase::LayeredMap::Trigger& trigger( it->second );
+
+            if ( trigger.Flags & GR::Gamebase::LayeredMap::Trigger::TRIGGER_ON_FULL_INSIDE )
             {
               if ( ( trigger.Flags & GR::Gamebase::LayeredMap::Trigger::TRIGGER_ONCE )
               &&   ( trigger.Flags & GR::Gamebase::LayeredMap::Trigger::TRIGGERED ) )
@@ -1940,6 +2072,8 @@ namespace GR
               {
                 CenterCameraOnObject( pObj );
               }
+
+              RaiseJREvent( JREvent( JREvent::JRE_WARP_COMPLETED, pObj ) );
             }
             else
             {
@@ -1950,6 +2084,7 @@ namespace GR
                 GR::Game::ExtraData   extraData( ExtraData );
 
                 WarpToMap( ExtraData.Param, extraData.Param1, extraData.Param2 );
+                RaiseJREvent( JREvent( JREvent::JRE_WARP_COMPLETED, m_pControlledObject ) );
               }
               else
               {
@@ -1979,6 +2114,7 @@ namespace GR
       {
         m_AwakeObjects.remove( m_pControlledObject );
         m_pControlledObject->AbortMove();
+        RemoveObjectFromGrid( m_pControlledObject );
       }
 
       InitMap( Path::Append( m_MapPath, MapName ), m_MainLayer, m_ControlObjectName );
@@ -2150,7 +2286,7 @@ namespace GR
         //&&   ( pLayerObj != pMovingParent )
         &&   ( !( pObj->m_ProcessingFlags & ProcessingFlags::DELETE_ME ) )
         &&   ( !( pLayerObj->m_ProcessingFlags & ProcessingFlags::DELETE_ME ) )
-        &&   ( Bounds.intersects( pLayerObj->Bounds() ) ) )
+        &&   ( Bounds.Intersects( pLayerObj->Bounds() ) ) )
         {
           if ( DoesObjectBlockObject( pObj, pLayerObj, Dir ) )
           {
@@ -2213,7 +2349,7 @@ namespace GR
 
     bool JREngine::IsBlockedByObjects( const GR::tRect& Bounds, GR::Gamebase::Dir Dir )
     {
-      GR::tPoint      GridPos = m_pGameLayer->GridPos( Bounds.position() );
+      GR::tPoint      GridPos = m_pGameLayer->GridPos( Bounds.Position() );
       GameObject*     pCarryingObject = NULL;
 
       bool    blocked = false;
@@ -2223,7 +2359,7 @@ namespace GR
       {
         GameObject*    pLayerObj( *itO );
 
-        if ( Bounds.intersects( pLayerObj->Bounds() ) )
+        if ( Bounds.Intersects( pLayerObj->Bounds() ) )
         {
           if ( DoesObjectBlock( pLayerObj, Dir ) )
           {
@@ -2542,7 +2678,7 @@ namespace GR
         screenOffset.y = m_pControlledObject->Position.y - m_RenderSize.y / 2;
 
         m_Map.ActualiseRegion( m_pControlledObject->Bounds() );
-        if ( m_Map.CurrentRegion.width() )
+        if ( m_Map.CurrentRegion.Width() )
         {
           ClipToRect( screenOffset, m_Map.CurrentRegion );
         }
@@ -2581,7 +2717,7 @@ namespace GR
             while ( m_CameraMoveDelay >= 0.002f )
             {
               GR::tPoint      offset( m_CurrentOffsetTarget - m_CurrentOffset );
-              GR::f32         distance = offset.length();
+              GR::f32         distance = offset.Length();
               const GR::f32   cameraAdjustSpeed = 15.0f;
 
               if ( cameraAdjustSpeed >= distance )
@@ -2832,7 +2968,7 @@ namespace GR
     {
       m_CameraMode = CAM_TARGET_POSITION;
       m_CameraStartPos = m_Map.DisplayOffset;
-      m_CameraTargetPos.set( X - m_RenderSize.x / 2, Y - m_RenderSize.y / 2 );
+      m_CameraTargetPos.Set( X - m_RenderSize.x / 2, Y - m_RenderSize.y / 2 );
       m_CameraTargetTime = TimeMS;
       m_CameraMoveTime = 0.0f;
     }

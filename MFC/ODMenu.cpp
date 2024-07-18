@@ -1170,7 +1170,6 @@ BOOL ODMenu::SetMenuItemIcons( UINT uPosition, UINT uFlags, HICON hIconChecked, 
 
 BOOL ODMenu::TrackPopupMenu( UINT nFlags, int x, int y, CWnd* pWnd, LPCRECT lpRect )
 {
-
   m_ChosenMenuItem = 0;
   if ( GetSafeHwnd() != NULL )
   {
@@ -1203,15 +1202,15 @@ BOOL ODMenu::TrackPopupMenu( UINT nFlags, int x, int y, CWnd* pWnd, LPCRECT lpRe
   {
     OffsetRect( &rcWnd, 0, -rcWnd.top );
   }
-  if ( rcWnd.bottom >= GetSystemMetrics( SM_CYSCREEN ) )
+  if ( rcWnd.bottom >= GetSystemMetrics( SM_CYVIRTUALSCREEN ) )
   {
-    OffsetRect( &rcWnd, 0, GetSystemMetrics( SM_CYSCREEN ) - rcWnd.bottom );
+    OffsetRect( &rcWnd, 0, GetSystemMetrics( SM_CYVIRTUALSCREEN ) - rcWnd.bottom );
   }
   if ( rcWnd.left < 0 )
   {
     OffsetRect( &rcWnd, -rcWnd.left, 0 );
   }
-  if ( rcWnd.right >= GetSystemMetrics( SM_CXSCREEN ) )
+  if ( rcWnd.right >= GetSystemMetrics( SM_CXVIRTUALSCREEN ) )
   {
     int   iWidth = rcWnd.right - rcWnd.left;
 
@@ -1229,29 +1228,11 @@ BOOL ODMenu::TrackPopupMenu( UINT nFlags, int x, int y, CWnd* pWnd, LPCRECT lpRe
   {
     dh::Log( "failed to capture\n" );
   }
-  else
-  {
-    //dh::Log( "ich capture\n" );
-  }
   while ( GetSafeHwnd() )
   {
     MSG msg;
     if ( PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE ) )
     {
-      /*
-      if ( ( msg.message == WM_LBUTTONDOWN )
-      ||   ( msg.message == WM_NCLBUTTONDOWN ) )
-      {
-        if ( msg.hwnd != GetSafeHwnd() )
-        {
-          if ( !( nFlags & TPM_NONOTIFY ) )
-          {
-            DestroyWindow();
-            break;
-          }
-        }
-      }
-      */
       if ( msg.message == WM_QUIT )
       {
         break;
@@ -1264,13 +1245,12 @@ BOOL ODMenu::TrackPopupMenu( UINT nFlags, int x, int y, CWnd* pWnd, LPCRECT lpRe
 
         TranslateMessage( &msg );
         DispatchMessage( &msg );
+      }
+      else
+      {
+          PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE );
+      }
     }
-    else
-    {
-        PeekMessage( &msg, NULL, 0, 0, PM_NOREMOVE );
-    }
-  }
-    //AfxPumpMessage();
   }
 
   if ( ( pWnd )

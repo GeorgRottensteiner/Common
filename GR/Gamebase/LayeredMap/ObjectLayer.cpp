@@ -118,16 +118,12 @@ namespace GR
 
     void ObjectLayer::RemoveObject( const GR::tPoint& GridPos, LayerObject* pObj )
     {
-      if ( pObj->Template == "Player" )
-      {
-        dh::Log( "Remove object (%s/%x) from grid %d,%d", pObj->Template.c_str(), pObj, GridPos.x, GridPos.y );
-      }
-
       if ( Objects.find( GridPos ) == Objects.end() )
       {
-        dh::Log( "Removing non existing obj pos 1 (grid pos not initd) (%s/%d)", pObj->Template.c_str(), pObj );
+        //dh::Log( "Removing non existing obj pos 1 (grid pos not initd) (%s/%d)", pObj->Template.c_str(), pObj );
         return;
       }
+      /*
       if ( std::find( Objects[GridPos].begin(), Objects[GridPos].end(), pObj ) == Objects[GridPos].end() )
       {
         dh::Log( "Removing non existing obj (%s/%d)", pObj->Template.c_str(), pObj );
@@ -142,7 +138,7 @@ namespace GR
 
           ++itO;
         }
-      }
+      }*/
       Objects[GridPos].remove( pObj );
     }
 
@@ -216,7 +212,7 @@ namespace GR
           LayerObject*    pObj( *itO );
 
           if ( ( pObj->Template == ObjType )
-          &&   ( pObj->Bounds().intersects( pCollider->Bounds() ) ) )
+          &&   ( pObj->Bounds().Intersects( pCollider->Bounds() ) ) )
           {
             return pObj;
           }

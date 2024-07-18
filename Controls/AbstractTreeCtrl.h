@@ -233,7 +233,7 @@ template <class BS_, class SB_> class AbstractTreeCtrl : public BS_
 
       RecalcClientRect();
 
-      m_pScrollBar = new SCROLLBARCLASS( m_Width - 20, 0, 20, m_Height, SCROLLBARCLASS::SBFT_INVALID, Id );
+      m_pScrollBar = new SCROLLBARCLASS( m_Width - 20, 0, 20, m_Height, SCROLLBARCLASS::SBFT_DEFAULT, Id );
       m_pScrollBar->ModifyFlags( GUI::COMPFT_NOT_SERIALIZABLE );
 
       Add( m_pScrollBar );

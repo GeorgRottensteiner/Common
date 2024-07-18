@@ -204,7 +204,7 @@ namespace GUI
       virtual void          Update( float ElapsedTime );
       
 
-      void                  SetVisible( bool bVisible = true );
+      void                  SetVisible( bool Visible = true );
       bool                  IsVisible();
       bool                  IsEnabled();
       bool                  IsFocused();
@@ -259,10 +259,12 @@ namespace GUI
       GR::u32               GetSysColor( GUI::eColorIndex colIndex ) const;
       bool                  UseCustomColor( GUI::eColorIndex Index ) const;
       void                  SetColor( GUI::eColorIndex Index, const GR::u32 Color, bool IsDefaultColor = false );
+      void                  SetBaseColors();
 
       void                  SetCapture();
 
       friend class ComponentContainer;
+      friend class ComponentDisplayerBase;
 
       void                  RaiseDefaultEvent();
 

@@ -66,6 +66,8 @@ enum ComponentEventType
   CET_ATTACH_COMPONENT          = 0x0000010F,     // request to attach component (hottip for example)
   CET_DETACH_COMPONENT          = 0x00000110,     // request to detach component (hottip for example)
 
+  CET_FONT_CHANGED              = 0x00000120,     // new font is already set
+
   CET_EXTENTS_CHANGED           = 0x00000200,     // die Top-Parent-Fenstergröße hat sich geändert
 
   CET_DRAG_CONTENT_START        = 0x00000300,     // drag content drag is started
@@ -215,6 +217,8 @@ namespace GUI
       void                              ProcessComponentEventQueue();
 
       virtual bool                      ProcessEvent( const GUI::ComponentEvent& Event );
+      virtual bool                      ProcessEventOnComponent( const GUI::ComponentEvent& Event, Component* pComponent );
+
       virtual bool                      ProcessEvent( const GUI::OutputEvent& Event );
 
       void                              SetCaptureToComponent( Component* pComponent );

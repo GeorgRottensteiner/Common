@@ -8,7 +8,8 @@
 
 #include <GR/GRTypes.h>
 
-#include <Controls\AbstractScrollBar.h>
+#include <Controls/AbstractScrollBar.h>
+#include <Controls/ComponentDisplayerBase.h>
 
 
 
@@ -162,7 +163,7 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
 
 
 
-    AbstractListBox( GR::u32 Type = LCS_SINGLE_SELECT, GR::u32 Id = 0 ) :
+    AbstractListBox( GR::u32 Type = LCS_DEFAULT, GR::u32 Id = 0 ) :
       BASECLASS()
     {
       m_ClassName         = "ListBox";
@@ -191,12 +192,12 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
       m_pScrollBar->AddEventListener( this );
 
       UpdateScrollBar();
-
+      BASECLASS::SetBaseColors();
     }
 
 
 
-    AbstractListBox( int X, int Y, int Width, int Height, GR::u32 Type = LCS_SINGLE_SELECT, GR::u32 Id = 0 ) :
+    AbstractListBox( int X, int Y, int Width, int Height, GR::u32 Type = LCS_DEFAULT, GR::u32 Id = 0 ) :
       BASECLASS( X, Y, Width, Height, Id )
     {
       m_ClassName         = "ListBox";
@@ -216,7 +217,7 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
       m_TextAlignment     = GUI::AF_LEFT | GUI::AF_VCENTER;
 
       RecalcClientRect();
-      m_pScrollBar = new SCROLLBARCLASS( m_Width - 20, 0, 20, m_Height, SCROLLBARCLASS::SBFT_INVALID, Id );
+      m_pScrollBar = new SCROLLBARCLASS( m_Width - 20, 0, 20, m_Height, SCROLLBARCLASS::SBFT_DEFAULT, Id );
       m_pScrollBar->ModifyFlags( GUI::COMPFT_NOT_SERIALIZABLE );
 
       Add( m_pScrollBar );
@@ -237,6 +238,7 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
       }
 
       UpdateScrollBar();
+      BASECLASS::SetBaseColors();
     }
 
 
@@ -317,12 +319,20 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
     {
       if ( ItemIndex == -1 )
       {
-        m_SelectedItem = (size_t)-1;
-        GenerateEventForParent( OET_LISTBOX_ITEM_SELECTED, m_SelectedItem );
+        if ( m_SelectedItem != -1 )
+        {
+          m_SelectedItem = (size_t)-1;
+          GenerateEventForParent( OET_LISTBOX_ITEM_SELECTED, m_SelectedItem );
+          BASECLASS::Invalidate();
+        }
         return;
       }
 
       if ( ItemIndex >= m_Items.size() )
+      {
+        return;
+      }
+      if ( m_SelectedItem == ItemIndex )
       {
         return;
       }
@@ -346,6 +356,7 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
       tListBoxItem&   Item = *it;
 
       GenerateEventForParent( OET_LISTBOX_ITEM_SELECTED, m_SelectedItem, Item.ItemData );
+      BASECLASS::Invalidate();
     }
 
 
@@ -373,6 +384,7 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
           m_pScrollBar->SetSize( m_pScrollBar->Width(), m_ClientRect.Height() );
 
           UpdateScrollBar();
+          BASECLASS::Invalidate();
           return true;
         case CET_MOUSE_WHEEL:
           if ( ( IsMouseInside() )
@@ -386,8 +398,12 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
           }
           return true;
         case CET_MOUSE_OUT:
-          m_MouseOverItem = (size_t)-1;
-          GenerateEventForParent( OET_ITEM_HOVER, -1 );
+          if ( m_MouseOverItem != -1 )
+          {
+            m_MouseOverItem = (size_t)-1;
+            GenerateEventForParent( OET_ITEM_HOVER, -1 );
+            BASECLASS::Invalidate();
+          }
           return true;
         case CET_KEY_DOWN:
           if ( ( !m_Items.empty() )
@@ -496,6 +512,7 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
               {
                 m_MouseOverItem = iItem;
                 GenerateEventForParent( OET_ITEM_HOVER, m_MouseOverItem, GetItemData( m_MouseOverItem ) );
+                BASECLASS::Invalidate();
               }
             }
           }
@@ -565,7 +582,11 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
       {
         if ( Event.pComponent == m_pScrollBar )
         {
-          m_FirstVisibleItem = Event.Param1 * m_ItemsPerLine;
+          if ( m_FirstVisibleItem != Event.Param1 * m_ItemsPerLine )
+          {
+            m_FirstVisibleItem = Event.Param1 * m_ItemsPerLine;
+            BASECLASS::Invalidate();
+          }
         }
       }
       return false;
@@ -604,6 +625,7 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
       newItem.ItemData  = ItemData;
 
       UpdateScrollBar();
+      BASECLASS::Invalidate();
       return m_Items.size() - 1;
     }
 
@@ -620,6 +642,7 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
       std::advance( it, ItemIndex );
 
       m_Items.erase( it );
+      BASECLASS::Invalidate();
 
       UpdateScrollBar();
     }
@@ -635,6 +658,7 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
         GenerateEventForParent( OET_ITEM_HOVER, m_MouseOverItem, GetItemData( m_MouseOverItem ) );
       }
       m_MouseOverItem = (size_t)-1;
+      BASECLASS::Invalidate();
 
       UpdateScrollBar();
     }
@@ -678,6 +702,7 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
           tListBoxItem&   listItem = *it;
 
           listItem.Text = Text;
+          BASECLASS::Invalidate();
           return;
         }
         --ItemIndex;
@@ -791,6 +816,7 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
       GR::u32 uResult = BASECLASS::ModifyStyle( dwAdd, dwRemove );
 
       UpdateScrollBar();
+      BASECLASS::Invalidate();
       return uResult;
     }
 
@@ -798,7 +824,6 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
 
     virtual void SetItemSize( int Height, int Width = 0 )
     {
-
       m_ItemHeight = Height;
       if ( m_ItemHeight <= 0 )
       {
@@ -826,8 +851,10 @@ template <class BS_, class SB_> class AbstractListBox : public BS_
         m_ItemWidth = m_ClientRect.Width() - m_pScrollBar->Width();
       }
       UpdateScrollBar();
-
+      BASECLASS::Invalidate();
     }
+
+
 
     SCROLLBARCLASS* GetScrollbar() const
     {

@@ -93,4 +93,21 @@ namespace WindowsWrapper
     return ( int )::SendMessageW( m_hWnd, EM_CHARFROMPOS, 0, MAKELPARAM( pt.x, pt.y ) );
   }
 
+
+
+  LRESULT CEdit::WindowProc( UINT message, WPARAM wParam, LPARAM lParam )
+  {
+    if ( message == WM_CHAR )
+    {
+      if ( wParam == 1 )
+      {
+        SetSel( 0, -1 );
+        return 1;
+      }
+    }
+    return CWnd::WindowProc( message, wParam, lParam );
+  }
+
+
+
 }

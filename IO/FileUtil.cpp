@@ -774,6 +774,70 @@ namespace GR
         {
           return false;
         }
+#elif ( OPERATING_SYSTEM == OS_TANDEM ) && ( OPERATING_SUB_SYSTEM == OS_SUB_GUARDIAN )
+        short fileHandle = 0;
+        short lastError = FILE_OPEN_( Name.c_str(), (short)Name.length(), &fileHandle, 1, 0 );
+        if (_status_lt( lastError ))
+        {
+          return false;
+        }
+
+
+        ByteBuffer    ItemList;
+        ByteBuffer    ValueList;
+
+        // Creation time
+        ItemList.AppendU16NetworkOrder( 54 );
+        ValueList.Resize( 8 );
+
+        GR::u16   returnedBytes = 0;
+        short     errorItem = -1;
+
+        _cc_status status = FILE_GETINFOLIST_( fileHandle,
+                                               (short*)ItemList.Data(), (short)(ItemList.Size() / 2),
+                                               (short*)ValueList.Data(), (short)ValueList.Size(),
+                                               &returnedBytes,
+                                               &errorItem );
+        FILE_CLOSE_( fileHandle );
+        if (_status_lt( status ))
+        {
+          return false;
+        }
+        GR::u64     julianTimestamp = ValueList.U64NetworkOrderAt( 0 );
+        ByteBuffer  gregorian( 8 * sizeof( short ) );
+
+        // 8 16bit values
+        // DATE ^ AND ^ TIME[0] !Gregorian year such as 1990 (1 - 4000)
+        // DATE ^ AND ^ TIME[1] !Gregorian month( 1 - 12 )
+        // DATE ^ AND ^ TIME[2] !Gregorian day of the month( 1 - 31 )
+        // DATE ^ AND ^ TIME[3] !Hour of the day( 0 - 23 )
+        // DATE ^ AND ^ TIME[4] !Minute of the hour( 0 - 59 )
+        // DATE ^ AND ^ TIME[5] !Second of the minute( 0 - 59 )
+        // DATE ^ AND ^ TIME[6] !Millisecond of the second( 0 - 999 )
+        // DATE ^ AND ^ TIME[7] !Microsecond of the millisecond( 0 - 999 )
+
+        status = INTERPRETTIMESTAMP( julianTimestamp, (short*)gregorian.Data() );
+        if (gregorian.U16At( 0 ) == (GR::u16)-1)
+        {
+          return false;
+        }
+
+        std::tm   timeStamp;
+
+        timeStamp.tm_mday = gregorian.U16NetworkOrderAt( 4 );
+        //timeStamp.tm_wday   = DayO sysTime.wDayOfWeek;
+        timeStamp.tm_hour = gregorian.U16NetworkOrderAt( 6 );
+        timeStamp.tm_min = gregorian.U16NetworkOrderAt( 8 );
+        timeStamp.tm_mon = gregorian.U16NetworkOrderAt( 2 ) - 1;
+        timeStamp.tm_sec = gregorian.U16NetworkOrderAt( 10 );
+        timeStamp.tm_year = gregorian.U16NetworkOrderAt( 0 ) - 1900;
+        timeStamp.tm_isdst = -1; // "not known"
+
+        // fill in day of year
+        mktime( &timeStamp );
+        ModificationTimeUTC.SetTime( timeStamp, gregorian.U16NetworkOrderAt( 12 ) * 1000 + gregorian.U16NetworkOrderAt( 14 ) );
+
+        return true;
 #endif
 
         // SYSTEMTIME to tm
@@ -796,7 +860,7 @@ namespace GR
 
         // fill in day of year
         mktime( &timeStamp );
-        CreationTimeUTC.SetTime( timeStamp );
+        CreationTimeUTC.SetTime( timeStamp, sysCreationTime.wMilliseconds * 1000 );
         return true;
       }
 
@@ -861,7 +925,7 @@ namespace GR
 
         // fill in day of year
         mktime( &timeStamp );
-        ModificationTimeUTC.SetTime( timeStamp );
+        ModificationTimeUTC.SetTime( timeStamp, sysTime.wMilliseconds * 1000 );
         return true;
 #elif ( OPERATING_SYSTEM == OS_TANDEM ) && ( OPERATING_SUB_SYSTEM == OS_SUB_GUARDIAN )
         short fileHandle = 0;
@@ -895,6 +959,16 @@ namespace GR
         GR::u64     julianTimestamp = ValueList.U64NetworkOrderAt( 0 );
         ByteBuffer  gregorian( 8 * sizeof( short ) );
 
+        // 8 16bit values
+        // DATE ^ AND ^ TIME[0] !Gregorian year such as 1990 (1 - 4000)
+        // DATE ^ AND ^ TIME[1] !Gregorian month( 1 - 12 )
+        // DATE ^ AND ^ TIME[2] !Gregorian day of the month( 1 - 31 )
+        // DATE ^ AND ^ TIME[3] !Hour of the day( 0 - 23 )
+        // DATE ^ AND ^ TIME[4] !Minute of the hour( 0 - 59 )
+        // DATE ^ AND ^ TIME[5] !Second of the minute( 0 - 59 )
+        // DATE ^ AND ^ TIME[6] !Millisecond of the second( 0 - 999 )
+        // DATE ^ AND ^ TIME[7] !Microsecond of the millisecond( 0 - 999 )
+
         status = INTERPRETTIMESTAMP( julianTimestamp, (short*)gregorian.Data() );
         if ( gregorian.U16At( 0 ) == (GR::u16)-1 )
         {
@@ -914,7 +988,7 @@ namespace GR
 
         // fill in day of year
         mktime( &timeStamp );
-        ModificationTimeUTC.SetTime( timeStamp );
+        ModificationTimeUTC.SetTime( timeStamp, gregorian.U16NetworkOrderAt( 12 ) * 1000 + gregorian.U16NetworkOrderAt( 14 ) );
 
         return true;
 #else

@@ -42,7 +42,7 @@ namespace GR
     {
       GR::tRect     curBounds( m_Bounds );
 
-      curBounds.offset( Position );
+      curBounds.Offset( Position );
 
       return curBounds;
     }
@@ -69,7 +69,14 @@ namespace GR
         }
       }
 
-      JREngine.MoveObject( this, m_Delta.x * ElapsedTime, m_Delta.y * ElapsedTime );
+      if ( Flags & OF_NO_TILE_COLLISION )
+      {
+        JREngine.MoveObjectNonBlocking( this, m_Delta.x * ElapsedTime, m_Delta.y * ElapsedTime );
+      }
+      else
+      {
+        JREngine.MoveObject( this, m_Delta.x * ElapsedTime, m_Delta.y * ElapsedTime );
+      }
 
       HandleJump( JREngine, ElapsedTime );
 
@@ -207,7 +214,7 @@ namespace GR
         {
           GR::tRect   bounds( Bounds() );
 
-          bounds = GR::tRect( bounds.Left, bounds.Bottom, bounds.width(), 1 );
+          bounds = GR::tRect( bounds.Left, bounds.Bottom, bounds.Width(), 1 );
 
           // the call changes the carrier!
           if ( !JREngine.IsObjectBlockedByOtherObjects( this, bounds, GR::Gamebase::Dir::D ) )
@@ -232,7 +239,7 @@ namespace GR
       bounds.Bottom = bounds.Top + 1;
 
       // 1 pixel width
-      bounds.Left = bounds.Left + bounds.width() / 2;
+      bounds.Left = bounds.Left + bounds.Width() / 2;
       bounds.Right = bounds.Left + 1;
       if ( !JREngine.IsAreaBlocked( this, bounds, GR::Gamebase::Dir::D, "All" ) )
       {

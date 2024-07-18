@@ -225,7 +225,7 @@ void CDeskGame::GetMousePos( GR::tPoint& Pos )
     pt.y = (int)( pt.y * m_FixedHeight / m_Height );
   }
 
-  Pos.set( pt.x, pt.y );
+  Pos.Set( pt.x, pt.y );
 }
 
 

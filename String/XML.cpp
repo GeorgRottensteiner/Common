@@ -69,7 +69,7 @@ namespace GR
       m_pParent( NULL ),
       m_Type( Type )
     {
-      // Sonderzeichen im Data übersetzen
+      // Sonderzeichen im Data Ã¼bersetzen
       Content( ContentArg );
     }
 
@@ -491,7 +491,7 @@ namespace GR
           tXMLAttribute&    Attribute = *itAttr;
 
           result += Attribute.AttributeName;
-          // Parameter-Inhalt in Anführungszeichen
+          // Parameter-Inhalt in AnfÃ¼hrungszeichen
           result += "=\"";
           result += XML::XMLEncode( Attribute.AttributeValue );
           result += "\"";
@@ -556,7 +556,7 @@ namespace GR
         ++itChild;
       }
 
-      // Tag schließen
+      // Tag schlieÃŸen
       if ( !m_Childs.empty() )
       {
         result += indent;
@@ -655,7 +655,7 @@ namespace GR
         return m_Content;
       }
 
-      // für Files müssen einige Zeichen durch Codes ersetzt werden
+      // fÃ¼r Files mÃ¼ssen einige Zeichen durch Codes ersetzt werden
       if ( m_IsCDataContent )
       {
         GR::String     Result = "![CDATA[";
@@ -951,7 +951,7 @@ namespace GR
 
       size_t      size = (size_t)ioIn.GetSize();
 
-      //dh::Log( "XML::Load Grösse %d", dwSize );
+      //dh::Log( "XML::Load GrÃ¶sse %d", dwSize );
 
 
       char*         pDataBlock = new char[size];
@@ -976,7 +976,7 @@ namespace GR
         }
         else
         {
-          // wir ignorieren erstmal die Möglichkeit des verkehrten Byte Orderings
+          // wir ignorieren erstmal die MÃ¶glichkeit des verkehrten Byte Orderings
           // ASCII
           GR::WString      Temp;
 
@@ -1086,7 +1086,7 @@ namespace GR
         &&        ( pTagStart == pData ) )
         {
           // ein DTD-Element (Kommentar?)
-          // einfach überlesen
+          // einfach Ã¼berlesen
           int   EckBracketNestLevel = 0;
 
           while ( pos < Length )
@@ -1252,7 +1252,7 @@ namespace GR
       {
         return -1;
       }
-      // einfach überlesen
+      // einfach Ã¼berlesen
       int   tagEnd = xmlText.indexOf( '>', iTagStart );
       int   bracketStart = xmlText.indexOf( '[', iTagStart );
       if ( bracketStart == -1 )
@@ -1319,7 +1319,7 @@ namespace GR
 
         if ( Tag.find( "xml" ) != 0 )
         {
-          // das muß ?XML... sein!
+          // das muÃŸ ?XML... sein!
           dh::Log( "XML::ParseTag no xml signature" );
           return false;
         }
@@ -1388,7 +1388,7 @@ namespace GR
           }
           else if ( Tag.at( pos ) == cStartApostrophe )
           {
-            // nur wenn Anfangs- und End-Apostroph übereinstimmen
+            // nur wenn Anfangs- und End-Apostroph Ã¼bereinstimmen
             apostrophe = false;
           }
         }
@@ -1577,13 +1577,13 @@ namespace GR
         //m_pCurrentElement = m_pCurrentElement->Parent();
 
 
-        // das Abschlußtag wird ja nicht wirklich gebraucht
+        // das AbschluÃŸtag wird ja nicht wirklich gebraucht
         //delete pElement;
         pElement = NULL;
       }
       else if ( closingTag )
       {
-        // prüfen, ob opentag stimmt
+        // prÃ¼fen, ob opentag stimmt
         if ( m_pCurrentElement->m_Type != pElement->m_Type )
         {
           dh::Log( "mismatching closed tag! (%s != %s)", m_pCurrentElement->m_Type.c_str(), pElement->m_Type.c_str() );
@@ -1610,7 +1610,7 @@ namespace GR
         m_pCurrentElement = m_pCurrentElement->Parent();
 
 
-        // das Abschlußtag wird ja nicht wirklich gebraucht
+        // das AbschluÃŸtag wird ja nicht wirklich gebraucht
         delete pElement;
         pElement = NULL;
       }
@@ -2121,7 +2121,7 @@ namespace GR
     {
       GR::String       ReturnContent = ToEncode;
 
-      // & muß als erstes!
+      // & muÃŸ als erstes!
       ReturnContent = GR::Strings::Replace( ReturnContent, "&", "&amp;" );
       ReturnContent = GR::Strings::Replace( ReturnContent, "<", "&lt;" );
       ReturnContent = GR::Strings::Replace( ReturnContent, ">", "&gt;" );

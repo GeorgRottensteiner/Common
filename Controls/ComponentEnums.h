@@ -24,7 +24,13 @@ namespace GUI
     COMPFT_OWNER_DRAW         = 0x00004000,   // Komponente wird über Event gezeichnet
     COMPFT_DRAG_CONTENT       = 0x00008000,   // hat drag-baren Content
     COMPFT_DRAG_CONTENT_TARGET= 0x00010000,   // kann drag-baren Content annehmen
-    COMPFT_OWNER_DRAW_ITEM    = 0x00020000    // Subitems werden über Event gezeichnet
+    COMPFT_OWNER_DRAW_ITEM    = 0x00020000,   // Subitems werden über Event gezeichnet
+    COMPFT_ROOT_WINDOW        = 0x00040000,   // is a independent root window (receives native "parent")
+    COMPFT_NATIVE_CAPTION     = 0x00080000,
+    COMPFT_NATIVE_RESIZABLE   = 0x00100000,
+    COMPFT_NATIVE_MINIMIZABLE = 0x00200000,
+    COMPFT_NATIVE_MAXIMIZABLE = 0x00400000,
+    COMPFT_NATIVE_CLOSEABLE   = 0x00800000
   };
 
   enum VisualFlagType
@@ -80,6 +86,7 @@ namespace GUI
 
   enum eColorIndex
   {
+    COL_FIRST_ENTRY   = 0,
     COL_SCROLLBAR     = 0,
     COL_BACKGROUND,
     COL_ACTIVECAPTION,

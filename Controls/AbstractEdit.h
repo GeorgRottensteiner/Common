@@ -148,6 +148,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
       }
       ModifyStyle( 0, 0 );
       RecalcClientRect();
+      BASECLASS::SetBaseColors();
     }
 
 
@@ -201,6 +202,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
       }
       ModifyStyle( 0, 0 );
       RecalcClientRect();
+      BASECLASS::SetBaseColors();
     }
 
 
@@ -343,6 +345,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
             m_pScrollBarH->SetLocation( 0, m_ClientRect.Height() - m_pScrollBarH->Height() );
             m_pScrollBarH->SetSize( m_ClientRect.Width() - m_pScrollBarV->Width(), m_pScrollBarH->Height() );
             UpdateScrollBars();
+            BASECLASS::Invalidate();
           }
           return true;
         case CET_MOUSE_DOWN:
@@ -352,6 +355,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
             m_SelectionAnchorLine = -1;
             SetCapture();
             m_Capturing = true;
+            BASECLASS::Invalidate();
           }
           break;
         case CET_MOUSE_UP:
@@ -363,6 +367,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
             {
               m_SelectionAnchor = -1;
               m_SelectionAnchorLine = -1;
+              BASECLASS::Invalidate();
             }
           }
           break;
@@ -390,6 +395,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
               if ( iPos <= 0 )
               {
                 m_CursorPosInText = 0;
+                BASECLASS::Invalidate();
               }
               else if ( iMouseLine < (int)m_Text.size() )
               {
@@ -409,6 +415,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
                       if ( iPos - iLength > iTextLength / 2 )
                       {
                         m_CursorPosInText++;
+                        BASECLASS::Invalidate();
                       }
                       break;
                     }
@@ -418,6 +425,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
                   &&   ( iPos > iLength ) )
                   {
                     m_CursorPosInText = m_Text[iMouseLine].length();
+                    BASECLASS::Invalidate();
                   }
                 }
               }
@@ -430,6 +438,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
                 {
                   m_SelectionAnchor      = (int)m_CursorPosInText;
                   m_SelectionAnchorLine  = iMouseLine;
+                  BASECLASS::Invalidate();
                 }
               }
               UpdateCursorPos();
@@ -455,6 +464,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
               m_SelectionAnchor = -1;
               m_SelectionAnchorLine = -1;
               UpdateScrollBars();
+              BASECLASS::Invalidate();
               GenerateEventForParent( OET_EDIT_CHANGE );
               return true;
             }
@@ -468,6 +478,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
               }
               m_Text[m_CursorLine] = strNew;
               UpdateScrollBars();
+              BASECLASS::Invalidate();
               GenerateEventForParent( OET_EDIT_CHANGE );
               return true;
             }
@@ -479,6 +490,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
                 m_Text[m_CursorLine] += m_Text[m_CursorLine + 1];
                 m_Text.erase( m_Text.begin() + m_CursorLine + 1 );
                 UpdateScrollBars();
+                BASECLASS::Invalidate();
                 GenerateEventForParent( OET_EDIT_CHANGE );
               }
               return true;
@@ -503,18 +515,28 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
                 m_CursorPosInText = 0;
                 UpdateCursorPos();
                 UpdateScrollBars();
+                BASECLASS::Invalidate();
               }
             }
             else if ( m_CursorPosInText )
             {
+              GR::tPoint    ptSelStart;
+              GR::tPoint    ptSelEnd;
+
+              GetCurSel( ptSelStart, ptSelEnd );
+
               if ( UpdateSelectionOnInput( !!( Event.Value & Xtreme::tInputEvent::KF_SHIFT_PUSHED ) ) )
               {
+                m_CursorPosInText = ptSelStart.x;
+                UpdateCursorPos();
+                BASECLASS::Invalidate();
                 return true;
               }
               m_CursorPosInText = 0;
               m_TextOffset = 0;
               UpdateCursorPos();
               UpdateScrollBars();
+              BASECLASS::Invalidate();
             }
             return true;
           }
@@ -535,6 +557,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
                 UpdateCursorPos();
                 UpdateScrollBars();
                 EnsureCursorVisible();
+                BASECLASS::Invalidate();
               }
             }
             else if ( m_CursorPosInText < (int)m_Text[m_CursorLine].length() )
@@ -546,6 +569,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
               m_CursorPosInText = (int)m_Text[m_CursorLine].length();
               UpdateCursorPos();
               UpdateScrollBars();
+              BASECLASS::Invalidate();
             }
             return true;
           }
@@ -574,6 +598,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
                 m_SelectionAnchor = -1;
                 m_SelectionAnchorLine = -1;
               }
+              BASECLASS::Invalidate();
             }
           }
           else if ( ( Event.Character == Xtreme::KEY_DOWN )
@@ -601,6 +626,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
                 m_SelectionAnchor = -1;
                 m_SelectionAnchorLine = -1;
               }
+              BASECLASS::Invalidate();
             }
           }
           else if ( ( Event.Character == Xtreme::KEY_LEFT )
@@ -622,6 +648,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
               m_SelectionAnchor = -1;
               m_SelectionAnchorLine = -1;
             }
+            BASECLASS::Invalidate();
             return true;
           }
           else if ( ( Event.Character == Xtreme::KEY_RIGHT )
@@ -642,6 +669,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
               m_SelectionAnchor = -1;
               m_SelectionAnchorLine = -1;
             }
+            BASECLASS::Invalidate();
             return true;
           }
           else if ( Event.Character == Xtreme::KEY_C )
@@ -665,6 +693,8 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
               {
                 System::Clipboard::TextToClipboard( selection );
                 ReplaceSelection( "" );
+                BASECLASS::Invalidate();
+                GenerateEventForParent( OET_EDIT_CHANGE );
               }
               return true;
             }
@@ -691,8 +721,18 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
                 {
                   InsertText( GR::tPoint( (int)m_CursorPosInText, (int)m_CursorLine ), clipText );
                 }
+                BASECLASS::Invalidate();
                 GenerateEventForParent( OET_EDIT_CHANGE );
               }
+              return true;
+            }
+          }
+          else if ( Event.Character == Xtreme::KEY_A )
+          {
+            if ( Event.Value & Xtreme::tInputEvent::KF_CTRL_PUSHED )
+            {
+              // select all!
+              SelectAll();
               return true;
             }
           }
@@ -703,6 +743,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
               ReplaceSelection( "" );
               m_SelectionAnchor = -1;
               m_SelectionAnchorLine = -1;
+              BASECLASS::Invalidate();
               GenerateEventForParent( OET_EDIT_CHANGE );
             }
             else if ( m_CursorPosInText )
@@ -717,7 +758,7 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
               m_CursorPosInText--;
               UpdateCursorPos();
               UpdateScrollBars();
-
+              BASECLASS::Invalidate();
               GenerateEventForParent( OET_EDIT_CHANGE );
             }
             return true;
@@ -754,12 +795,12 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
               m_CursorPosInText = 0;
               UpdateCursorPos();
               EnsureCursorVisible();
-
               bChanged = true;
             }
             if ( bChanged )
             {
               UpdateScrollBars();
+              BASECLASS::Invalidate();
               GenerateEventForParent( OET_EDIT_CHANGE );
             }
             return true;
@@ -847,19 +888,20 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
               }
               else
               {
-                GR::String   strNew = m_Text[m_CursorLine].substr( 0, m_CursorPosInText );
+                GR::String   updatedText = m_Text[m_CursorLine].substr( 0, m_CursorPosInText );
 
-                strNew += cDummy;
+                updatedText += cDummy;
 
                 if ( m_CursorPosInText < m_Text[m_CursorLine].length() )
                 {
-                  strNew += m_Text[m_CursorLine].substr( m_CursorPosInText );
+                  updatedText += m_Text[m_CursorLine].substr( m_CursorPosInText );
                 }
-                m_Text[m_CursorLine] = strNew;
+                m_Text[m_CursorLine] = updatedText;
                 m_CursorPosInText++;
               }
               UpdateCursorPos();
               UpdateScrollBars();
+              BASECLASS::Invalidate();
 
               GenerateEventForParent( OET_EDIT_CHANGE );
             }
@@ -1025,6 +1067,61 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
 
     
     
+    virtual void SelectAll()
+    {
+      bool  modifiedSelection = false;
+      if ( m_SelectionAnchorLine != 0 )
+      {
+        m_SelectionAnchorLine = 0;
+        modifiedSelection     = true;
+      }
+      if ( m_SelectionAnchor != 0 )
+      {
+        m_SelectionAnchor = 0;
+        modifiedSelection = true;
+      }
+      if ( m_Text.empty() )
+      {
+        if ( m_CursorLine != 0 )
+        {
+          m_CursorLine = 0;
+          modifiedSelection = true;
+        }
+        if ( m_CursorPosInText != 0 )
+        {
+          m_CursorPosInText = 0;
+          modifiedSelection = true;
+        }
+      }
+      else
+      {
+        if ( m_CursorLine != (int)m_Text.size() - 1 )
+        {
+          m_CursorLine = (int)( m_Text.size() - 1 );
+          modifiedSelection = true;
+        }
+        if ( m_CursorPosInText != (int)m_Text.back().length() )
+        {
+          m_CursorPosInText = (int)m_Text.back().length();
+          if ( m_pFont != NULL )
+          {
+            m_CursorPos = m_pFont->TextLength( m_Text.back() );
+          }
+          else
+          {
+            m_CursorPos = 0;
+          }
+          modifiedSelection = true;
+        }
+      }
+      if ( modifiedSelection )
+      {
+        BASECLASS::Invalidate();
+      }
+    }
+
+
+
     virtual bool HasSelection() const
     {
       if ( ( m_SelectionAnchor == -1 )
@@ -1167,14 +1264,23 @@ template <class BASECLASS, class SBCLASS, class SLCLASS, class BTCLASS> class Ab
         if ( ( !HasSelection() )
         &&   ( !m_Text[m_CursorLine].empty() ) )
         {
-          m_SelectionAnchor = (int)m_CursorPosInText;
-          m_SelectionAnchorLine = (int)m_CursorLine;
+          if ( m_SelectionAnchor != (int)m_CursorPosInText )
+          {
+            m_SelectionAnchor = (int)m_CursorPosInText;
+            BASECLASS::Invalidate();
+          }
+          if ( m_SelectionAnchorLine != (int)m_CursorLine )
+          {
+            m_SelectionAnchorLine = (int)m_CursorLine;
+            BASECLASS::Invalidate();
+          }
         }
       }
       else if ( HasSelection() )
       {
         m_SelectionAnchor = -1;
         m_SelectionAnchorLine = -1;
+        BASECLASS::Invalidate();
         return true;
       }
       return false;

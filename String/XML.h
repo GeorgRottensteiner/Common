@@ -292,7 +292,7 @@ namespace GR
                     ++it;
                     if ( it == pParent->m_Childs.end() )
                     {
-                      // jetzt über die Parents weiter nach oben
+                      // jetzt Ã¼ber die Parents weiter nach oben
                       pElement = pParent;
                       pParent = pParent->Parent();
                       if ( pParent == NULL )

@@ -52,7 +52,7 @@ void GUIVBViewer::DisplayOnPage( XRenderer* pRenderer, int iOffsetX, int iOffset
     // der Viewport, wie er sein sollte
     GetWindowRect( rcMyself );
 
-    GR::tPoint    ptCenter = rcMyself.center();
+    GR::tPoint    ptCenter = rcMyself.Center();
 
     float         fAspectRatio = (float)pRenderer->Height() / (float)pRenderer->Width();
 

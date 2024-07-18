@@ -55,7 +55,8 @@ namespace GR
             ET_TRIGGER_ENTER,
             ET_TRIGGER_INSIDE,
             ET_TRIGGER_LEAVE,
-            ET_TRIGGER_TRIGGERED
+            ET_TRIGGER_TRIGGERED,
+            ET_TRIGGER_FULL_INSIDE
           };
 
           LayerObject*  pObject;
@@ -82,13 +83,15 @@ namespace GR
 
           enum Flags
           {
-            NONE                  = 0,
-            TRIGGER_ON_ENTER      = 0x00000001,
-            TRIGGER_ON_INSIDE     = 0x00000002,
-            TRIGGER_ON_LEAVE      = 0x00000004,
-            TRIGGER_ONCE          = 0x00000008,
-            TRIGGER_ON_ACTION     = 0x00000010,
-            TRIGGERED             = 0x00010000
+            NONE                   = 0,
+            TRIGGER_ON_ENTER       = 0x00000001,
+            TRIGGER_ON_INSIDE      = 0x00000002,
+            TRIGGER_ON_LEAVE       = 0x00000004,
+            TRIGGER_ONCE           = 0x00000008,
+            TRIGGER_ON_ACTION      = 0x00000010,
+            TRIGGER_ON_FULL_INSIDE = 0x00000020,
+            TRIGGER_MUST_BE_LEFT_BEFORE_RETRIGGER = 0x00000040,
+            TRIGGERED              = 0x00010000
           };
 
           TriggerType     Type;
@@ -174,8 +177,8 @@ namespace GR
         bool                      ActualiseRegion( const GR::tRect& Bounds );
         bool                      ActualiseRegion( const GR::tPoint& Pos );
 
-        void                      AddTrigger( const Trigger& Trigger );
-        bool                      CheckTrigger( LayerObject* pObject );
+        bool                      AddTrigger( const Trigger& Trigger );
+        bool                      CheckTrigger( LayerObject* pObject, bool FirstAppearanceInStage = false );
 
         GR::Game::ExtraData*      AddExtraData();
         void                      SetExtraData( GR::u32 ID, const GR::Game::ExtraData& Data );

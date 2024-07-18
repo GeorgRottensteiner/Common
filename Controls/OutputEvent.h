@@ -74,6 +74,8 @@ enum OutputEventType
   OET_LABEL_DBLCLK          = 0x00008100,       // double click
 
   OET_SET_POSITION          = 0x00009000,
+  OET_SET_SIZE              = 0x00009001,
+  OET_VISIBILITY_CHANGED    = 0x00009002,       // param1 =1 => visible, =0 => hide
   OET_DESTROY               = 0x00009100,
   OET_CLOSE                 = 0x00009101,       // Close mit Close-Code
 

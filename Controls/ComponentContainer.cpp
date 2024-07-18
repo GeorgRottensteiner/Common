@@ -404,6 +404,13 @@ namespace GUI
 
 
 
+  bool ComponentContainer::ProcessEventOnComponent( const GUI::ComponentEvent& Event, Component* pComponent )
+  {
+    return false;
+  }
+
+
+
   bool ComponentContainer::ProcessEvent( const ComponentEvent& Event )
   {
     if ( m_ContainerProcessingDisabled )
@@ -561,7 +568,7 @@ namespace GUI
 
             GR::tPoint      ptPosInClientCoord = Event.Position;
 
-            ptPosInClientCoord -= pComponentUnderMouse->Position() + pComponentUnderMouse->GetClientOffset();
+            ptPosInClientCoord -= pComponentUnderMouse->Position(); //+pComponentUnderMouse->GetClientOffset();
 
             if ( !pComponentUnderMouse->IsMouseInside( ptPosInClientCoord ) )
             {
@@ -598,7 +605,7 @@ namespace GUI
             }
             if ( pComponentUnderMouse->IsMouseInside( ptPosInClientCoord ) )
             {
-              newEvent.Position = ptPosInClientCoord;
+              newEvent.Position = ptPosInClientCoord - pComponentUnderMouse->GetClientOffset();
               return pComponentUnderMouse->ProcessEvent( newEvent );
             }
             break;
@@ -882,6 +889,7 @@ namespace GUI
         ++rit;
         continue;
       }
+
       if ( ( IgnoreMouseIgnorer )
       &&   ( pComponent->Flags() & GUI::COMPFT_DONT_CATCH_MOUSE ) )
       {

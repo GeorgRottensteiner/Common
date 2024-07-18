@@ -98,14 +98,22 @@
 #elif defined(__LP64__) || defined(_LP64)
 
 #define OPERATING_SYSTEM  OS_LINUX
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#define OS_ENDIAN         OS_ENDIAN_LITTLE
+#else
 #define OS_ENDIAN         OS_ENDIAN_BIG
+#endif
 #define OS_ENVIRONMENT    OS_ENVIRONMENT_64
 #define OPERATING_SUB_SYSTEM    OS_SUB_DESKTOP
 
 #else
 
 #define OPERATING_SYSTEM  OS_LINUX
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#define OS_ENDIAN         OS_ENDIAN_LITTLE
+#else
 #define OS_ENDIAN         OS_ENDIAN_BIG
+#endif
 #define OS_ENVIRONMENT    OS_ENVIRONMENT_32
 #define OPERATING_SUB_SYSTEM    OS_SUB_DESKTOP
 

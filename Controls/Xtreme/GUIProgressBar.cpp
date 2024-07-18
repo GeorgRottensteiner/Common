@@ -20,7 +20,7 @@ void GUIProgressBar::DisplayOnPage( XRenderer* pRenderer )
 
   if ( m_FullLength )
   {
-    trueWidth = ( m_ClientRect.width() * m_CurrentPos / m_FullLength );
+    trueWidth = ( m_ClientRect.Width() * m_CurrentPos / m_FullLength );
   }
 
   if ( trueWidth )
@@ -49,7 +49,7 @@ void GUIProgressBar::DisplayOnPage( XRenderer* pRenderer )
     else
     {
       pRenderer->SetTexture( 0, NULL );
-      pRenderer->RenderQuad2d( 0, 0, trueWidth, m_ClientRect.height(), GetColor( GUI::COL_BTNFACE ) );
+      pRenderer->RenderQuad2d( 0, 0, trueWidth, m_ClientRect.Height(), GetColor( GUI::COL_BTNFACE ) );
     }
   }
 }

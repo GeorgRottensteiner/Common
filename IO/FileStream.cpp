@@ -1151,7 +1151,7 @@ namespace GR
       switch ( Position )
       {
         case PT_CURRENT:
-          // uhoh, Cache berücksichtigen
+          // uhoh, Cache berÃ¼cksichtigen
           if ( Offset == 0 )
           {
             return (unsigned long)( m_Impl->m_PseudoFilePos );

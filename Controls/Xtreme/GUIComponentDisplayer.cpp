@@ -661,7 +661,7 @@ void GUIComponentDisplayer::DrawFocusRect( const GUIComponent& Component, const 
   GR::tRect     displayRect( rc );
   VirtualToScreen( displayRect );
 
-  m_pActualRenderer->SetTexture( 0, NULL );
+  m_pActualRenderer->SetShader( XRenderer::ST_FLAT_NO_TEXTURE );
   m_pActualRenderer->RenderQuad2d( displayRect.Left,
                                    displayRect.Top,
                                    1,

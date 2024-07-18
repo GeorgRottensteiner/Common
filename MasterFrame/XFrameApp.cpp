@@ -486,6 +486,7 @@ bool XFrameApp::RunDefaultModules()
     }
     return false;
   }
+
   // Important after renderer->initialize
   if ( initWithFullscreen )
   {
@@ -499,8 +500,19 @@ bool XFrameApp::RunDefaultModules()
 
     DetermineBestFullscreenMatch( mode );
 
-    m_pRenderClass->SetMode( mode );
-    EventProducer<GR::Gamebase::tXFrameEvent>::SendEvent( GR::Gamebase::tXFrameEvent( GR::Gamebase::tXFrameEvent::ET_WINDOW_MODE_CHANGED ) );
+    if ( m_pRenderClass->SetMode( mode ) )
+    {
+      EventProducer<GR::Gamebase::tXFrameEvent>::SendEvent( GR::Gamebase::tXFrameEvent( GR::Gamebase::tXFrameEvent::ET_WINDOW_MODE_CHANGED ) );
+    }
+    else
+    {
+      // fallback to windowed mode
+      mode.FullScreen = false;
+      if ( m_pRenderClass->SetMode( mode ) )
+      {
+        EventProducer<GR::Gamebase::tXFrameEvent>::SendEvent( GR::Gamebase::tXFrameEvent( GR::Gamebase::tXFrameEvent::ET_WINDOW_MODE_CHANGED ) );
+      }
+    }
   }
 
   m_pRenderClass->Canvas( m_EnvironmentDisplayRect );
@@ -2721,11 +2733,10 @@ void XFrameApp::DetermineBestFullscreenMatch( XRendererDisplayMode& Mode )
     auto&  mode( *it );
 
     if ( ( mode.Width == Mode.Width )
-    &&   ( mode.Height == Mode.Height )
-    &&   ( mode.FullScreen ) )
+    &&   ( mode.Height == Mode.Height ) )
+    //&&   ( mode.FullScreen ) )
     {
       // full match!
-      dh::Log( "-full match" );
       return;
     }
     ++it;
@@ -2809,6 +2820,7 @@ void XFrameApp::ToggleFullscreen()
   mode.ImageFormat  = m_pRenderClass->ImageFormat();
   mode.FullScreen   = !m_pRenderClass->IsFullscreen();
 
+  bool    isFullScreen = !mode.FullScreen;
 
   if ( mode.FullScreen )
   {
@@ -2822,6 +2834,7 @@ void XFrameApp::ToggleFullscreen()
     m_EnvironmentDisplayRect.Set( 0, 0, m_EnvironmentConfig.StartUpWidth, m_EnvironmentConfig.StartUpHeight );
 
     mode = m_StoredWindowedMode;
+    mode.FullScreen = false;
   }
   m_pRenderClass->Canvas( m_EnvironmentDisplayRect );
 
@@ -2841,6 +2854,14 @@ void XFrameApp::ToggleFullscreen()
   }
   else
   {
+    if ( mode.FullScreen )
+    {
+      // we tried to go fullscreen, fallback to windowed mode
+      mode.FullScreen = false;
+      if ( m_pRenderClass->SetMode( mode ) )
+      {
+      }
+    }
     AdjustCanvas( mode.Width, mode.Height );
   }
   m_RenderFrame.m_DisplayMode.FullScreen = m_pRenderClass->IsFullscreen();

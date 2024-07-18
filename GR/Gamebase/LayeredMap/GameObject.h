@@ -78,6 +78,43 @@ namespace GR
         }
     };
 
+    namespace QueryEventType
+    {
+      enum Value
+      {
+        INVALID,
+        ALLOW_MOVE_OUTSIDE_MAP_N,   // return true to allow move, false blocks
+        ALLOW_MOVE_OUTSIDE_MAP_S,   // return true to allow move, false blocks
+        ALLOW_MOVE_OUTSIDE_MAP_W,   // return true to allow move, false blocks
+        ALLOW_MOVE_OUTSIDE_MAP_E    // return true to allow move, false blocks
+      };
+    }
+
+
+    class QueryEvent
+    {
+      public:
+
+        QueryEventType::Value   Type;
+        GameObject*             pObject;
+        GR::tPoint              PosOrDelta;
+
+
+        QueryEvent( QueryEventType::Value Type = QueryEventType::INVALID, GameObject* pObject = NULL ) :
+          Type( Type ),
+          pObject( pObject )
+        { 
+        }
+
+        QueryEvent( QueryEventType::Value Type, const GR::tPoint& PosOrDelta, GameObject* pObject = NULL ) :
+          Type( Type ),
+          PosOrDelta( PosOrDelta ),
+          pObject( pObject )
+        {
+        }
+
+    };
+
     namespace ProcessingFlags
     {
       enum Value

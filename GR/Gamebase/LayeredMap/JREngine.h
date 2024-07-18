@@ -46,7 +46,12 @@ namespace GR
       W     = L,
       R     = 0x00000008,
       E     = R,
-      ALL   = 0x0000000f
+      ALL   = 0x0000000f,
+
+      NW    = N | W,
+      NE    = N | E,
+      SW    = S | W,
+      SE    = S | E
     };
 
     namespace TileType
@@ -136,11 +141,12 @@ namespace GR
         enum JREventType
         {
           JRE_NONE = 0,
-          JRE_MAP_CHANGED,
+          JRE_MAP_CHANGED,          // called when the new map has been initialised, but before any scripts run
           JRE_LEAVE_MAP,
           JRE_CONTROLLED_OBJECT_CHANGED,
           JRE_BLOCKED_MOVEMENT,
-          JRE_BLOCKED_MOVEMENT_BY_OTHER_OBJECT
+          JRE_BLOCKED_MOVEMENT_BY_OTHER_OBJECT,
+          JRE_WARP_COMPLETED        // called on an object once a warp has been processed completely
         };
 
         JREventType       Type;
@@ -229,6 +235,7 @@ namespace GR
         typedef fastdelegate::FastDelegate1<TileBlockEvent&,bool>                                tTileBlockHandlerEventFunction;
         typedef fastdelegate::FastDelegate2<GameObject*,const GR::Gamebase::ObjectEvent&>        tObjectEventHandlerFunction;
         typedef fastdelegate::FastDelegate1<const GR::Gamebase::JREvent&>                        tJREventHandlerFunction;
+        typedef fastdelegate::FastDelegate1<const GR::Gamebase::QueryEvent&,bool>                tQueryHandlerFunction;
 
         typedef std::map<std::pair<GR::Gamebase::ObjectEventType::Value,GR::Gamebase::GameObject*>,tObjectEventHandlerFunction>    tObjectEventHandler;
 
@@ -262,6 +269,7 @@ namespace GR
         tTileBlockHandlerEventFunction    m_TileBlockHandler;
         tObjectEventHandler               m_ObjectEventHandler;
         tJREventHandlerFunction           m_JREventHandler;
+        tQueryHandlerFunction             m_QueryHandler;
 
         std::map<GameObject*,MovedObjectInfo>   m_MovedObjects;
 
@@ -302,6 +310,9 @@ namespace GR
         std::vector<GR::u32>    m_TileFlags;
 
         GR::f32                 m_GravityFactor;
+
+        bool                    m_SinglePixelWidthBoundsForMovement;
+        bool                    m_BlockMovingOutsideMap;
 
 
 
@@ -373,6 +384,7 @@ namespace GR
 
         void                    RaiseObjectEvent( GameObject* pObj, const ObjectEvent& Event );
         void                    RaiseJREvent( const JREvent& Event );
+        bool                    QueryEvent( const QueryEvent& Event );
 
         void                    ProcessExtraData( GR::u32 ExtraDataID, GameObject* pObject = NULL );
 
@@ -386,6 +398,7 @@ namespace GR
         void                    SetCollisionHandler( tCollisionHandlerEventFunction Function );
         void                    SetTileBlockHandler( tTileBlockHandlerEventFunction Function );
         void                    SetJREventHandler( tJREventHandlerFunction Function );
+        void                    SetQueryHandler( tQueryHandlerFunction Function );
 
         void                    Update( Xtreme::XInput* pInput, const GR::f32 ElapsedTime );
         void                    UpdateFixedStep( Xtreme::XInput* pInput, const GR::f32 ElapsedTime );

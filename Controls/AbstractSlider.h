@@ -8,6 +8,8 @@
 
 #include <String/XML.h>
 
+#include <String/Convert.h>
+
 #include <Interface/IService.h>
 
 
@@ -19,9 +21,9 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
 
     enum SliderFlagType
     {
-      SFT_INVALID       = 0x00000000,
+      SFT_DEFAULT       = 0x00000000,
       SFT_DRAGGING      = 0x00000001,
-      SFT_VERTICAL      = SFT_INVALID,
+      SFT_VERTICAL      = SFT_DEFAULT,
       SFT_HORIZONTAL    = 0x80000000,
     };
 
@@ -52,6 +54,8 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
     using BASECLASS::m_Height;
     using BASECLASS::RecalcClientRect;
     using BASECLASS::Style;
+    using BASECLASS::SetColor;
+    using BASECLASS::GetSysColor;
     using BASECLASS::IsEnabled;
     using BASECLASS::IsVisible;
     using BASECLASS::SetCapture;
@@ -68,7 +72,7 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
     {
       m_ClassName         = "Slider";
 
-      m_Style             = SFT_INVALID;
+      m_Style             = SFT_DEFAULT;
       m_ComponentFlags    |= GUI::COMPFT_TAB_STOP;
       m_SliderLength     = 100;
       m_FullLength       = 100;
@@ -77,6 +81,9 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
       m_SliderHitOffset  = 0;
       m_PageSteps        = 10;
       m_MouseWheelFactor  = 3;
+
+      BASECLASS::SetBaseColors();
+      SetSizes( m_FullLength );
     }
 
 
@@ -125,6 +132,8 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
       m_SliderHitOffset  = 0;
 
       RecalcClientRect();
+      SetSizes( m_FullLength );
+      BASECLASS::SetBaseColors();
     }
 
 
@@ -134,18 +143,18 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
       if ( m_FullLength == 0 )
       {
         rc.Position( 0, 0 );
-        rc.Size( m_Width, m_Height );
+        rc.Size( BASECLASS::m_ClientRect.Width(), BASECLASS::m_ClientRect.Height() );
         return;
       }
       if ( Style() & SFT_HORIZONTAL )
       {
         rc.Position( m_SliderOffset, 0 );
-        rc.Size( m_SliderLength, m_Height );
+        rc.Size( m_SliderLength, BASECLASS::m_ClientRect.Height() );
       }
       else
       {
         rc.Position( 0, m_SliderOffset );
-        rc.Size( m_Width, m_SliderLength );
+        rc.Size( BASECLASS::m_ClientRect.Width(), m_SliderLength );
       }
     }
 
@@ -196,6 +205,7 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
       if ( m_SliderValue != iOldValue )
       {
         GenerateEventForParent( OET_SLIDER_SCROLLED, m_SliderValue );
+        BASECLASS::Invalidate();
       }
     }
 
@@ -254,6 +264,7 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
       {
         m_SliderValue = Value;
         GenerateEventForParent( OET_SLIDER_SCROLLED, m_SliderValue );
+        BASECLASS::Invalidate();
       }
     }
 
@@ -398,16 +409,27 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
             }
           }
           break;
+        case CET_SET_SIZE:
+          BASECLASS::ProcessEvent( Event );
+          if ( Style() & SFT_HORIZONTAL )
+          {
+            SetSizes( BASECLASS::Width(), m_SliderLength );
+          }
+          else
+          {
+            SetSizes( BASECLASS::Height(), m_SliderLength );
+          }
+          return true;
       }
       return BASECLASS::ProcessEvent( Event );
     }
 
 
 
-    virtual void SetSizes( int iFullLength, int iSliderLength = 0 )
+    virtual void SetSizes( int FullLength, int SliderLength = 0 )
     {
-      m_FullLength     = iFullLength;
-      if ( iSliderLength == 0 )
+      m_FullLength     = FullLength;
+      if ( SliderLength == 0 )
       {
         if ( m_FullLength )
         {
@@ -420,7 +442,7 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
       }
       else
       {
-        m_SliderLength = iSliderLength;
+        m_SliderLength = SliderLength;
       }
       int   Offset = m_SliderHitOffset;
       if ( m_FullLength == 0 )
@@ -431,11 +453,11 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
       {
         if ( Style() & SFT_HORIZONTAL )
         {
-          Offset = m_SliderValue * ( m_Width - m_SliderLength ) / m_FullLength;
+          Offset = m_SliderValue * ( BASECLASS::m_ClientRect.Width() - m_SliderLength ) / m_FullLength;
         }
         else
         {
-          Offset = m_SliderValue * ( m_Height - m_SliderLength ) / m_FullLength;
+          Offset = m_SliderValue * ( BASECLASS::m_ClientRect.Height() - m_SliderLength ) / m_FullLength;
         }
       }
       SetSliderOffset( Offset );

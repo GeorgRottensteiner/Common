@@ -3677,6 +3677,14 @@ bool CDX9RenderClass::ToggleFullscreen()
 
 bool CDX9RenderClass::SetMode( XRendererDisplayMode& DisplayMode )
 {
+  // setting windowed mode directly
+  if ( !DisplayMode.FullScreen )
+  {
+    m_bWindowed = !DisplayMode.FullScreen;
+
+    return SUCCEEDED( Resize3DEnvironment() );
+  }
+
   tListDisplayModes::iterator   it( m_DisplayModes.begin() );
   while ( it != m_DisplayModes.end() )
   {

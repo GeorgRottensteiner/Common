@@ -96,7 +96,7 @@ namespace GR
         time_t                      ToTime() const;
         std::tm                     ToTM() const;
 
-        void                        SetTime( const std::tm& Time );
+        void                        SetTime( const std::tm& Time, int MicroSeconds = 0 );
 
         static DateTime             IsoWeekOne( GR::u16 Year );
 

@@ -109,12 +109,11 @@ void LuaInstance::LuaInit()
             "  end\n"
             "end" );
 
-  Register( &Alert, "_ALERT" );
+  Register( &Alert,         "_ALERT" );
   Register( &AddThread,     "LuaAddThread" );
   Register( &CreateThread,  "CreateThread" );
   Register( &KillThread,    "KillThread" );
   Register( &GetTime,       "GetTime" );
-
 }
 
 
@@ -137,13 +136,30 @@ int LuaInstance::Alert( lua_State* L )
 
 
 
+void LuaInstance::RaiseAlert()
+{
+  if ( !lua_isstring( m_LuaInstance, -1 ) )
+  {
+    PopAll();
+    return;
+  }
+
+  GR::String  message = ToString( -1 );
+
+  PopAll();
+
+  RaiseError( message );
+}
+
+
+
 bool LuaInstance::DoString( const GR::String& Script )
 {
   int errorCode = luaL_dostring( m_LuaInstance, Script.c_str() );
 
   if ( errorCode != 0 )
   {
-    Alert( m_LuaInstance );
+    RaiseAlert();
   }
   return ( errorCode == 0 );
 }
@@ -156,7 +172,7 @@ bool LuaInstance::DoFile( const GR::String& Filename )
 
   if ( errorCode != 0 )
   {
-    Alert( m_LuaInstance );
+    RaiseAlert();
   }
   return ( errorCode == 0 );
 }
@@ -237,7 +253,8 @@ bool LuaInstance::FunctionExists( const GR::String& Script )
     if ( !lua_istable( m_LuaInstance, -1 ) )
     {
       PopAll();
-      dh::Log( "LuaInstance:FunctionExists - no table %s", Script.substr( 0, dotPos ).c_str() );
+
+      RaiseError( Misc::Format( "LuaInstance:FunctionExists - no table %1%" ) << Script.substr( 0, dotPos ) );
       return false;
     }
 
@@ -366,7 +383,7 @@ GR::String LuaInstance::StartScriptAsThread( const GR::String& Script, const GR:
   {
     if ( m_ThreadThis.find( threadName ) != m_ThreadThis.end() )
     {
-      dh::Log( "StartScriptAsThread duplicate thread name %s", threadName.c_str() );
+      RaiseError( Misc::Format( "StartScriptAsThread duplicate thread name %1%" ) << threadName );
     }
     m_ThreadThis[threadName] = ThisVariable;
   }
@@ -470,6 +487,8 @@ void LuaInstance::ResumeThreads( const float ElapsedTime )
       {
         m_ThreadThis.erase( itTT );
       }
+
+      RaiseError( errorMsg );
       continue;
     }
 
@@ -687,7 +706,8 @@ bool LuaInstance::VariableExists( const GR::String& VarName )
     if ( !lua_istable( m_LuaInstance, -1 ) )
     {
       PopAll();
-      dh::Log( "LuaInstance:GetVar - no table %s", VarName.substr( 0, dotPos ).c_str() );
+
+      RaiseError( Misc::Format( "LuaInstance::VariableExists - no table %1%" ) << VarName.substr( 0, dotPos ) );
       return false;
     }
 
@@ -721,8 +741,6 @@ GR::String LuaInstance::GetVar( const GR::String& VarName )
 
       GR::String   strResult = ToString( -1 );
 
-      //dh::Log( "Type: %s", lua_typename( m_LuaInstance, lua_type( m_LuaInstance, -1 ) ) );
-
       PopAll();
       return strResult;
     }
@@ -742,7 +760,8 @@ GR::String LuaInstance::GetVar( const GR::String& VarName )
     if ( !lua_istable( m_LuaInstance, -1 ) )
     {
       PopAll();
-      dh::Log( "LuaInstance:GetVar - no table %s", VarName.substr( 0, dotPos ).c_str() );
+
+      RaiseError( Misc::Format( "LuaInstance::GetVar - no table %1%" ) << VarName.substr( 0, dotPos ) );
       return GR::String();
     }
 
@@ -794,7 +813,8 @@ bool LuaInstance::SetVar( const GR::String& VarName, const GR::String& Value )
     if ( !lua_istable( m_LuaInstance, -1 ) )
     {
       PopAll();
-      dh::Log( "LuaInstance:SetVar - no table %s", VarName.substr( 0, dotPos ).c_str() );
+
+      RaiseError( Misc::Format( "LuaInstance::SetVar - no table %1%" ) << VarName.substr( 0, dotPos ) );
       return false;
     }
 
@@ -846,7 +866,8 @@ bool LuaInstance::SetVar( const GR::String& VarName, const GR::ip Value )
     if ( !lua_istable( m_LuaInstance, -1 ) )
     {
       PopAll();
-      dh::Log( "LuaInstance:SetVar - no table %s", VarName.substr( 0, dotPos ).c_str() );
+
+      RaiseError( Misc::Format( "LuaInstance::SetVar - no table %1%" ) << VarName.substr( 0, dotPos ) );
       return false;
     }
 
@@ -898,7 +919,8 @@ bool LuaInstance::SetVar( const GR::String& VarName, const GR::f32 Value )
     if ( !lua_istable( m_LuaInstance, -1 ) )
     {
       PopAll();
-      dh::Log( "LuaInstance:SetVar - no table %s", VarName.substr( 0, dotPos ).c_str() );
+
+      RaiseError( Misc::Format( "LuaInstance::SetVar - no table %1%" ) << VarName.substr( 0, dotPos ) );
       return false;
     }
 
@@ -959,7 +981,8 @@ bool LuaInstance::GetTable( const GR::String& TableName )
     if ( !lua_istable( m_LuaInstance, -1 ) )
     {
       PopAll();
-      dh::Log( "LuaInstance:GetTable - no table %s", TableName.substr( 0, dotPos ).c_str() );
+
+      RaiseError( Misc::Format( "LuaInstance::GetTable - no table %1%" ) << TableName.substr( 0, dotPos ) );
       return false;
     }
 
@@ -1023,6 +1046,31 @@ bool LuaInstance::IsThreadRunning( const GR::String& ThreadName )
   }
 
   return false;
+}
+
+
+
+void LuaInstance::RegisterErrorMessageHandler( tErrorMessageHandlerFunction Function )
+{
+  m_ErrorMessageHandler = Function;
+}
+
+
+
+void LuaInstance::UnregisterErrorMessageHandler( tErrorMessageHandlerFunction Function )
+{
+  m_ErrorMessageHandler = tErrorMessageHandlerFunction();
+}
+
+
+
+void LuaInstance::RaiseError( const GR::String& Message )
+{
+  if ( m_ErrorMessageHandler )
+  {
+    m_ErrorMessageHandler( Message );
+  }
+  dh::Log( "%s", Message.c_str() );
 }
 
 
@@ -1099,7 +1147,7 @@ bool LuaInstance::CallFunction( const GR::String& FunctionName )
   lua_getglobal( m_LuaInstance, FunctionName.c_str() );
   if ( !lua_isfunction( m_LuaInstance, -1 ) )
   {
-    dh::Log( "Variable '%s' does either not exist or is not a function", FunctionName.c_str() );
+    RaiseError( Misc::Format( "Variable '%1%' does either not exist or is not a function" ) << FunctionName );
     PopAll();
     return false;
   }
@@ -1110,7 +1158,7 @@ bool LuaInstance::CallFunction( const GR::String& FunctionName )
     GR::String   errorMessage = ToString( -1 );
     PopAll();
 
-    dh::Log( "CallFunction '%s', error %s", FunctionName.c_str(), errorMessage.c_str() );
+    RaiseError( Misc::Format( "CallFunction '%1%', error %2%" ) << FunctionName << errorMessage );
     return false;
   }
   int   numTop = GetTop();

@@ -65,7 +65,7 @@ namespace Asset
 
 
 
-      const tAnimationPos AnimationPos( int TileIndex )
+      const tAnimationPos& AnimationPos( int TileIndex )
       {
         if ( TileIndex >= (int)m_Tiles.size() )
         {

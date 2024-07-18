@@ -62,6 +62,7 @@ namespace GR
 
 
         tBoundsKeys             m_BoundKeys;
+        tBoundsKeys             m_BoundSecondaryKeys;
 
         GR::String              m_CommandLine;
 
@@ -172,9 +173,13 @@ namespace GR
         GR::u32                 BoundKey( GR::u32 KeyType );
         bool                    BoundKeyPushed( GR::u32 KeyType );
         bool                    ReleasedBoundKeyPushed( GR::u32 KeyType );
+        GR::u32                 SecondaryBoundKey( GR::u32 KeyType );
+        bool                    SecondaryBoundKeyPushed( GR::u32 KeyType );
+        bool                    ReleasedSecondaryBoundKeyPushed( GR::u32 KeyType );
 
-        void                    SetKeyBinding( GR::u32 KeyType, GR::u32 Key );
-        void                    RemoveKeyBinding( GR::u32 KeyType, GR::u32 Key );
+        void                    SetKeyBinding( GR::u32 KeyType, GR::u32 Key, GR::u32 SecondaryKey = 0 );
+        void                    SetSecondaryKeyBinding( GR::u32 KeyType, GR::u32 SecondaryKey );
+        void                    RemoveKeyBinding( GR::u32 KeyType, GR::u32 Key, GR::u32 SecondaryKey = 0 );
 
 
         void                    Clear();

@@ -32,6 +32,9 @@ namespace WindowsWrapper
 
     int               CharFromPos( POINT& pt ) const;
 
+
+    virtual LRESULT   WindowProc( UINT message, WPARAM wParam, LPARAM lParam );
+
   };
 
 }

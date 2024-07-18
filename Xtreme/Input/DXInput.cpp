@@ -1017,7 +1017,7 @@ bool CDXInput::LoadBindings( IIOStream& Stream )
       }
     }
   }
-  return restoreBindingFailed;
+  return !restoreBindingFailed;
 }
 
 

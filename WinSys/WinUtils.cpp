@@ -825,13 +825,15 @@ Win::Util::eWindowsVersion Win::Util::GetWindowsVersion()
   }
 #else
 
-#if VER_PRODUCTBUILD >= 9600
+#if VER_PRODUCTBUILD > 9600
   // should be >= Windows 8.1 SDK code goes here
   if ( IsWindows10OrGreater() )
   {
     return WV_WIN10;
   }
-  else if ( IsWindows7OrGreater() )
+  else 
+#elif VER_PRODUCTBUILD >= 9600
+  if ( IsWindows7OrGreater() )
   {
     return WV_WIN7;
   }

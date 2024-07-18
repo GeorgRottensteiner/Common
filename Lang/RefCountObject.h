@@ -1,46 +1,41 @@
-#ifndef _LANG_CRefCountObject_H
-#define _LANG_CRefCountObject_H
+#pragma once
 
+
+// include as public base member of your class, so ISmartPointer works with it
 
 namespace GR
 {
 
+  class RefCountObject
+  {
 
-class CRefCountObject
-{
+    public:
 
-  public:
+	    RefCountObject();
+	    RefCountObject( const RefCountObject& );
 
-	  /** 
-	  * Initializes reference count to zero. 
-	  * @param flags CRefCountObject creation flags.
-	  */
-	  CRefCountObject();
+	    // Ensures that the reference count is zero
+	    virtual ~RefCountObject();
 
-	  /** Initializes reference count to zero. */
-	  CRefCountObject( const CRefCountObject& );
+	    // Returns this RefCountObject
+	    RefCountObject&   operator=( const RefCountObject& );
 
-	  /** Ensures that the reference count is zero. */
-	  virtual ~CRefCountObject();
 
-	  /** Returns this CRefCountObject. */
-	  CRefCountObject&			operator=( const CRefCountObject& );
+	    void			AddReference();
+      long      RemoveReference();
 
-	  /** Increments reference count by one. */
-	  void			addReference();
-    long      removeReference();
+	    // Decrements reference count by one and deletes the RefCountObject if the count reaches zero
+	    void			Release();
 
-	  /** 
-	  * Decrements reference count by one and 
-	  * deletes the CRefCountObject if the count reaches zero. 
-	  */
-	  void			release();
 
-  private:
-	  long	    m_refs;
-};
+
+    private:
+
+	    long	    m_References;
+
+
+  };
 
 
 }
 
-#endif // _LANG_CRefCountObject_H

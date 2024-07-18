@@ -202,12 +202,15 @@ class XBasicRenderer : public GR::Service::ServiceImpl<XRenderer>
     virtual XFont*            CreateFontSquare();
 
     virtual void              RenderText2d( XFont* pFont, int X, int Y, const GR::Char* Text, GR::u32 Color = 0xffffffff, float Z = 0.0f );
-    //virtual void              RenderText2d( XFont* pFont, int X, int Y, const GR::String& Text, GR::u32 Color = 0xffffffff, float Z = 0.0f );
     virtual void              RenderText2d( XFont* pFont, int X, int Y, const GR::String& Text, GR::u32 Color = 0xffffffff, float Z = 0.0f );
     virtual void              RenderTextCentered2d( XFont* pFont, int CenterX, int Y, const GR::String& Text, GR::u32 Color = 0xffffffff, float Z = 0.0f );
     virtual void              RenderTextCentered2d( XFont* pFont, int CenterX, int Y, const GR::Char* Text, GR::u32 Color = 0xffffffff, float Z = 0.0f );
     virtual void              RenderTextRightAligned2d( XFont* pFont, int X, int Y, const GR::String& Text, GR::u32 Color = 0xffffffff, float Z = 0.0f );
     virtual void              RenderTextRightAligned2d( XFont* pFont, int X, int Y, const GR::Char* Text, GR::u32 Color = 0xffffffff, float Z = 0.0f );
+    virtual void              RenderTextCentered2d( XFont* pFont, int CenterX, int Y, const GR::String& Text, float ScaleX, float ScaleY, GR::u32 Color = 0xffffffff, float Z = 0.0f );
+    virtual void              RenderTextCentered2d( XFont* pFont, int CenterX, int Y, const GR::Char* Text, float ScaleX, float ScaleY, GR::u32 Color = 0xffffffff, float Z = 0.0f );
+    virtual void              RenderTextRightAligned2d( XFont* pFont, int X, int Y, const GR::String& Text, float ScaleX, float ScaleY, GR::u32 Color = 0xffffffff, float Z = 0.0f );
+    virtual void              RenderTextRightAligned2d( XFont* pFont, int X, int Y, const GR::Char* Text, float ScaleX, float ScaleY, GR::u32 Color = 0xffffffff, float Z = 0.0f );
     virtual void              RenderText2d( XFont* pFont, int X, int Y, const GR::Char* Text,
                                             float ScaleX, float ScaleY, GR::u32 Color1, GR::u32 Color2 = 0, GR::u32 Color3 = 0, GR::u32 Color4 = 0, float Z = 0.0f );
     virtual void              RenderText2d( XFont* pFont, int X, int Y, const GR::String& Text,

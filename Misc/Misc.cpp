@@ -170,7 +170,7 @@ GR::String CMisc::AppPath( const GR::WChar* formatstr, ... )
   char    temp[2048];
 
   readlink( "/proc/self/exe", temp, 2048 );
-  storedAppPath = temp + GR::String( "/" );
+  storedAppPath = Path::RemoveFileSpec( temp ) + GR::String( "/" );
   appPathSet = true;
 #endif
 #endif // GR_APP_ALTERNATIVE_APP_PATH
@@ -320,7 +320,7 @@ GR::String CMisc::AppPath( const GR::Char* formatstr, ... )
   char    temp[2048];
 
   readlink( "/proc/self/exe", temp, 2048 );
-  storedAppPath = temp + GR::String( "/" );
+  storedAppPath = Path::RemoveFileSpec( temp ) + GR::String( "/" );
   appPathSet = true;
 #endif
 #endif // GR_APP_ALTERNATIVE_APP_PATH
