@@ -151,7 +151,7 @@ GR::String CMisc::AppPath( const GR::WChar* formatstr, ... )
                                        &ossPathLen );
       if ( retcode == 0 )
       {
-        storedAppPath = Path::AddBackslash( Path::RemoveFileSpec( ossPathBuf ) );
+        storedAppPath = Path::AddSeparator( Path::RemoveFileSpec( ossPathBuf ) );
         appPathSet = true;
       }
     }
@@ -301,7 +301,7 @@ GR::String CMisc::AppPath( const GR::Char* formatstr, ... )
                                        &ossPathLen );
       if ( retcode == 0 )
       {
-        storedAppPath = Path::AddBackslash( Path::RemoveFileSpec( ossPathBuf ) );
+        storedAppPath = Path::AddSeparator( Path::RemoveFileSpec( ossPathBuf ) );
         appPathSet = true;
       }
     }
@@ -321,6 +321,7 @@ GR::String CMisc::AppPath( const GR::Char* formatstr, ... )
 
   readlink( "/proc/self/exe", temp, 2048 );
   storedAppPath = Path::RemoveFileSpec( temp ) + GR::String( "/" );
+  
   appPathSet = true;
 #endif
 #endif // GR_APP_ALTERNATIVE_APP_PATH

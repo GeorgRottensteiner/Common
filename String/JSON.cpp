@@ -20,7 +20,8 @@ namespace GR
 
 
       Element::Element() :
-        m_pParent( NULL )
+        m_pParent( NULL ),
+        m_Type( ElementType::Null )
       {
       }
 
@@ -410,10 +411,64 @@ namespace GR
 
 
 
+      iterator Element::begin() const
+      {
+        if ( m_Childs.empty() )
+        {
+          return iterator();
+        }
+        return iterator( m_Childs.front() );
+      }
+
+
+
       Element* Element::Parent() const
       {
         return m_pParent;
       }
+
+
+
+      Element* Element::FindByName( const GR::String& Name )
+      {
+        std::vector<GR::String>   parts;
+
+        GR::Strings::Split( Name, '.', parts );
+
+        size_t  pos = 0;
+
+        bool            found = false;
+        const Element*  pElement = this;
+        
+        while ( ( pElement != NULL )
+        &&      ( pos < parts.size() ) )
+        {
+          found = false;
+          iterator  it( pElement->begin() );
+          while ( it != iterator() )
+          {
+            if ( it->Name() == parts[pos] )
+            {
+              pElement = *it;
+              found = true;
+              break;
+            }
+            it = it.next_sibling();
+          }
+
+          if ( !found )
+          {
+            return NULL;
+          }
+          ++pos;
+        }
+        if ( pos < parts.size() )
+        {
+          return NULL;
+        }
+        return (Element*)pElement;
+      }
+
 
 
 
@@ -633,14 +688,18 @@ namespace GR
                     dh::Log( "JSON::ParseString malformed \\u constant" );
                     return false;
                   }
-                  if ( !GR::Strings::IsValidHex( pString + 1, 4 ) )
+                  if ( !GR::Strings::IsValidHex( pString + CurPos + 1, 4 ) )
                   {
                     dh::Log( "JSON::ParseString malformed \\u constant" );
                     return false;
                   }
-                  GR::u32     hexValue = GR::Convert::ToU32( GR::String( pString + 1, 4 ), 16 );
+                  GR::u32     hexValue = GR::Convert::ToU32( GR::String( pString + CurPos + 1, 4 ), 16 );
 
-                  // TODO
+                  GR::WString utf16Char;
+                  utf16Char += (wchar_t)hexValue;
+
+                  ResultingString += GR::Convert::ToUTF8( utf16Char );
+                  CurPos += 4;
                 }
                 break;
               default:
@@ -1001,16 +1060,16 @@ namespace GR
 
 
 
-      Parser::iterator Parser::begin()
+      iterator Parser::begin()
       {
-        return Parser::iterator( m_RootElement.FirstChild() );
+        return iterator( m_RootElement.FirstChild() );
       }
 
 
 
-      Parser::iterator Parser::end()
+      iterator Parser::end()
       {
-        return Parser::iterator();
+        return iterator();
       }
 
 
@@ -1069,6 +1128,21 @@ namespace GR
 
         return ioOut.WriteBlock( content.c_str(), content.length() ) == content.length();
       }
+
+
+
+      Element* Parser::FindByName( const GR::String& Name )
+      {
+        Element* pElement = m_RootElement.FirstChild();
+
+        if ( pElement == NULL )
+        {
+          return NULL;
+        }
+        return pElement->FindByName( Name );
+      }
+
+
 
     }
 

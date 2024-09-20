@@ -20,8 +20,8 @@ GUIListCtrl::GUIListCtrl( int iNewX, int iNewY, int iNewWidth, int iNewHeight, G
   ModifyVisualStyle( GUI::VFT_SUNKEN_BORDER );
 
   m_pScrollBar->ModifyVisualStyle( GUI::VFT_TRANSPARENT_BKGND );
-  m_pScrollBar->SetLocation( m_ClientRect.size().x - m_pScrollBar->Width(), 0 );
-  m_pScrollBar->SetSize( m_pScrollBar->Width(), m_ClientRect.size().y );
+  m_pScrollBar->SetLocation( m_ClientRect.Width() - m_pScrollBar->Width(), 0 );
+  m_pScrollBar->SetSize( m_pScrollBar->Width(), m_ClientRect.Height() );
 }
 
 
@@ -39,7 +39,7 @@ void GUIListCtrl::DisplayOnPage( GR::Graphic::GFXPage* pPage )
     {
       iYOffset += m_HeaderHeight;
 
-      int   iXOffset = 0;
+      int   xOffset = 0;
 
       for ( size_t iColumn = 0; iColumn < m_vectColumns.size(); ++iColumn )
       {
@@ -49,13 +49,13 @@ void GUIListCtrl::DisplayOnPage( GR::Graphic::GFXPage* pPage )
         
         GetHeaderRect( iColumn, rectHeader );
 
-        GR::tPoint   ptPos = rectHeader.position();
+        GR::tPoint   ptPos = rectHeader.Position();
 
         if ( ( m_pImageHdrLeft )
         &&   ( m_pImageHdrCenter )
         &&   ( m_pImageHdrRight ) )
         {
-          int   iTimes = ( rectHeader.width() - m_pImageHdrLeft->GetWidth() - m_pImageHdrRight->GetWidth() ) / m_pImageHdrCenter->GetWidth() + 1;
+          int   iTimes = ( rectHeader.Width() - m_pImageHdrLeft->GetWidth() - m_pImageHdrRight->GetWidth() ) / m_pImageHdrCenter->GetWidth() + 1;
 
           for ( int i = 0; i < iTimes; ++i )
           {
@@ -71,20 +71,20 @@ void GUIListCtrl::DisplayOnPage( GR::Graphic::GFXPage* pPage )
           DrawEdge( pPage, GUI::VFT_RAISED_BORDER, rectHeader );
         }
 
-        rectHeader.inflate( -4, 0 );
+        rectHeader.Inflate( -4, 0 );
         rectHeader.Top += 2;
 
         DrawText( pPage, Column.Description.c_str(), rectHeader, Column.TextAlignment );
 
-        iXOffset += Column.CurrentWidth;
+        xOffset += Column.CurrentWidth;
       }
       // rechts ist noch Platz, leeren Header zeichnen
-      if ( iXOffset < m_ClientRect.size().x - m_pScrollBar->Width() )
+      if ( xOffset < m_ClientRect.Width() - m_pScrollBar->Width() )
       {
         GR::tRect   rectHeader;
 
-        rectHeader.position( iXOffset, 0 );
-        rectHeader.size( m_ClientRect.size().x - iXOffset - m_pScrollBar->Width(), m_HeaderHeight );
+        rectHeader.Position( xOffset, 0 );
+        rectHeader.Size( m_ClientRect.Width() - xOffset - m_pScrollBar->Width(), m_HeaderHeight );
         DrawEdge( pPage, GUI::VFT_RAISED_BORDER, rectHeader );
       }
     }
@@ -136,7 +136,7 @@ void GUIListCtrl::DisplayOnPage( GR::Graphic::GFXPage* pPage )
 
           GR::tRect   rcTemp( rcItem );
           LocalToScreen( rcTemp );
-          rcTemp = rcTemp.intersection( rcClient );
+          rcTemp = rcTemp.Intersection( rcClient );
           pPage->SetRange( rcTemp.Left, rcTemp.Top, 
                            rcTemp.Right, rcTemp.Bottom );
           DrawText( pPage, Item.Text.c_str(), rcItem, m_vectColumns[iColumn].TextAlignment );
@@ -155,16 +155,16 @@ void GUIListCtrl::DisplayOnPage( GR::Graphic::GFXPage* pPage )
     {
       cdPage.AlphaBox( rcSelectionBox.Left,
                        rcSelectionBox.Top,
-                       rcSelectionBox.width(),
-                       rcSelectionBox.height(),
+                       rcSelectionBox.Width(),
+                       rcSelectionBox.Height(),
                        0x3030a0, 128 );
     }
     if ( GetItemRect( m_SelectedItem, -1, rcSelectionBox ) )
     {
       cdPage.AlphaBox( rcSelectionBox.Left,
                        rcSelectionBox.Top,
-                       rcSelectionBox.width(),
-                       rcSelectionBox.height(),
+                       rcSelectionBox.Width(),
+                       rcSelectionBox.Height(),
                        0xc0c0a0, 128 );
     }
 

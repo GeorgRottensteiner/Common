@@ -165,17 +165,17 @@ void GUIButton::DisplayOnPage( GR::Graphic::GFXPage* pPage )
     }
   }
 
-  rcClient.offset( m_ptTextDisplayOffset );
+  rcClient.Offset( m_ptTextDisplayOffset );
   if ( IsPushed() )
   {
-    rcClient.offset( m_ptPushedTextOffset );
+    rcClient.Offset( m_ptPushedTextOffset );
   }
   DrawText( pPage, m_Caption.c_str(), rcClient, TextAlignment() );
 
-  rcClient.offset( -m_ptTextDisplayOffset );
+  rcClient.Offset( -m_ptTextDisplayOffset );
   if ( IsFocused() )
   {
-    rcClient.inflate( -4, -4 );
+    rcClient.Inflate( -4, -4 );
     DrawFocusRect( pPage, rcClient );
   }
 }

@@ -1,5 +1,5 @@
 /* deflate.c -- compress data using the deflation algorithm
- * Copyright (C) 1995-2017 Jean-loup Gailly and Mark Adler
+ * Copyright (C) 1995-2017 Jean-loup Gailly and Mark Adlerx
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 

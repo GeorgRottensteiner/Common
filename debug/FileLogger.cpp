@@ -16,7 +16,7 @@ FileLogger::FileLogger() :
   m_MaxSize( 0 ), 
   m_NumCallsSinceLastRotateCheck( 0 ),
   m_ActiveFileIndex( -1 ),
-  m_LogLevel( LogLevel::LL_INFO ),
+  m_LogLevel( LL_INFO ),
   m_Verbose( false ),
   m_IsSetup( false )
 {
@@ -50,25 +50,25 @@ FileLogger& FileLogger::Instance()
 
 FileLogger::LogLevel FileLogger::LogLevelFromProperty( const GR::String& Property )
 {
-  LogLevel logLevel = LogLevel::LL_INFO;
+  LogLevel logLevel = LL_INFO;
   GR::String    upperCase( Property );
   upperCase.ToUpper();
   
   if ( upperCase == "DEBUG" ) 
   {
-    logLevel = LogLevel::LL_DEBUG;
+    logLevel = LL_DEBUG;
   } 
   else if ( upperCase == "NONE" ) 
   {
-    logLevel = LogLevel::LL_NONE;
+    logLevel = LL_NONE;
   } 
   else if ( upperCase == "ERROR" ) 
   {
-    logLevel = LogLevel::LL_ERROR;
+    logLevel = LL_ERROR;
   } 
   else if ( upperCase == "WARNING" ) 
   {
-    logLevel = LogLevel::LL_WARNING;
+    logLevel = LL_WARNING;
   }
   return logLevel;
 }
@@ -231,7 +231,7 @@ void FileLogger::LogRaw( const GR::String& Message )
 
 void FileLogger::LogDebug( const GR::String& Message )
 {
-  if ( m_LogLevel < LogLevel::LL_DEBUG )
+  if ( m_LogLevel < LL_DEBUG )
   {
     return;
   }
@@ -249,7 +249,7 @@ void FileLogger::LogInfo( const GR::String& Message )
 
 void FileLogger::LogError( const GR::String& Message )
 {
-  if ( m_LogLevel < LogLevel::LL_ERROR )
+  if ( m_LogLevel < LL_ERROR )
   {
     return;
   }
@@ -260,7 +260,7 @@ void FileLogger::LogError( const GR::String& Message )
 
 void FileLogger::LogWarning( const GR::String& Message )
 {
-  if ( m_LogLevel < LogLevel::LL_WARNING )
+  if ( m_LogLevel < LL_WARNING )
   {
     return;
   }

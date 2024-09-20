@@ -20,97 +20,97 @@ void GUIEdit::DisplayOnPage( GR::Graphic::GFXPage* pPage )
 
   if ( m_pFont )
   {
-    size_t    iVisibleLines = m_ClientRect.height() / m_pFont->TextHeight();
+    size_t    visibleLines = m_ClientRect.Height() / m_pFont->TextHeight();
 
     // Selektionshintergrund
-    int       iY = 0;
+    int       y = 0;
     if ( HasSelection() )
     {
-      for ( size_t iLine = 0; iLine < iVisibleLines; ++iLine )
+      for ( size_t iLine = 0; iLine < visibleLines; ++iLine )
       {
         if ( iLine >= m_Text.size() )
         {
           break;
         }
-        GR::String&   strLine = m_Text[m_TextOffsetLine + iLine];
+        GR::String&   lineText = m_Text[m_TextOffsetLine + iLine];
 
         GR::tPoint    ptSelStart;
         GR::tPoint    ptSelEnd;
 
         GetCurSel( ptSelStart, ptSelEnd );
 
-        int    iCurLine = (int)( m_TextOffsetLine + iLine );
+        int    curLine = (int)( m_TextOffsetLine + iLine );
 
-        if ( ( iCurLine < ptSelStart.y )
-        ||   ( iCurLine > ptSelEnd.y ) )
+        if ( ( curLine < ptSelStart.y )
+        ||   ( curLine > ptSelEnd.y ) )
         {
           // ausserhalb der Selection
         }
-        else if ( ( iCurLine > ptSelStart.y )
-        &&        ( iCurLine < ptSelEnd.y ) )
+        else if ( ( curLine > ptSelStart.y )
+        &&        ( curLine < ptSelEnd.y ) )
         {
           // komplett innerhalb der Selection
-          pPage->Box( 0, iY,
-                      m_pFont->TextLength( strLine.substr( m_TextOffset ).c_str() ),
-                      iY + m_pFont->TextHeight(),
+          pPage->Box( 0, y,
+                      m_pFont->TextLength( lineText.substr( m_TextOffset ).c_str() ),
+                      y + m_pFont->TextHeight(),
                       pPage->GetRGB256( GetSysColor( GUI::COL_HIGHLIGHT ) ) );
         }
         else
         {
-          if ( ( iCurLine == ptSelStart.y )
-          &&   ( iCurLine == ptSelEnd.y ) )
+          if ( ( curLine == ptSelStart.y )
+          &&   ( curLine == ptSelEnd.y ) )
           {
             // Selektion komplett innerhalb einer Zeile
-            int   iDeltaX = m_pFont->TextLength( strLine.substr( m_TextOffset, ptSelStart.x - m_TextOffset ).c_str() );
-            if ( iDeltaX )
+            int   deltaX = m_pFont->TextLength( lineText.substr( m_TextOffset, ptSelStart.x - m_TextOffset ).c_str() );
+            if ( deltaX )
             {
-              iDeltaX += m_pFont->FontSpacing();
+              deltaX += m_pFont->FontSpacing();
             }
-            pPage->Box( iDeltaX, iY,
-                        iDeltaX + m_pFont->TextLength( strLine.substr( ptSelStart.x, ptSelEnd.x - ptSelStart.x ).c_str() ),
-                        iY + m_pFont->TextHeight(),
+            pPage->Box( deltaX, y,
+                        deltaX + m_pFont->TextLength( lineText.substr( ptSelStart.x, ptSelEnd.x - ptSelStart.x ).c_str() ),
+                        y + m_pFont->TextHeight(),
                         pPage->GetRGB256( GetSysColor( GUI::COL_HIGHLIGHT ) ) );
           }
-          else if ( iCurLine == ptSelStart.y )
+          else if ( curLine == ptSelStart.y )
           {
             // Selektion beginnt hier
             int   iDeltaX = 0;
             if ( ptSelStart.x > (int)m_TextOffset )
             {
-              iDeltaX = m_pFont->TextLength( strLine.substr( m_TextOffset, ptSelStart.x - m_TextOffset ).c_str() );
+              iDeltaX = m_pFont->TextLength( lineText.substr( m_TextOffset, ptSelStart.x - m_TextOffset ).c_str() );
               if ( iDeltaX )
               {
                 iDeltaX += m_pFont->FontSpacing();
               }
             }
-            pPage->Box( iDeltaX, iY,
-                        iDeltaX + m_pFont->TextLength( strLine.substr( ptSelStart.x, strLine.length() - ptSelStart.x ).c_str() ),
-                        iY + m_pFont->TextHeight(),
+            pPage->Box( iDeltaX, y,
+                        iDeltaX + m_pFont->TextLength( lineText.substr( ptSelStart.x, lineText.length() - ptSelStart.x ).c_str() ),
+                        y + m_pFont->TextHeight(),
                         pPage->GetRGB256( GetSysColor( GUI::COL_HIGHLIGHT ) ) );
           }
-          else if ( iCurLine == ptSelEnd.y )
+          else if ( curLine == ptSelEnd.y )
           {
             // Selektion endet hier
             if ( ptSelEnd.x > (int)m_TextOffset )
             {
-              int   iDeltaX = m_pFont->TextLength( strLine.substr( m_TextOffset, ptSelEnd.x - m_TextOffset ).c_str() );
-              if ( iDeltaX )
+              int   deltaX = m_pFont->TextLength( lineText.substr( m_TextOffset, ptSelEnd.x - m_TextOffset ).c_str() );
+              if ( deltaX )
               {
-                iDeltaX += m_pFont->FontSpacing();
+                deltaX += m_pFont->FontSpacing();
               }
 
-              pPage->Box( 0, iY,
-                          iDeltaX, iY + m_pFont->TextHeight(),
+              pPage->Box( 0, y,
+                          deltaX, y + m_pFont->TextHeight(),
                           pPage->GetRGB256( GetSysColor( GUI::COL_HIGHLIGHT ) ) );
             }
           }
         }
-        iY += m_pFont->TextHeight();
+        y += m_pFont->TextHeight();
       }
     }
 
-    iY = 0;
-    for ( size_t iLine = 0; iLine < iVisibleLines; ++iLine )
+    y = 0;
+    for ( size_t iLine = 0; iLine < visibleLines; ++iLine )
     {
       if ( m_TextOffsetLine + iLine >= m_Text.size() )
       {
@@ -120,11 +120,11 @@ void GUIEdit::DisplayOnPage( GR::Graphic::GFXPage* pPage )
 
       if ( m_TextOffset >= strLine.length() )
       {
-        iY += m_pFont->TextHeight();
+        y += m_pFont->TextHeight();
         continue;
       }
 
-      int   iX = 0;
+      int   x = 0;
 
       for ( size_t iPos = m_TextOffset; iPos < strLine.length(); ++iPos )
       {
@@ -134,17 +134,17 @@ void GUIEdit::DisplayOnPage( GR::Graphic::GFXPage* pPage )
           continue;
         }
 
-        pLetter->PutImage( pPage, iX, iY, IMAGE_METHOD_TRANSPARENT );
-        iX += pLetter->GetWidth() + 1;
-        if ( iX >= m_ClientRect.width() )
+        pLetter->PutImage( pPage, x, y, IMAGE_METHOD_TRANSPARENT );
+        x += pLetter->GetWidth() + 1;
+        if ( x >= m_ClientRect.Width() )
         {
           break;
         }
       }
-      iY += m_pFont->TextHeight();
+      y += m_pFont->TextHeight();
     }
 
-    int   iTextHeight = m_pFont->TextHeight();
+    int   textHeight = m_pFont->TextHeight();
 
     /*
     int   iX = 0,
@@ -174,8 +174,8 @@ void GUIEdit::DisplayOnPage( GR::Graphic::GFXPage* pPage )
       static    int   iLastTicks = GetTickCount();
       if ( GetTickCount() - iLastTicks >= 300 )
       {
-        pPage->Box( m_CursorPos, (int)( m_CursorLine - m_TextOffsetLine ) * iTextHeight,
-                    m_CursorPos + 1, (int)( m_CursorLine - m_TextOffsetLine ) * iTextHeight + iTextHeight - 1,
+        pPage->Box( m_CursorPos, (int)( m_CursorLine - m_TextOffsetLine ) * textHeight,
+                    m_CursorPos + 1, (int)( m_CursorLine - m_TextOffsetLine ) * textHeight + textHeight - 1,
                     pPage->GetRGB256( GetSysColor( GUI::COL_WINDOWTEXT ) ) );
 
       }

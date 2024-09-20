@@ -2,8 +2,6 @@
 
 #include <GR/GRTypes.h>
 
-//#include "ResultCode.h"
-
 
 
 namespace Risk
@@ -15,7 +13,7 @@ class FileLogger
 {
   public:
     
-    enum class LogLevel
+    enum LogLevel
     {
       LL_NONE             = 0,    // nothing
       LL_ERROR            = 1,    // error only

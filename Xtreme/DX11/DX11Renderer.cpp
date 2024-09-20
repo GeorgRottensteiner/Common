@@ -676,6 +676,16 @@ bool DX11Renderer::Initialize( GR::u32 Width,
   m_RenderStates[std::make_pair( RS_CULLMODE, 0 )] = RSV_CULL_CCW;
   m_RenderStates[std::make_pair( RS_FILL_MODE, 0 )] = RSV_FILL_SOLID;
 
+  // apply common settings
+  SetState( XRenderer::RS_NORMALIZE_NORMALS, XRenderer::RSV_ENABLE ); // seems to be default on DX9/DX11
+  SetState( XRenderer::RS_MINFILTER, XRenderer::RSV_FILTER_LINEAR );
+  SetState( XRenderer::RS_MAGFILTER, XRenderer::RSV_FILTER_LINEAR );
+  SetState( XRenderer::RS_MIPFILTER, XRenderer::RSV_FILTER_LINEAR );
+  SetState( XRenderer::RS_FOG_ENABLE, XRenderer::RSV_DISABLE );
+  SetState( XRenderer::RS_FOG_TABLEMODE, XRenderer::RSV_FOG_LINEAR );
+  SetState( XRenderer::RS_LIGHTING, XRenderer::RSV_DISABLE );
+  SetState( XRenderer::RS_AMBIENT, 0 );
+
   m_Ready = true;
   return true;
 }

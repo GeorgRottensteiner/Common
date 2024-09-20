@@ -61,7 +61,7 @@ namespace GR
 
       public:
 
-        enum class Mode
+        enum Mode
         {
           ECB,
           CBC,

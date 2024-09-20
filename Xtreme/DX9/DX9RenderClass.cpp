@@ -169,6 +169,16 @@ bool CDX9RenderClass::Initialize( GR::u32 Width, GR::u32 Height, GR::u32 Depth, 
     return false;
   }
 
+  // apply common settings
+  SetState( XRenderer::RS_NORMALIZE_NORMALS, XRenderer::RSV_ENABLE ); // seems to be default on DX9/DX11
+  SetState( XRenderer::RS_MINFILTER, XRenderer::RSV_FILTER_LINEAR );
+  SetState( XRenderer::RS_MAGFILTER, XRenderer::RSV_FILTER_LINEAR );
+  SetState( XRenderer::RS_MIPFILTER, XRenderer::RSV_FILTER_LINEAR );
+  SetState( XRenderer::RS_FOG_ENABLE, XRenderer::RSV_DISABLE );
+  SetState( XRenderer::RS_FOG_TABLEMODE, XRenderer::RSV_FOG_LINEAR );
+  SetState( XRenderer::RS_LIGHTING, XRenderer::RSV_DISABLE );
+  SetState( XRenderer::RS_AMBIENT, 0 );
+
   // The app is ready to go
   m_bReady = TRUE;
 

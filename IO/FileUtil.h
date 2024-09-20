@@ -61,21 +61,18 @@ namespace GR
       bool              CreateSubDir( const GR::String& SubDir );
   #endif
       void              EnumFilesInDirectory( const GR::Char* FindMask, std::list<GR::String>& listFiles, bool bAllowDirectories = false, bool bClearList = true );
-      bool              Rename( const GR::Char* OldFilename, const GR::Char* NewFilename );
 #endif      
 
 #if OPERATING_SYSTEM == OS_ANDROID
       bool              CreateSubDir( const GR::String& SubDir );
 
       void              EnumFilesInDirectory( const GR::Char* FindMask, std::list<GR::String>& listFiles, bool bAllowDirectories = false, bool bClearList = true );
-      bool              Rename( const GR::Char* OldFilename, const GR::Char* NewFilename );
 #endif
       
 #if OPERATING_SYSTEM == OS_WEB
       bool              CreateSubDir( const GR::String& SubDir );
 
       void              EnumFilesInDirectory( const GR::Char* FindMask, std::list<GR::String>& listFiles, bool bAllowDirectories = false, bool bClearList = true );
-      bool              Rename( const GR::Char* OldFilename, const GR::Char* NewFilename );
 #endif
 
 #if OPERATING_SYSTEM == OS_WINDOWS
@@ -92,8 +89,6 @@ namespace GR
       bool              MoveFile( const GR::String& OldName, const GR::String& NewName, bool OverwriteIfExists = false );
 
       bool              CreateSubDir( const GR::String& Name, const GR::String& Separator = OS_PATH_SEPARATORS );
-
-      bool              GetFileCreationTime( const GR::String& Name, GR::DateTime::DateTime& CreationTimeUTC );
 #endif
       
       GR::String        CurrentWorkingDirectory();
@@ -101,6 +96,7 @@ namespace GR
       GR::String        UserAppDataPath();
       GR::String        AppPath();
       
+      bool              GetFileCreationTime( const GR::String& Name, GR::DateTime::DateTime& CreationTimeUTC );
       bool              GetFileModificationTime( const GR::String& Name, GR::DateTime::DateTime& ModificationTimeUTC );
 
 

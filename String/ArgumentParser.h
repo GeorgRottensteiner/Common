@@ -71,6 +71,7 @@ namespace GR
       std::vector<GR::String>               CommandLineParams;
       std::list<ParameterInfo>              AllowedParameters;
       std::list<GR::String>                 UnknownParameters;
+      std::list<GR::String>                 UnknownSwitchParameters;
       std::vector<GR::String>               Arguments;
 
 

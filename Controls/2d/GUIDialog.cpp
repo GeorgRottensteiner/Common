@@ -24,7 +24,7 @@ void GUIDialog::DisplayNonClientOnPage( GR::Graphic::GFXPage* pPage )
                 rectCaption.Right - 1, rectCaption.Bottom - 1,
                 pPage->GetRGB256( GUIComponentDisplayer::Instance().GetSysColor( GUI::COL_ACTIVECAPTION ) ) );
     
-    rectCaption.inflate( 1, 1 );
+    rectCaption.Inflate( 1, 1 );
     DrawText( pPage, m_Caption.c_str(), rectCaption );
   }
 }

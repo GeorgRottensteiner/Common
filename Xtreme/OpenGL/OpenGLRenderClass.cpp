@@ -287,7 +287,7 @@ bool OpenGLRenderClass::Initialize( GR::u32 Width, GR::u32 Height, GR::u32 Depth
 #endif
   glEnable( GL_COLOR_MATERIAL );
 
-
+  SetState( XRenderer::RS_NORMALIZE_NORMALS, XRenderer::RSV_ENABLE );
   SetState( XRenderer::RS_MINFILTER, XRenderer::RSV_FILTER_LINEAR );
   SetState( XRenderer::RS_MAGFILTER, XRenderer::RSV_FILTER_LINEAR );
   SetState( XRenderer::RS_MIPFILTER, XRenderer::RSV_FILTER_LINEAR );

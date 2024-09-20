@@ -34,7 +34,7 @@ void GUISlider::DisplayOnPage( GR::Graphic::GFXPage* pPage )
   {
     m_pImageSliderTop->PutImage( pPage, rc.Left, rc.Top );
 
-    int   iRestHeight = rc.height() - m_pImageSliderTop->GetHeight() - m_pImageSliderBottom->GetHeight();
+    int   iRestHeight = rc.Height() - m_pImageSliderTop->GetHeight() - m_pImageSliderBottom->GetHeight();
 
     if ( iRestHeight % m_pImageSliderMiddle->GetHeight() )
     {
@@ -48,7 +48,7 @@ void GUISlider::DisplayOnPage( GR::Graphic::GFXPage* pPage )
     {
       m_pImageSliderMiddle->PutImage( pPage, rc.Left, rc.Top + m_pImageSliderTop->GetHeight() + i * m_pImageSliderMiddle->GetHeight() );
     }
-    m_pImageSliderBottom->PutImage( pPage, rc.Left, rc.Top + rc.height() - m_pImageSliderBottom->GetHeight() );
+    m_pImageSliderBottom->PutImage( pPage, rc.Left, rc.Top + rc.Height() - m_pImageSliderBottom->GetHeight() );
   }
   else if ( m_pImageSliderMiddle )
   {

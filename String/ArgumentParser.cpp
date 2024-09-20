@@ -118,7 +118,15 @@ namespace GR
         }
         if ( !isKnownParameter )
         {
-          UnknownParameters.push_back( param );
+          if ( IsSwitchCharacter( param[0] ) )
+          {
+            UnknownSwitchParameters.push_back( param );
+            foundError = true;
+          }
+          else
+          {
+            UnknownParameters.push_back( param );
+          }
         }
       }
       else
@@ -126,7 +134,15 @@ namespace GR
         // a value
         if ( pCurrentInfo == NULL )
         {
-          UnknownParameters.push_back( param );
+          if ( IsSwitchCharacter( param[0] ) )
+          {
+            UnknownSwitchParameters.push_back( param );
+            foundError = true;
+          }
+          else
+          {
+            UnknownParameters.push_back( param );
+          }
           Arguments.push_back( param );
         }
         else

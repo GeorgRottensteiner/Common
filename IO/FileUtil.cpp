@@ -420,9 +420,9 @@ namespace GR
         closedir( d );
       }
 
-      bool Rename( const GR::Char* OldFilename, const GR::Char* NewFilename )
+      bool Rename( const GR::String& OldFilename, const GR::String& NewFilename )
       {
-        return !rename( OldFilename, NewFilename );
+        return !rename( OldFilename.c_str(), NewFilename.c_str() );
       }
 
 
@@ -457,11 +457,11 @@ namespace GR
 
 
 
-      bool Rename( const GR::Char* OldFilename, const GR::Char* NewFilename )
+      bool Rename( const GR::String& OldFilename, const GR::String& NewFilename )
       {
         short fileNum = -1;
-        short result = FILE_OPEN_( OldFilename,
-                                   (short)strlen( OldFilename ),
+        short result = FILE_OPEN_( OldFilename.c_str(),
+                                   (short)OldFilename.length(),
                                    &fileNum,
                                    0,     // read-write
                                    1 );   // exclusive
@@ -469,7 +469,7 @@ namespace GR
         {
           return false;
         }
-        result = FILE_RENAME_( fileNum, NewFilename, (short)strlen( NewFilename ) );
+        result = FILE_RENAME_( fileNum, NewFilename.c_str(), (short)NewFilename.length() );
         if ( result != 0 )
         {
           FILE_CLOSE_( fileNum );
@@ -737,14 +737,15 @@ namespace GR
         }
         return true;
       }
+#endif
 
 
 
       bool GetFileCreationTime( const GR::String& Name, GR::DateTime::DateTime& CreationTimeUTC )
       {
-        SYSTEMTIME                  sysCreationTime;
-
+#if OPERATING_SYSTEM == OS_WINDOWS
 #if ( OPERATING_SUB_SYSTEM == OS_SUB_UNIVERSAL_APP ) || ( OPERATING_SUB_SYSTEM == OS_SUB_WINDOWS_PHONE )
+        SYSTEMTIME                  sysCreationTime;
         WIN32_FILE_ATTRIBUTE_DATA   attributes;
         GR::WString                 utf16Filename = MakeSafeWinFilename( Name );
         if ( !GetFileAttributesExW( utf16Filename.c_str(), GetFileExInfoStandard, &attributes ) )
@@ -757,6 +758,7 @@ namespace GR
           return false;
         }
 #elif ( OPERATING_SUB_SYSTEM == OS_SUB_DESKTOP ) || ( OPERATING_SYSTEM == OS_WINDOWS )
+        SYSTEMTIME                  sysCreationTime;
         GR::IO::FileStream    ioFile;
 
         if ( !ioFile.Open( Name.c_str(), IIOStream::OT_READ_ONLY_SHARED ) )
@@ -774,6 +776,31 @@ namespace GR
         {
           return false;
         }
+#endif
+        // SYSTEMTIME to tm
+        if ( sysCreationTime.wYear < 1900 )
+        {
+          // can't represent as struct tm
+          return false;
+        }
+
+        std::tm   timeStamp;
+
+        timeStamp.tm_mday   = sysCreationTime.wDay;
+        timeStamp.tm_wday   = sysCreationTime.wDayOfWeek;
+        timeStamp.tm_hour   = sysCreationTime.wHour;
+        timeStamp.tm_min    = sysCreationTime.wMinute;
+        timeStamp.tm_mon    = sysCreationTime.wMonth - 1;
+        timeStamp.tm_sec    = sysCreationTime.wSecond;
+        timeStamp.tm_year   = sysCreationTime.wYear - 1900;
+        timeStamp.tm_isdst  = -1; // "not known"
+
+        // fill in day of year
+        mktime( &timeStamp );
+        CreationTimeUTC.ConvertToUTC();
+        CreationTimeUTC.SetTime( timeStamp, sysCreationTime.wMilliseconds * 1000 );
+        return true;
+
 #elif ( OPERATING_SYSTEM == OS_TANDEM ) && ( OPERATING_SUB_SYSTEM == OS_SUB_GUARDIAN )
         short fileHandle = 0;
         short lastError = FILE_OPEN_( Name.c_str(), (short)Name.length(), &fileHandle, 1, 0 );
@@ -835,38 +862,27 @@ namespace GR
 
         // fill in day of year
         mktime( &timeStamp );
-        ModificationTimeUTC.SetTime( timeStamp, gregorian.U16NetworkOrderAt( 12 ) * 1000 + gregorian.U16NetworkOrderAt( 14 ) );
+        CreationTimeUTC.ConvertToUTC();
+        CreationTimeUTC.SetTime( timeStamp, gregorian.U16NetworkOrderAt( 12 ) * 1000 + gregorian.U16NetworkOrderAt( 14 ) );
 
         return true;
-#endif
-
-        // SYSTEMTIME to tm
-        if ( sysCreationTime.wYear < 1900 )
+#else
+        // OSS or other unix like
+        FILE* fileHandle  = fopen( Name.c_str(), "rb" );
+        if ( fileHandle == NULL )
         {
-          // can't represent as struct tm
           return false;
         }
 
-        std::tm   timeStamp;
+        struct stat fStat;
 
-        timeStamp.tm_mday   = sysCreationTime.wDay;
-        timeStamp.tm_wday   = sysCreationTime.wDayOfWeek;
-        timeStamp.tm_hour   = sysCreationTime.wHour;
-        timeStamp.tm_min    = sysCreationTime.wMinute;
-        timeStamp.tm_mon    = sysCreationTime.wMonth - 1;
-        timeStamp.tm_sec    = sysCreationTime.wSecond;
-        timeStamp.tm_year   = sysCreationTime.wYear - 1900;
-        timeStamp.tm_isdst  = -1; // "not known"
+        fstat( fileno( fileHandle ), &fStat );
 
-        // fill in day of year
-        mktime( &timeStamp );
-        CreationTimeUTC.SetTime( timeStamp, sysCreationTime.wMilliseconds * 1000 );
-        return true;
+        return CreationTimeUTC.FromTime( fStat.st_mtime );
+#endif
       }
 
 
-
-#endif
 
       bool GetFileModificationTime( const GR::String& Name, GR::DateTime::DateTime& ModificationTimeUTC )
       {
@@ -925,6 +941,7 @@ namespace GR
 
         // fill in day of year
         mktime( &timeStamp );
+        ModificationTimeUTC.ConvertToUTC();
         ModificationTimeUTC.SetTime( timeStamp, sysTime.wMilliseconds * 1000 );
         return true;
 #elif ( OPERATING_SYSTEM == OS_TANDEM ) && ( OPERATING_SUB_SYSTEM == OS_SUB_GUARDIAN )
@@ -988,6 +1005,7 @@ namespace GR
 
         // fill in day of year
         mktime( &timeStamp );
+        ModificationTimeUTC.ConvertToUTC();
         ModificationTimeUTC.SetTime( timeStamp, gregorian.U16NetworkOrderAt( 12 ) * 1000 + gregorian.U16NetworkOrderAt( 14 ) );
 
         return true;

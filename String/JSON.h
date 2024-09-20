@@ -30,6 +30,9 @@ namespace GR
         };
       }
 
+      class iterator;
+
+
       class Element
       {
         protected:
@@ -67,8 +70,10 @@ namespace GR
           GR::u32                       Level() const;
 
           Element*                      FirstChild() const;
+          iterator                      begin() const;
           size_t                        ChildCount() const;
           Element*                      Parent() const;
+          Element*                      FindByName( const GR::String& Name );
 
           Element*                      Clone( bool DeepClone = true );    // true = alle Childs mitklonen, false = nur Attribute
 
@@ -86,245 +91,6 @@ namespace GR
       class Parser
       {
         public:
-
-          class iterator : public std::iterator<std::bidirectional_iterator_tag,Element*>
-          {
-
-            protected:
-
-              Element*                        m_pElement;
-
-
-            public:
-
-              iterator( Element* pElement = NULL ) :
-                m_pElement( pElement )
-              {
-              }
-
-              iterator( const iterator& rhs ) :
-                m_pElement( rhs.m_pElement )
-              {
-              }
-
-              Element* operator->() const 
-              { 
-                return m_pElement; 
-
-              }
-              Element* operator*()  const 
-              { 
-                return m_pElement; 
-              }
-
-              iterator& operator ++() //- pre-inc
-              {
-                *this = next();
-                return *this;
-              }
-              iterator operator ++(int) //- post-inc
-              {
-                iterator tmp( *this );
-                *this = next();
-                return tmp;
-              }
-              iterator& operator --() //- pre-dec
-              {
-                *this = previous();
-                return *this;
-              }
-              iterator operator --(int) //- post-dec
-              {
-                iterator tmp( *this );
-                *this = previous();
-                return tmp;
-              }
-
-              bool operator==( const iterator& rhs ) const 
-              { 
-                return ( m_pElement == rhs.m_pElement );
-              }
-
-              bool operator!=( const iterator& rhs ) const 
-              { 
-                return ( m_pElement != rhs.m_pElement ); 
-              }
-
-              iterator end()
-              {
-                return iterator();
-              }
-
-              iterator first_child()
-              {
-                if ( m_pElement == NULL )
-                {
-                  return end();
-                }
-                if ( m_pElement->m_Childs.empty() )
-                {
-                  return end();
-                }
-                return iterator( m_pElement->m_Childs.front() );
-              }
-
-              iterator last_child()
-              {
-                if ( m_pElement == NULL )
-                {
-                  return end();
-                }
-                if ( m_pElement->m_Childs.empty() )
-                {
-                  return end();
-                }
-                return iterator( m_pElement->m_Childs.back() );
-              }
-
-              iterator next_sibling()
-              {
-                if ( m_pElement == NULL )
-                {
-                  return end();
-                }
-                if ( m_pElement->Parent() == NULL )
-                {
-                  return end();
-                }
-                Element::tListElements::iterator    it( m_pElement->Parent()->m_Childs.begin() );
-                while ( it != m_pElement->Parent()->m_Childs.end() )
-                {
-                  if ( *it == m_pElement )
-                  {
-                    ++it;
-                    if ( it == m_pElement->Parent()->m_Childs.end() )
-                    {
-                      return end();
-                    }
-                    return iterator( *it );
-                  }
-                  ++it;
-                }
-                return end();
-              }
-
-              iterator previous_sibling()
-              {
-                if ( m_pElement == NULL )
-                {
-                  return end();
-                }
-                if ( m_pElement->Parent() == NULL )
-                {
-                  return end();
-                }
-                Element::tListElements::iterator    it( m_pElement->Parent()->m_Childs.begin() );
-                while ( it != m_pElement->Parent()->m_Childs.end() )
-                {
-                  if ( *it == m_pElement )
-                  {
-                    --it;
-                    if ( it == m_pElement->Parent()->m_Childs.end() )
-                    {
-                      return end();
-                    }
-                    return iterator( *it );
-                  }
-                  ++it;
-                }
-                return end();
-              }
-
-              iterator next()
-              {
-                if ( m_pElement == NULL )
-                {
-                  return end();
-                }
-                if ( !m_pElement->m_Childs.empty() )
-                {
-                  return iterator( m_pElement->m_Childs.front() );
-                }
-                if ( m_pElement->Parent() == NULL )
-                {
-                  return end();
-                }
-                Element*    pParent = m_pElement->Parent();
-                Element*    pElement = m_pElement;
-
-                while ( pParent )
-                {
-                  Element::tListElements::iterator    it( pParent->m_Childs.begin() );
-                  while ( it != pParent->m_Childs.end() )
-                  {
-                    if ( *it == pElement )
-                    {
-                      ++it;
-                      if ( it == pParent->m_Childs.end() )
-                      {
-                        // jetzt über die Parents weiter nach oben
-                        pElement = pParent;
-                        pParent = pParent->Parent();
-                        if ( pParent == NULL )
-                        {
-                          return end();
-                        }
-                        it = pParent->m_Childs.begin();
-                        continue;
-                      }
-                      return iterator( *it );
-                    }
-                    ++it;
-                  }
-                }
-                return end();
-              }
-
-              iterator previous()
-              {
-                if ( m_pElement == NULL )
-                {
-                  return end();
-                }
-                if ( m_pElement->Parent() == NULL )
-                {
-                  return end();
-                }
-                Element*    pParent   = m_pElement->Parent();
-                Element*    pElement  = m_pElement;
-
-                Element::tListElements::iterator    it( pParent->m_Childs.begin() );
-                while ( it != pParent->m_Childs.end() )
-                {
-                  if ( *it == pElement )
-                  {
-                    --it;
-                    if ( it == pParent->m_Childs.end() )
-                    {
-                      pElement = pParent;
-                      pParent = pParent->Parent();
-                      it = pParent->m_Childs.begin();
-                      continue;
-                    }
-                    pElement = *it;
-                    while ( pElement )
-                    {
-                      if ( pElement->m_Childs.empty() )
-                      {
-                        return iterator( *it );
-                      }
-                      pElement = pElement->m_Childs.back();
-                    }
-                  }
-
-                  ++it;
-                }
-                return end();
-              }
-
-              friend class Element;
-
-          };
 
           static GR::String             m_NewLine;
 
@@ -355,6 +121,8 @@ namespace GR
           bool                          Save( const GR::String& FileName, const GR::u32 IndentSpaces = 2, bool UseLineBreaks = true );
           bool                          Save( IIOStream& ioOut, const GR::u32 IndentSpaces = 2, bool UseLineBreaks = true );
 
+          Element*                      FindByName( const GR::String& Name );
+
           iterator                      begin();
           iterator                      end();
 
@@ -378,6 +146,247 @@ namespace GR
           bool                          _ParseString( const GR::Char* pString, size_t& CurPos, size_t Length, GR::String& ResultingString );
           bool                          _ParseNumber( const GR::Char* pString, size_t& CurPos, size_t Length, GR::String& ResultingString );
 
+
+      };
+
+
+
+      class iterator : public std::iterator<std::bidirectional_iterator_tag, Element*>
+      {
+
+        protected:
+
+        Element* m_pElement;
+
+
+        public:
+
+        iterator( Element* pElement = NULL ) :
+          m_pElement( pElement )
+        {
+        }
+
+        iterator( const iterator& rhs ) :
+          m_pElement( rhs.m_pElement )
+        {
+        }
+
+        Element* operator->() const
+        {
+          return m_pElement;
+
+        }
+        Element* operator*()  const
+        {
+          return m_pElement;
+        }
+
+        iterator& operator ++() //- pre-inc
+        {
+          *this = next();
+          return *this;
+        }
+        iterator operator ++( int ) //- post-inc
+        {
+          iterator tmp( *this );
+          *this = next();
+          return tmp;
+        }
+        iterator& operator --() //- pre-dec
+        {
+          *this = previous();
+          return *this;
+        }
+        iterator operator --( int ) //- post-dec
+        {
+          iterator tmp( *this );
+          *this = previous();
+          return tmp;
+        }
+
+        bool operator==( const iterator& rhs ) const
+        {
+          return ( m_pElement == rhs.m_pElement );
+        }
+
+        bool operator!=( const iterator& rhs ) const
+        {
+          return ( m_pElement != rhs.m_pElement );
+        }
+
+        iterator end()
+        {
+          return iterator();
+        }
+
+        iterator first_child()
+        {
+          if ( m_pElement == NULL )
+          {
+            return end();
+          }
+          if ( m_pElement->m_Childs.empty() )
+          {
+            return end();
+          }
+          return iterator( m_pElement->m_Childs.front() );
+        }
+
+        iterator last_child()
+        {
+          if ( m_pElement == NULL )
+          {
+            return end();
+          }
+          if ( m_pElement->m_Childs.empty() )
+          {
+            return end();
+          }
+          return iterator( m_pElement->m_Childs.back() );
+        }
+
+        iterator next_sibling()
+        {
+          if ( m_pElement == NULL )
+          {
+            return end();
+          }
+          if ( m_pElement->Parent() == NULL )
+          {
+            return end();
+          }
+          Element::tListElements::iterator    it( m_pElement->Parent()->m_Childs.begin() );
+          while ( it != m_pElement->Parent()->m_Childs.end() )
+          {
+            if ( *it == m_pElement )
+            {
+              ++it;
+              if ( it == m_pElement->Parent()->m_Childs.end() )
+              {
+                return end();
+              }
+              return iterator( *it );
+            }
+            ++it;
+          }
+          return end();
+        }
+
+        iterator previous_sibling()
+        {
+          if ( m_pElement == NULL )
+          {
+            return end();
+          }
+          if ( m_pElement->Parent() == NULL )
+          {
+            return end();
+          }
+          Element::tListElements::iterator    it( m_pElement->Parent()->m_Childs.begin() );
+          while ( it != m_pElement->Parent()->m_Childs.end() )
+          {
+            if ( *it == m_pElement )
+            {
+              --it;
+              if ( it == m_pElement->Parent()->m_Childs.end() )
+              {
+                return end();
+              }
+              return iterator( *it );
+            }
+            ++it;
+          }
+          return end();
+        }
+
+        iterator next()
+        {
+          if ( m_pElement == NULL )
+          {
+            return end();
+          }
+          if ( !m_pElement->m_Childs.empty() )
+          {
+            return iterator( m_pElement->m_Childs.front() );
+          }
+          if ( m_pElement->Parent() == NULL )
+          {
+            return end();
+          }
+          Element* pParent = m_pElement->Parent();
+          Element* pElement = m_pElement;
+
+          while ( pParent )
+          {
+            Element::tListElements::iterator    it( pParent->m_Childs.begin() );
+            while ( it != pParent->m_Childs.end() )
+            {
+              if ( *it == pElement )
+              {
+                ++it;
+                if ( it == pParent->m_Childs.end() )
+                {
+                  // jetzt über die Parents weiter nach oben
+                  pElement = pParent;
+                  pParent = pParent->Parent();
+                  if ( pParent == NULL )
+                  {
+                    return end();
+                  }
+                  it = pParent->m_Childs.begin();
+                  continue;
+                }
+                return iterator( *it );
+              }
+              ++it;
+            }
+          }
+          return end();
+        }
+
+        iterator previous()
+        {
+          if ( m_pElement == NULL )
+          {
+            return end();
+          }
+          if ( m_pElement->Parent() == NULL )
+          {
+            return end();
+          }
+          Element* pParent = m_pElement->Parent();
+          Element* pElement = m_pElement;
+
+          Element::tListElements::iterator    it( pParent->m_Childs.begin() );
+          while ( it != pParent->m_Childs.end() )
+          {
+            if ( *it == pElement )
+            {
+              --it;
+              if ( it == pParent->m_Childs.end() )
+              {
+                pElement = pParent;
+                pParent = pParent->Parent();
+                it = pParent->m_Childs.begin();
+                continue;
+              }
+              pElement = *it;
+              while ( pElement )
+              {
+                if ( pElement->m_Childs.empty() )
+                {
+                  return iterator( *it );
+                }
+                pElement = pElement->m_Childs.back();
+              }
+            }
+
+            ++it;
+          }
+          return end();
+        }
+
+        friend class Element;
 
       };
 

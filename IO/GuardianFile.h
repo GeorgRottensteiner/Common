@@ -98,7 +98,7 @@ namespace GR
 
         bool                    ReadToBuffer( void* pTarget, unsigned long BytesToRead, unsigned long& BytesRead );
 
-        class GuardianFileImpl : public GR::CRefCountObject
+        class GuardianFileImpl : public GR::RefCountObject
         {
 
           public:

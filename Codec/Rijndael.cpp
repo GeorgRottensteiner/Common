@@ -962,7 +962,7 @@ namespace GR
 
     Rijndael::Rijndael() :
       m_StateValid( false ),
-      m_Mode( Mode::CBC ),
+      m_Mode( CBC ),
       m_Encrypt( true ),
       m_NumRounds( 0 )
     {
@@ -977,9 +977,9 @@ namespace GR
       m_StateValid = false;
 
       // Check the mode
-      if ( ( Mode != Mode::CBC ) 
-      &&   ( Mode != Mode::ECB )
-      &&   ( Mode != Mode::CFB1 ) )
+      if ( ( Mode != CBC )
+      &&   ( Mode != ECB )
+      &&   ( Mode != CFB1 ) )
       {
         return RES_UNSUPPORTED_MODE;
       }
@@ -1053,7 +1053,7 @@ namespace GR
 
       switch ( m_Mode )
       {
-        case Mode::ECB:
+        case ECB:
           for ( int i = numBlocks; i > 0; i-- )
           {
             encrypt( pInputData,pOutBuffer );
@@ -1061,7 +1061,7 @@ namespace GR
             pOutBuffer += 16;
           }
           break;
-        case Mode::CBC:
+        case CBC:
           ( (GR::u32*)block )[0] = ( (GR::u32*)m_InitVector )[0] ^ ( (GR::u32*)pInputData )[0];
           ( (GR::u32*)block )[1] = ( (GR::u32*)m_InitVector )[1] ^ ( (GR::u32*)pInputData )[1];
           ( (GR::u32*)block )[2] = ( (GR::u32*)m_InitVector )[2] ^ ( (GR::u32*)pInputData )[2];
@@ -1079,7 +1079,7 @@ namespace GR
             pInputData += 16;
           }
           break;
-        case Mode::CFB1:
+        case CFB1:
     #if STRICT_ALIGN
           memcpy( iv, m_initVector, 16 );
     #else  
@@ -1153,7 +1153,7 @@ namespace GR
 
       switch ( m_Mode )
       {
-        case Mode::ECB:
+        case ECB:
           for ( int i = numBlocks; i > 0; i-- )
           {
             encrypt( pInput, pOutBuffer );
@@ -1165,7 +1165,7 @@ namespace GR
           memset( block + 16 - padLen, padLen, padLen );
           encrypt( block, pOutBuffer );
           break;
-        case Mode::CBC:
+        case CBC:
           iv = m_InitVector;
           for ( int i = numBlocks; i > 0; i-- )
           {
@@ -1209,7 +1209,7 @@ namespace GR
       {
         return RES_NOT_INITIALIZED;
       }
-      if ( ( m_Mode != Mode::CFB1 )
+      if ( ( m_Mode != CFB1 )
       &&   ( m_Encrypt ) )
       {
         return RES_BAD_DIRECTION;
@@ -1225,7 +1225,7 @@ namespace GR
 
       switch ( m_Mode )
       {
-        case Mode::ECB:
+        case ECB:
           for ( int i = numBlocks; i > 0; i-- )
           {
             decrypt( pInput, pOutBuffer );
@@ -1233,7 +1233,7 @@ namespace GR
             pOutBuffer  += 16;
           }
           break;
-        case Mode::CBC:
+        case CBC:
     #if STRICT_ALIGN
           memcpy( iv, m_initVector, 16 );
     #else
@@ -1262,7 +1262,7 @@ namespace GR
             pOutBuffer += 16;
           }
           break;
-        case Mode::CFB1:
+        case CFB1:
     #if STRICT_ALIGN
           memcpy(iv, m_initVector, 16);
     #else
@@ -1340,7 +1340,7 @@ namespace GR
 
       switch ( m_Mode )
       {
-        case Mode::ECB:
+        case ECB:
           for ( int i = numBlocks - 1; i > 0; i-- )
           {
             decrypt( pInput, pOutBuffer );
@@ -1363,7 +1363,7 @@ namespace GR
           }
           memcpy( pOutBuffer, block, 16 - padLen );
           break;
-        case Mode::CBC:
+        case CBC:
           memcpy( iv, m_InitVector, 16 );
           // all but the last block
           for ( int i = numBlocks - 1; i > 0; i-- )
@@ -1667,7 +1667,7 @@ namespace GR
     {
       ByteBuffer    result( Data.Size() );
 
-      init( Rijndael::Mode::CBC, true, (const GR::u8*)Key.Data(), (int)Key.Size() );
+      init( Rijndael::CBC, true, (const GR::u8*)Key.Data(), (int)Key.Size() );
       int len = BlockEncrypt( (const GR::u8*)Data.Data(), (int)Data.Size(), (GR::u8*)result.Data() );
       if ( len < 0 )
       {
@@ -1683,7 +1683,7 @@ namespace GR
     {
       ByteBuffer result( Data.Size() );
 
-      init( Rijndael::Mode::CBC, false, (const GR::u8*)Key.Data(), (int)Key.Size() );
+      init( Rijndael::CBC, false, (const GR::u8*)Key.Data(), (int)Key.Size() );
 
       int len = BlockDecrypt( (const GR::u8*)Data.Data(), (int)Data.Size(), (GR::u8*)result.Data() );
       if ( len < 0 )
@@ -1705,7 +1705,7 @@ namespace GR
 
     bool Rijndael::Initialise( bool Encrypt, const ByteBuffer& Key, const ByteBuffer& InitialisationVector )
     {
-      return init( Rijndael::Mode::CBC, Encrypt, (const GR::u8*)Key.Data(), (int)Key.Size() ) == RES_SUCCESS;
+      return init( Rijndael::CBC, Encrypt, (const GR::u8*)Key.Data(), (int)Key.Size() ) == RES_SUCCESS;
     }
 
 
@@ -1727,7 +1727,7 @@ namespace GR
         return true;
       }
 
-      auto processData = m_CachedInputData + Data.SubBuffer( 0, NumOfBytes );
+      ByteBuffer processData = m_CachedInputData + Data.SubBuffer( 0, NumOfBytes );
       if ( processData.Size() % 16 )
       {
         m_CachedInputData = processData.SubBuffer( ( processData.Size() / 16 ) * 16 );
@@ -1777,7 +1777,7 @@ namespace GR
 
       Rijndael      Rin;
 
-      Rin.init( Rijndael::Mode::CBC, true, (const GR::u8*)Key.Data(), (int)Key.Size() );
+      Rin.init( Rijndael::CBC, true, (const GR::u8*)Key.Data(), (int)Key.Size() );
 
       //int len = Rin.padEncrypt( (const GR::u8*)In.Data(), (int)In.Size(), (GR::u8*)Encrypted.Data() );
       int len = Rin.BlockEncrypt( (const GR::u8*)In.Data(), (int)In.Size(), (GR::u8*)Encrypted.Data() );
@@ -1799,7 +1799,7 @@ namespace GR
 
       Rijndael      Rin;
 
-      Rin.init( Rijndael::Mode::CBC, false, (const GR::u8*)Key.Data(), (int)Key.Size() );
+      Rin.init( Rijndael::CBC, false, (const GR::u8*)Key.Data(), (int)Key.Size() );
 
       int len = Rin.BlockDecrypt( (const GR::u8*)In.Data(), (int)In.Size(), (GR::u8*)Decrypted.Data() );
       if ( len < 0 )
@@ -1816,7 +1816,7 @@ namespace GR
     {
       ByteBuffer    result( Data.Size() );
 
-      init( Rijndael::Mode::ECB, true, (const GR::u8*)Key.Data(), (int)Key.Size() );
+      init( Rijndael::ECB, true, (const GR::u8*)Key.Data(), (int)Key.Size() );
       int len = BlockEncrypt( (const GR::u8*)Data.Data(), (int)Data.Size(), (GR::u8*)result.Data() );
       if ( len < 0 )
       {
@@ -1832,7 +1832,7 @@ namespace GR
     {
       ByteBuffer result( Data.Size() );
 
-      init( Rijndael::Mode::ECB, false, (const GR::u8*)Key.Data(), (int)Key.Size() );
+      init( Rijndael::ECB, false, (const GR::u8*)Key.Data(), (int)Key.Size() );
 
       int len = BlockDecrypt( (const GR::u8*)Data.Data(), (int)Data.Size(), (GR::u8*)result.Data() );
       if ( len < 0 )
