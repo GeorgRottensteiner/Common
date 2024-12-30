@@ -85,7 +85,7 @@ namespace GR
 
         bool                    ReadToBuffer( void* pTarget, unsigned long BytesToRead, unsigned long& BytesRead );
 
-        class AndroidFileImpl : public GR::CRefCountObject
+        class AndroidFileImpl : public GR::RefCountObject
         {
 
           public:

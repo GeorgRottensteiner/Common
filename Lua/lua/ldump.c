@@ -58,7 +58,7 @@ static void DumpVector(const void* b, int n, size_t size, DumpState* D)
  DumpMem(b,n,size,D);
 }
 
-static void Dumpstring(const Tstring* s, DumpState* D)
+static void DumpString(const TString* s, DumpState* D)
 {
  if (s==NULL)
  {
@@ -96,7 +96,7 @@ static void DumpConstants(const Proto* f, DumpState* D)
 	DumpNumber(nvalue(o),D);
 	break;
    case LUA_TSTRING:
-	Dumpstring(rawtsvalue(o),D);
+	DumpString(rawtsvalue(o),D);
 	break;
     default: lua_assert(0);
   }
@@ -120,20 +120,20 @@ static void DumpUpvalues(const Proto* f, DumpState* D)
 static void DumpDebug(const Proto* f, DumpState* D)
 {
  int i,n;
- Dumpstring((D->strip) ? NULL : f->source,D);
+ DumpString((D->strip) ? NULL : f->source,D);
  n= (D->strip) ? 0 : f->sizelineinfo;
  DumpVector(f->lineinfo,n,sizeof(int),D);
  n= (D->strip) ? 0 : f->sizelocvars;
  DumpInt(n,D);
  for (i=0; i<n; i++)
  {
-  Dumpstring(f->locvars[i].varname,D);
+  DumpString(f->locvars[i].varname,D);
   DumpInt(f->locvars[i].startpc,D);
   DumpInt(f->locvars[i].endpc,D);
  }
  n= (D->strip) ? 0 : f->sizeupvalues;
  DumpInt(n,D);
- for (i=0; i<n; i++) Dumpstring(f->upvalues[i].name,D);
+ for (i=0; i<n; i++) DumpString(f->upvalues[i].name,D);
 }
 
 static void DumpFunction(const Proto* f, DumpState* D)

@@ -1065,6 +1065,13 @@ namespace GR
 
 
 
+      bool Contains( const GR::string& Text ) const
+      {
+        return find( Text ) != GR::string::npos;
+      }
+
+
+
       bool StartsWith( const GR::string& Start ) const
       {
         if ( Start.length() > length() )

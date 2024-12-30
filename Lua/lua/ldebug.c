@@ -98,7 +98,7 @@ LUA_API int lua_getstack (lua_State *L, int level, lua_Debug *ar) {
 
 
 static const char *upvalname (Proto *p, int uv) {
-  Tstring *s = check_exp(uv < p->sizeupvalues, p->upvalues[uv].name);
+  TString *s = check_exp(uv < p->sizeupvalues, p->upvalues[uv].name);
   if (s == NULL) return "?";
   else return getstr(s);
 }
@@ -546,7 +546,7 @@ static void addinfo (lua_State *L, const char *msg) {
   if (isLua(ci)) {  /* is Lua code? */
     char buff[LUA_IDSIZE];  /* add file:line information */
     int line = currentline(ci);
-    Tstring *src = ci_func(ci)->p->source;
+    TString *src = ci_func(ci)->p->source;
     if (src)
       luaO_chunkid(buff, getstr(src), LUA_IDSIZE);
     else {  /* no source available; use "?" instead */

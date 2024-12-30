@@ -499,7 +499,7 @@ LUA_API void lua_pushunsigned (lua_State *L, lua_Unsigned u) {
 
 
 LUA_API const char *lua_pushlstring (lua_State *L, const char *s, size_t len) {
-  Tstring *ts;
+  TString *ts;
   lua_lock(L);
   luaC_checkGC(L);
   ts = luaS_newlstr(L, s, len);
@@ -516,7 +516,7 @@ LUA_API const char *lua_pushstring (lua_State *L, const char *s) {
     return NULL;
   }
   else {
-    Tstring *ts;
+    TString *ts;
     lua_lock(L);
     luaC_checkGC(L);
     ts = luaS_new(L, s);
@@ -1197,7 +1197,7 @@ static const char *aux_upvalue (StkId fi, int n, TValue **val,
     }
     case LUA_TLCL: {  /* Lua closure */
       LClosure *f = clLvalue(fi);
-      Tstring *name;
+      TString *name;
       Proto *p = f->p;
       if (!(1 <= n && n <= p->sizeupvalues)) return NULL;
       *val = f->upvals[n-1]->v;

@@ -1,6 +1,6 @@
 /*
 ** $Id: lstring.c,v 2.26 2013/01/08 13:50:10 roberto Exp $
-** string table (keeps all strings handled by Lua)
+** String table (keeps all strings handled by Lua)
 ** See Copyright Notice in lua.h
 */
 
@@ -30,7 +30,7 @@
 /*
 ** equality for long strings
 */
-int luaS_eqlngstr (Tstring *a, Tstring *b) {
+int luaS_eqlngstr (TString *a, TString *b) {
   size_t len = a->tsv.len;
   lua_assert(a->tsv.tt == LUA_TLNGSTR && b->tsv.tt == LUA_TLNGSTR);
   return (a == b) ||  /* same instance or... */
@@ -42,7 +42,7 @@ int luaS_eqlngstr (Tstring *a, Tstring *b) {
 /*
 ** equality for strings
 */
-int luaS_eqstr (Tstring *a, Tstring *b) {
+int luaS_eqstr (TString *a, TString *b) {
   return (a->tsv.tt == b->tsv.tt) &&
          (a->tsv.tt == LUA_TSHRSTR ? eqshrstr(a, b) : luaS_eqlngstr(a, b));
 }
@@ -95,11 +95,11 @@ void luaS_resize (lua_State *L, int newsize) {
 /*
 ** creates a new string object
 */
-static Tstring *createstrobj (lua_State *L, const char *str, size_t l,
+static TString *createstrobj (lua_State *L, const char *str, size_t l,
                               int tag, unsigned int h, GCObject **list) {
-  Tstring *ts;
-  size_t totalsize;  /* total size of Tstring object */
-  totalsize = sizeof(Tstring) + ((l + 1) * sizeof(char));
+  TString *ts;
+  size_t totalsize;  /* total size of TString object */
+  totalsize = sizeof(TString) + ((l + 1) * sizeof(char));
   ts = &luaC_newobj(L, tag, totalsize, list, 0)->ts;
   ts->tsv.len = l;
   ts->tsv.hash = h;
@@ -113,11 +113,11 @@ static Tstring *createstrobj (lua_State *L, const char *str, size_t l,
 /*
 ** creates a new short string, inserting it into string table
 */
-static Tstring *newshrstr (lua_State *L, const char *str, size_t l,
+static TString *newshrstr (lua_State *L, const char *str, size_t l,
                                        unsigned int h) {
   GCObject **list;  /* (pointer to) list where it will be inserted */
   stringtable *tb = &G(L)->strt;
-  Tstring *s;
+  TString *s;
   if (tb->nuse >= cast(lu_int32, tb->size) && tb->size <= MAX_INT/2)
     luaS_resize(L, tb->size*2);  /* too crowded */
   list = &tb->hash[lmod(h, tb->size)];
@@ -130,14 +130,14 @@ static Tstring *newshrstr (lua_State *L, const char *str, size_t l,
 /*
 ** checks whether short string exists and reuses it or creates a new one
 */
-static Tstring *internshrstr (lua_State *L, const char *str, size_t l) {
+static TString *internshrstr (lua_State *L, const char *str, size_t l) {
   GCObject *o;
   global_State *g = G(L);
   unsigned int h = luaS_hash(str, l, g->seed);
   for (o = g->strt.hash[lmod(h, g->strt.size)];
        o != NULL;
        o = gch(o)->next) {
-    Tstring *ts = rawgco2ts(o);
+    TString *ts = rawgco2ts(o);
     if (h == ts->tsv.hash &&
         l == ts->tsv.len &&
         (memcmp(str, getstr(ts), l * sizeof(char)) == 0)) {
@@ -153,11 +153,11 @@ static Tstring *internshrstr (lua_State *L, const char *str, size_t l) {
 /*
 ** new string (with explicit length)
 */
-Tstring *luaS_newlstr (lua_State *L, const char *str, size_t l) {
+TString *luaS_newlstr (lua_State *L, const char *str, size_t l) {
   if (l <= LUAI_MAXSHORTLEN)  /* short string? */
     return internshrstr(L, str, l);
   else {
-    if (l + 1 > (MAX_SIZET - sizeof(Tstring))/sizeof(char))
+    if (l + 1 > (MAX_SIZET - sizeof(TString))/sizeof(char))
       luaM_toobig(L);
     return createstrobj(L, str, l, LUA_TLNGSTR, G(L)->seed, NULL);
   }
@@ -167,7 +167,7 @@ Tstring *luaS_newlstr (lua_State *L, const char *str, size_t l) {
 /*
 ** new zero-terminated string
 */
-Tstring *luaS_new (lua_State *L, const char *str) {
+TString *luaS_new (lua_State *L, const char *str) {
   return luaS_newlstr(L, str, strlen(str));
 }
 

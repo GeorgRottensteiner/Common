@@ -1738,6 +1738,30 @@ namespace GUI
 
 
 
+  bool Component::IsInputEvent( GR::u32 ComponentEventType )
+  {
+    if ( ( ComponentEventType == CET_MOUSE_IN )
+    ||   ( ComponentEventType == CET_MOUSE_OUT )
+    ||   ( ComponentEventType == CET_MOUSE_UPDATE )
+    ||   ( ComponentEventType == CET_MOUSE_WHEEL )
+    ||   ( ComponentEventType == CET_MOUSE_DOWN )
+    ||   ( ComponentEventType == CET_MOUSE_UP )
+    ||   ( ComponentEventType == CET_NC_MOUSE_UPDATE )
+    ||   ( ComponentEventType == CET_MOUSE_RDOWN )
+    ||   ( ComponentEventType == CET_MOUSE_RUP )
+    ||   ( ComponentEventType == CET_NC_MOUSE_DOWN )
+    ||   ( ComponentEventType == CET_NC_MOUSE_UP )
+    ||   ( ComponentEventType == CET_NC_MOUSE_RDOWN )
+    ||   ( ComponentEventType == CET_NC_MOUSE_RUP )
+    ||   ( ComponentEventType == CET_KEY_DOWN )
+    ||   ( ComponentEventType == CET_KEY_UP )
+    ||   ( ComponentEventType == CET_KEY_PRESSED ) )
+    {
+      return true;
+    }
+    return false;  
+  }
+
 }
 
 

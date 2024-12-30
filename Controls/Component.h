@@ -281,6 +281,8 @@ namespace GUI
       XTextureSection       CustomTextureSection( const GR::u32 Type ) const;
       GR::u32               CustomTSColorKey( const GR::u32 Type ) const;
 
+      static bool           IsInputEvent( GR::u32 ComponentEventType );
+
   };
 
 }

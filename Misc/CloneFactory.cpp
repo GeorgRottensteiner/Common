@@ -1,4 +1,6 @@
-#include <Misc\CloneFactory.h>
+#include <Misc/CloneFactory.h>
+
+#include <debug/debugclient.h>
 
 
 
@@ -47,6 +49,7 @@ bool CloneFactory::RegisterObject( const GR::String& Name, CloneFunc Func, bool 
   if ( ( it != m_Clones.end() )
   &&   ( !ReplaceExisting ) )
   {
+    dh::Log( "Trying to register object %s a second time!", Name.c_str() );
     return false;
   }
   m_Clones[Name] = Func;

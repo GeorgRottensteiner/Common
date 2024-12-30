@@ -11,8 +11,6 @@
 
 #include <MasterFrame/MasterFrame.h>
 
-#include <PJLib\PJ_RessourceManager.h>
-
 #include <Lang/EventQueue.h>
 
 #include <GR\GameState\MFGameState.h>
@@ -32,7 +30,7 @@ class MasterFrame2d : public MasterFrame, public IGlobalEventListener, public MF
 {
   private:
 
-    PJ::CGenericRessourceManager<GR::Graphic::Image>  m_ImageManager;
+    std::map<GR::String,GR::Graphic::Image>   m_ImageManager;
 
     unsigned char                     m_CurrentDepth,
                                       m_OrigDepth;
@@ -116,11 +114,10 @@ class MasterFrame2d : public MasterFrame, public IGlobalEventListener, public MF
     void              AddImage( const char* szName, GR::Graphic::Image* pImage );
     void              DeleteImage( const char* szName );
 
-    friend LONG FAR PASCAL      MasterFrameWndProc( HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam );
     friend int PASCAL WinMain( HINSTANCE hInst, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow );
 
 };
 
 
 
-#endif // MASTERFRAME2D_H_INCLUDED
+#endif 

@@ -77,7 +77,7 @@ namespace GUI
 
         ++it2;
       }
-      //dh::Log( "Actual delete of %s", pComponent->GetCaption().c_str() );
+      //dh::Log( "DeleteDangling: Actual delete of %x, %s (%s)", pComponent, pComponent->GetCaption().c_str(), pComponent->Class().c_str() );
       delete pComponent;
     }
     m_ComponentsToDelete.clear();
@@ -277,7 +277,8 @@ namespace GUI
         {
           pTopLevel->SetFocus( NULL );
         }
-        if ( pTopLevel->m_pActiveComponent == pComponent )
+        if ( ( pTopLevel )
+        &&   ( pTopLevel->m_pActiveComponent == pComponent ) )
         {
           pTopLevel->m_pActiveComponent = NULL;
         }
@@ -289,17 +290,20 @@ namespace GUI
         {
           m_pMouseOverComponent = NULL;
         }
-        if ( pTopLevel->m_pDraggingComponent == pComponent )
+        if ( ( pTopLevel )
+        &&   ( pTopLevel->m_pDraggingComponent == pComponent ) )
         {
           pTopLevel->m_pDraggingComponent->StopDragging();
           pTopLevel->m_pDraggingComponent = NULL;
         }
-        if ( pTopLevel->m_pDraggingComponentContent == pComponent )
+        if ( ( pTopLevel )
+        &&   ( pTopLevel->m_pDraggingComponentContent == pComponent ) )
         {
           pTopLevel->m_pDraggingComponentContent->StopDragging();
           pTopLevel->m_pDraggingComponentContent = NULL;
         }
-        if ( pTopLevel->m_pCapturingComponent == pComponent )
+        if ( ( pTopLevel )
+        &&   ( pTopLevel->m_pCapturingComponent == pComponent ) )
         {
           ReleaseCapture();
           pTopLevel->m_pCapturingComponent = NULL;
@@ -312,7 +316,7 @@ namespace GUI
         // childs are deleted indirectly
         pComponent->m_ComponentFlags |= GUI::COMPFT_DESTROYED;
 
-        //dh::Log( "pre-Deleted component %s (%d) (%s)", pComponent->GetCaption().c_str(), pComponent->Id(), pComponent->m_ClassName.c_str() );
+        //dh::Log( "pre-Deleted component %s (%d) %x (%s)", pComponent->GetCaption().c_str(), pComponent->Id(), pComponent, pComponent->m_ClassName.c_str() );
         return;
       }
       it++;

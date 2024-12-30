@@ -62,7 +62,7 @@ namespace GR
         // not a FORM
         return false;
       }
-      GR::u32   chunkSize = ( ioIn.ReadU8() << 24 ) + ( ioIn.ReadU8() << 16 ) + ( ioIn.ReadU8() << 8 ) + ioIn.ReadU8();
+      GR::u32   chunkSize = ioIn.ReadU32NetworkOrder();
       // padding
       if ( chunkSize & 1 )
       {
@@ -100,13 +100,14 @@ namespace GR
               &&      ( ioIn.DataAvailable() ) )
               {
                 innerChunkType = ioIn.ReadU32();
-                GR::u32   origInnerChunkSize = ( ioIn.ReadU8() << 24 ) + ( ioIn.ReadU8() << 16 ) + ( ioIn.ReadU8() << 8 ) + ioIn.ReadU8();
+                GR::u32   origInnerChunkSize = ioIn.ReadU32NetworkOrder();
                 GR::u32   innerChunkSize = origInnerChunkSize;
                 // padding
                 if ( innerChunkSize & 1 )
                 {
                   ++innerChunkSize;
                 }
+
                 GR::u64                 currentInnerPos = ioIn.GetPosition();
                 chunkSize -= 8;
 
@@ -237,6 +238,14 @@ namespace GR
                       }
                     }
                     break;
+                  case ChunkType::CAMG:
+                  case ChunkType::SPRT:
+                  case ChunkType::DEST:
+                  case ChunkType::GRAB:
+                  case ChunkType::CCRT:
+                  case ChunkType::CRNG:
+                    // known but ignored
+                    break;
                   default:
                     // skip unsupported chunks
                     dh::Log( "IFF skip unsupported inner chunk type %x", innerChunkType );
@@ -245,16 +254,14 @@ namespace GR
                 ioIn.SetPosition( currentInnerPos + innerChunkSize );
                 chunkSize -= innerChunkSize;
               }
-              // make sure we're placed after the chunk
-              ioIn.SetPosition( currentPos + chunkSize - 12 );
             }
             break;
           default:
             // skip unsupported chunks
             dh::Log( "IFF unsupported chunk type %x", chunkType );
-            chunkSize = ( ioIn.ReadU8() << 24 ) + ( ioIn.ReadU8() << 16 ) + ( ioIn.ReadU8() << 8 ) + ioIn.ReadU8();
+            chunkSize = ioIn.ReadU32NetworkOrder();
             ioIn.SetPosition( chunkSize, IIOStream::PT_CURRENT );
-            break;
+            break; 
         }
       }
       return pSet;

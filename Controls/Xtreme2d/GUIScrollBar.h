@@ -18,7 +18,7 @@ class GUIScrollBar : public AbstractScrollbar<GUIComponent, GUIButton, GUISlider
     DECLARE_CLONEABLE( GUIScrollBar, "Scrollbar" )
 
 
-    GUIScrollBar( int X = 0, int Y = 0, int Width = 20, int Height = 20, ScrollbarFlagType Type = SBFT_INVALID, GR::u32 Id = 0 );
+    GUIScrollBar( int X = 0, int Y = 0, int Width = 20, int Height = 20, ScrollbarFlagType Type = SBFT_DEFAULT, GR::u32 Id = 0 );
 
     virtual void              DisplayOnPage( GUIComponentDisplayer& Displayer );
 

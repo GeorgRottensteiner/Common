@@ -28,7 +28,7 @@
 ** cost of sweeping one element (the size of a small object divided
 ** by some adjust for the sweep speed)
 */
-#define GCSWEEPCOST	((sizeof(Tstring) + 4) / 4)
+#define GCSWEEPCOST	((sizeof(TString) + 4) / 4)
 
 /* maximum number of elements to sweep in each single step */
 #define GCSWEEPMAX	(cast_int((GCSTEPSIZE / GCSWEEPCOST) / 4))
@@ -114,7 +114,7 @@ static void removeentry (Node *n) {
 /*
 ** tells whether a key or value can be cleared from a weak
 ** table. Non-collectable objects are never removed from weak
-** tables. strings behave as `values', so are never removed too. for
+** tables. Strings behave as `values', so are never removed too. for
 ** other objects: if really collected, cannot keep them; for objects
 ** being finalized, keep them in keys, but not in values
 */

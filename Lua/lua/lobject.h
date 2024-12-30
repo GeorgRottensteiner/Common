@@ -204,7 +204,7 @@ typedef struct lua_TValue TValue;
 
 #define setsvalue(L,obj,x) \
   { TValue *io=(obj); \
-    Tstring *x_ = (x); \
+    TString *x_ = (x); \
     val_(io).gc=cast(GCObject *, x_); settt_(io, ctb(x_->tsv.tt)); \
     checkliveness(G(L),io); }
 
@@ -407,7 +407,7 @@ typedef TValue *StkId;  /* index to stack elements */
 /*
 ** Header for string value; string bytes follow the end of this structure
 */
-typedef union Tstring {
+typedef union TString {
   L_Umaxalign dummy;  /* ensures maximum alignment for strings */
   struct {
     CommonHeader;
@@ -415,10 +415,10 @@ typedef union Tstring {
     unsigned int hash;
     size_t len;  /* number of characters in string */
   } tsv;
-} Tstring;
+} TString;
 
 
-/* get the actual string (array of bytes) from a Tstring */
+/* get the actual string (array of bytes) from a TString */
 #define getstr(ts)	cast(const char *, (ts) + 1)
 
 /* get the actual string (array of bytes) from a Lua value */
@@ -444,7 +444,7 @@ typedef union Udata {
 ** Description of an upvalue for function prototypes
 */
 typedef struct Upvaldesc {
-  Tstring *name;  /* upvalue name (for debug information) */
+  TString *name;  /* upvalue name (for debug information) */
   lu_byte instack;  /* whether it is in stack */
   lu_byte idx;  /* index of upvalue (in stack or in outer function's list) */
 } Upvaldesc;
@@ -455,7 +455,7 @@ typedef struct Upvaldesc {
 ** (used for debug information)
 */
 typedef struct LocVar {
-  Tstring *varname;
+  TString *varname;
   int startpc;  /* first point where variable is active */
   int endpc;    /* first point where variable is dead */
 } LocVar;
@@ -473,7 +473,7 @@ typedef struct Proto {
   LocVar *locvars;  /* information about local variables (debug information) */
   Upvaldesc *upvalues;  /* upvalue information */
   union Closure *cache;  /* last created closure with this prototype */
-  Tstring  *source;  /* used for debug information */
+  TString  *source;  /* used for debug information */
   int sizeupvalues;  /* size of 'upvalues' */
   int sizek;  /* size of `k' */
   int sizecode;

@@ -283,10 +283,10 @@
 #define LUA_COMPAT_LOG10
 
 /*
-@@ LUA_COMPAT_LOADstring defines the function 'loadstring' in the base
+@@ LUA_COMPAT_LOADSTRING defines the function 'loadstring' in the base
 ** library. You can rewrite 'loadstring(s)' as 'load(s)'.
 */
-#define LUA_COMPAT_LOADstring
+#define LUA_COMPAT_LOADSTRING
 
 /*
 @@ LUA_COMPAT_MAXN defines the function 'maxn' in the table library.

@@ -27,7 +27,7 @@ enum RESERVED {
   TK_RETURN, TK_THEN, TK_TRUE, TK_UNTIL, TK_WHILE,
   /* other terminal symbols */
   TK_CONCAT, TK_DOTS, TK_EQ, TK_GE, TK_LE, TK_NE, TK_DBCOLON, TK_EOS,
-  TK_NUMBER, TK_NAME, TK_string
+  TK_NUMBER, TK_NAME, TK_STRING
 };
 
 /* number of reserved words */
@@ -36,7 +36,7 @@ enum RESERVED {
 
 typedef union {
   lua_Number r;
-  Tstring *ts;
+  TString *ts;
 } SemInfo;  /* semantics information */
 
 
@@ -59,16 +59,16 @@ typedef struct LexState {
   ZIO *z;  /* input stream */
   Mbuffer *buff;  /* buffer for tokens */
   struct Dyndata *dyd;  /* dynamic structures used by the parser */
-  Tstring *source;  /* current source name */
-  Tstring *envn;  /* environment variable name */
+  TString *source;  /* current source name */
+  TString *envn;  /* environment variable name */
   char decpoint;  /* locale decimal point */
 } LexState;
 
 
 LUAI_FUNC void luaX_init (lua_State *L);
 LUAI_FUNC void luaX_setinput (lua_State *L, LexState *ls, ZIO *z,
-                              Tstring *source, int firstchar);
-LUAI_FUNC Tstring *luaX_newstring (LexState *ls, const char *str, size_t l);
+                              TString *source, int firstchar);
+LUAI_FUNC TString *luaX_newstring (LexState *ls, const char *str, size_t l);
 LUAI_FUNC void luaX_next (LexState *ls);
 LUAI_FUNC int luaX_lookahead (LexState *ls);
 LUAI_FUNC l_noret luaX_syntaxerror (LexState *ls, const char *s);

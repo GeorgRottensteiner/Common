@@ -22,7 +22,7 @@
 ** Lua keeps most objects linked in list g->allgc. The link uses field
 ** 'next' of the CommonHeader.
 **
-** strings are kept in several lists headed by the array g->strt.hash.
+** Strings are kept in several lists headed by the array g->strt.hash.
 **
 ** Open upvalues are not subject to independent garbage collection. They
 ** are collected together with their respective threads. Lua keeps a
@@ -142,8 +142,8 @@ typedef struct global_State {
   lua_CFunction panic;  /* to be called in unprotected errors */
   struct lua_State *mainthread;
   const lua_Number *version;  /* pointer to version number */
-  Tstring *memerrmsg;  /* memory-error message */
-  Tstring *tmname[TM_N];  /* array with tag-method names */
+  TString *memerrmsg;  /* memory-error message */
+  TString *tmname[TM_N];  /* array with tag-method names */
   struct Table *mt[LUA_NUMTAGS];  /* metatables for basic types */
 } global_State;
 
@@ -184,7 +184,7 @@ struct lua_State {
 */
 union GCObject {
   GCheader gch;  /* common header */
-  union Tstring ts;
+  union TString ts;
   union Udata u;
   union Closure cl;
   struct Table h;

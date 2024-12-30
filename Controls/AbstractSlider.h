@@ -193,6 +193,8 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
       }
       else
       {
+        m_SliderOffset = m_SliderValue;
+        /*
         if ( Style() & SFT_HORIZONTAL )
         {
           m_SliderOffset = m_SliderValue * ( m_Width - m_SliderLength ) / m_FullLength;
@@ -200,7 +202,7 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
         else
         {
           m_SliderOffset = m_SliderValue * ( m_Height - m_SliderLength ) / m_FullLength;
-        }
+        }*/
       }
       if ( m_SliderValue != iOldValue )
       {
@@ -230,7 +232,7 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
         }
         else
         {
-          Value = Pos * m_FullLength / ( m_Width - m_SliderLength );
+          Value = Pos;
         }
       }
       else
@@ -255,7 +257,7 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
           }
           else
           {
-            Value = Pos * m_FullLength / ( m_Height - m_SliderLength );
+            Value = Pos;
           }
         }
       }
@@ -314,10 +316,13 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
 
     virtual bool ProcessEvent( const GUI::ComponentEvent& Event )
     {
-      if ( ( !IsVisible() )
-      ||   ( !IsEnabled() ) )
+      if ( BASECLASS::IsInputEvent( Event.Type ) )
       {
-        return true;
+        if ( ( !IsVisible() )
+        ||   ( !IsEnabled() ) )
+        {
+          return true;
+        }
       }
 
       switch ( Event.Type )
@@ -425,7 +430,9 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
     }
 
 
-
+    
+    // full length = width/height in pixels
+    // slider length in pixels
     virtual void SetSizes( int FullLength, int SliderLength = 0 )
     {
       m_FullLength     = FullLength;
@@ -433,7 +440,7 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
       {
         if ( m_FullLength )
         {
-          m_SliderLength = 20;
+          m_SliderLength = math::minValue( 20, m_FullLength );
         }
         else
         {
@@ -451,6 +458,7 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
       }
       else
       {
+        /*
         if ( Style() & SFT_HORIZONTAL )
         {
           Offset = m_SliderValue * ( BASECLASS::m_ClientRect.Width() - m_SliderLength ) / m_FullLength;
@@ -458,7 +466,8 @@ template <class BASECLASS> class AbstractSlider : public BASECLASS
         else
         {
           Offset = m_SliderValue * ( BASECLASS::m_ClientRect.Height() - m_SliderLength ) / m_FullLength;
-        }
+        }*/
+        Offset = m_SliderValue;
       }
       SetSliderOffset( Offset );
     }

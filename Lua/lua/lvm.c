@@ -206,7 +206,7 @@ static int call_orderTM (lua_State *L, const TValue *p1, const TValue *p2,
 }
 
 
-static int l_strcmp (const Tstring *ls, const Tstring *rs) {
+static int l_strcmp (const TString *ls, const TString *rs) {
   const char *l = getstr(ls);
   size_t ll = ls->tsv.len;
   const char *r = getstr(rs);

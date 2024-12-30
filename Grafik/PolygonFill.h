@@ -1,5 +1,4 @@
-#ifndef POLYGON_FILL_H
-#define POLYGON_FILL_H
+#pragma once
 
 
 
@@ -14,55 +13,53 @@ namespace GR
   namespace Graphic
   {
     class ContextDescriptor;
-  }
-}
 
-class CPolygonFill
-{
-
-  protected:
-
-    struct EdgeState 
+    class PolygonFill
     {
-      EdgeState*    NextEdge;
-      int X;
-      int StartY;
-      int WholePixelXMove;
-      int XDirection;
-      int ErrorTerm;
-      int ErrorTermAdjUp;
-      int ErrorTermAdjDown;
-      int Count;
+
+      protected:
+
+        struct EdgeState
+        {
+          EdgeState*    pNextEdge = NULL;
+          int           X = 0;
+          int           StartY = 0;
+          int           WholePixelXMove = 0;
+          int           XDirection = 0;
+          int           ErrorTerm = 0;
+          int           ErrorTermAdjUp = 0;
+          int           ErrorTermAdjDown = 0;
+          int           Count = 0;
+        };
+
+        EdgeState*      pGETPtr;
+        EdgeState*      _pActiveEdgeTable;
+
+
+      public:
+
+        typedef std::pair<GR::tFPoint, GR::tFPoint>   tLine;
+
+        typedef std::vector<tLine>                    tEdges;
+
+
+        void                    FillPolygon( GR::Graphic::ContextDescriptor& cdTarget, const tEdges& Edges, GR::u32 Color );
+
+
+      protected:
+
+        void                    BuildFloatGET( const tEdges& Lines, EdgeState* pNextFreeEdgeStruc );
+        void                    MoveXSortedToAET( int YToMove );
+        virtual void            DrawScanLine( int YToScan, GR::Graphic::ContextDescriptor& cdTarget, GR::u32 Color );
+        void                    AdvanceAET();
+        void                    XSortAET();
+
     };
 
+  }
 
-    EdgeState*              GETPtr;
-    EdgeState*              AETPtr;
+}
 
-
-  public:
-
-    typedef std::pair<GR::tFPoint,GR::tFPoint>    tLine;
-
-    typedef std::vector<tLine>                    tVectEdges;
-
-
-    void                    FillPolygon( GR::Graphic::ContextDescriptor& cdTarget, const tVectEdges& vectEdges, GR::u32 dwColor );
-
-
-  protected:
-
-    void                    BuildFloatGET( const tVectEdges& listLines, EdgeState* NextFreeEdgeStruc );
-    void                    MoveXSortedToAET( int YToMove );
-    virtual void            DrawScanLine( int YToScan, GR::Graphic::ContextDescriptor& cdTarget, GR::u32 dwColor );
-    void                    AdvanceAET();
-    void                    XSortAET();
-
-};
-
-
-
-#endif // POLYGON_FILL_H
 
 
 

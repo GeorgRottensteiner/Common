@@ -65,7 +65,7 @@ static void save (LexState *ls, int c) {
 void luaX_init (lua_State *L) {
   int i;
   for (i=0; i<NUM_RESERVED; i++) {
-    Tstring *ts = luaS_new(L, luaX_tokens[i]);
+    TString *ts = luaS_new(L, luaX_tokens[i]);
     luaS_fix(ts);  /* reserved words are never collected */
     ts->tsv.extra = cast_byte(i+1);  /* reserved word */
   }
@@ -91,7 +91,7 @@ const char *luaX_token2str (LexState *ls, int token) {
 static const char *txtToken (LexState *ls, int token) {
   switch (token) {
     case TK_NAME:
-    case TK_string:
+    case TK_STRING:
     case TK_NUMBER:
       save(ls, '\0');
       return luaO_pushfstring(ls->L, LUA_QS, luaZ_buffer(ls->buff));
@@ -121,10 +121,10 @@ l_noret luaX_syntaxerror (LexState *ls, const char *msg) {
 ** it will not be collected until the end of the function's compilation
 ** (by that time it should be anchored in function's prototype)
 */
-Tstring *luaX_newstring (LexState *ls, const char *str, size_t l) {
+TString *luaX_newstring (LexState *ls, const char *str, size_t l) {
   lua_State *L = ls->L;
   TValue *o;  /* entry for `str' */
-  Tstring *ts = luaS_newlstr(L, str, l);  /* create new string */
+  TString *ts = luaS_newlstr(L, str, l);  /* create new string */
   setsvalue2s(L, L->top++, ts);  /* temporarily anchor it in stack */
   o = luaH_set(L, ls->fs->h, L->top - 1);
   if (ttisnil(o)) {  /* not in use yet? (see 'addK') */
@@ -153,7 +153,7 @@ static void inclinenumber (LexState *ls) {
 }
 
 
-void luaX_setinput (lua_State *L, LexState *ls, ZIO *z, Tstring *source,
+void luaX_setinput (lua_State *L, LexState *ls, ZIO *z, TString *source,
                     int firstchar) {
   ls->decpoint = '.';
   ls->L = L;
@@ -305,7 +305,7 @@ static void escerror (LexState *ls, int *c, int n, const char *msg) {
   save(ls, '\\');
   for (i = 0; i < n && c[i] != EOZ; i++)
     save(ls, c[i]);
-  lexerror(ls, msg, TK_string);
+  lexerror(ls, msg, TK_STRING);
 }
 
 
@@ -346,7 +346,7 @@ static void read_string (LexState *ls, int del, SemInfo *seminfo) {
         break;  /* to avoid warnings */
       case '\n':
       case '\r':
-        lexerror(ls, "unfinished string", TK_string);
+        lexerror(ls, "unfinished string", TK_STRING);
         break;  /* to avoid warnings */
       case '\\': {  /* escape sequences */
         int c;  /* final character to be saved */
@@ -430,10 +430,10 @@ static int llex (LexState *ls, SemInfo *seminfo) {
         int sep = skip_sep(ls);
         if (sep >= 0) {
           read_long_string(ls, seminfo, sep);
-          return TK_string;
+          return TK_STRING;
         }
         else if (sep == -1) return '[';
-        else lexerror(ls, "invalid long string delimiter", TK_string);
+        else lexerror(ls, "invalid long string delimiter", TK_STRING);
       }
       case '=': {
         next(ls);
@@ -462,7 +462,7 @@ static int llex (LexState *ls, SemInfo *seminfo) {
       }
       case '"': case '\'': {  /* short literal strings */
         read_string(ls, ls->current, seminfo);
-        return TK_string;
+        return TK_STRING;
       }
       case '.': {  /* '.', '..', '...', or number */
         save_and_next(ls);
@@ -484,7 +484,7 @@ static int llex (LexState *ls, SemInfo *seminfo) {
       }
       default: {
         if (lislalpha(ls->current)) {  /* identifier or reserved word? */
-          Tstring *ts;
+          TString *ts;
           do {
             save_and_next(ls);
           } while (lislalnum(ls->current));

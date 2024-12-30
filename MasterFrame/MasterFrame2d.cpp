@@ -382,28 +382,19 @@ void MasterFrame2d::ProcessCommandTokens( GR::Tokenizer::TokenSequence& m_TokenS
   }
   else if ( currentToken.Type() == m_imagesT )
   {
-    // alle geladenen Bilder dumpen
-    DWORD       dwCount;
-    dwCount = 0;
-    PJ::generic_map_it it( m_ImageManager._GetMap().begin() );
-    for( ; it !=  m_ImageManager._GetMap().end(); ++it )
+    int       count = 0;
+    auto it( m_ImageManager.begin() );
+    while ( it !=  m_ImageManager.end() )
     {
-      dwCount++;
-      if ( it->second != NULL )
-      {
-        ConsolePrint( "%s = %d (%dx%dx%d)",
-                 it->first.c_str(),
-                 it->second,
-                 ( (GR::Graphic::Image*)it->second )->GetWidth(),
-                 ( (GR::Graphic::Image*)it->second )->GetHeight(),
-                 ( (GR::Graphic::Image*)it->second )->GetDepth() );
-      }
-      else
-      {
-        ConsolePrint( "%s = NULL", it->first.c_str() );
-      }
+      ++count;
+      ConsolePrint( "%s = (%dx%dx%d)",
+                it->first.c_str(),
+                it->second.GetWidth(),
+                it->second.GetHeight(),
+                it->second.GetDepth() );
+      ++it;
     }
-    ConsolePrint( "%d images loaded", dwCount );
+    ConsolePrint( "%d images loaded", count );
     return;
   }
   MasterFrame::ProcessCommandTokens( m_TokenSequence, strCommand );
@@ -422,38 +413,41 @@ GR::Graphic::GFXPage* MasterFrame2d::GetPage()
 
 
 
-GR::Graphic::Image *MasterFrame2d::LoadImage( const char *szName )
+GR::Graphic::Image* MasterFrame2d::LoadImage( const char* Name )
 {
-  GR::Graphic::Image*    pNewImage;
-
-
-  pNewImage = m_ImageManager.Recall( szName );
-  if ( pNewImage == NULL )
+  auto  it( m_ImageManager.find( Name ) );
+  if ( it == m_ImageManager.end() )
   {
-    // das Bild gibt es noch nicht
-    pNewImage = new GR::Graphic::Image( CWADFileSystem::Instance().OpenFile( szName ) );
-    if ( pNewImage->GetDepth() == 0 )
+    // not loaded yet
+    GR::Graphic::Image    image( CWADFileSystem::Instance().OpenFile( Name ) );
+    if ( image.GetDepth() == 0 )
     {
-      dh::Log( "MasterFrame2d::LoadImage  Failed to load Image %s\n", szName );
+      dh::Log( "MasterFrame2d::LoadImage  Failed to load Image %s\n", Name );
       return NULL;
     }
-    m_ImageManager.Store( szName, pNewImage );
+    m_ImageManager[Name] = image;
+
+    return &m_ImageManager[Name];
   }
-  return pNewImage;
+  return &it->second;
 }
 
 
 
-void MasterFrame2d::AddImage( const char *szName, GR::Graphic::Image *pImage )
+void MasterFrame2d::AddImage( const char* Name, GR::Graphic::Image *pImage )
 {
-  m_ImageManager.Store( szName, pImage );
+  m_ImageManager[Name] = *pImage;
 }
 
 
 
-void MasterFrame2d::DeleteImage( const char *szName )
+void MasterFrame2d::DeleteImage( const char* Name )
 {
-  m_ImageManager.Erase( szName );
+  auto    it( m_ImageManager.find( Name ) );
+  if ( it != m_ImageManager.end() )
+  {
+    m_ImageManager.erase( it );
+  }
 }
 
 

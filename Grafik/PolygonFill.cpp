@@ -1,308 +1,305 @@
-/*--------------------+-------------------------------------------------------+
- | Programmname       : Farb-Funktionen                                       |
- +--------------------+-------------------------------------------------------+
- | Autor              : Georg Rottensteiner                                   |
- | Datum              : 25.05.2001                                            |
- | Version            : 1.0                                                   |
- +--------------------+-------------------------------------------------------*/
-
-
-
-/*-Includes-------------------------------------------------------------------+
- |                                                                            |
- +----------------------------------------------------------------------------*/
-
 #include <Grafik/ContextDescriptor.h>
 
 #include "PolygonFill.h"
 
 
 
-void CPolygonFill::BuildFloatGET( const tVectEdges& listLines, EdgeState* NextFreeEdgeStruc )
+namespace GR
 {
-
-  int         StartX, 
-              StartY, 
-              EndX, 
-              EndY, 
-              DeltaY, 
-              DeltaX, 
-              Width;
-
-  EdgeState*  NewEdgePtr;
-  EdgeState*  FollowingEdge;
-  EdgeState** FollowingEdgeLink;
-
-
-  // Scan through the vertex list and put all non-0-height edges into
-  // the GET, sorted by increasing Y start coordinate
-  GETPtr = NULL;
-  for ( size_t i = 0; i < listLines.size(); i++ ) 
+  namespace Graphic
   {
-    // Calculate the edge height and width
-    StartX = (int)listLines[i].first.x;
-    StartY = (int)listLines[i].first.y;
-    EndX = (int)listLines[i].second.x;
-    EndY = (int)listLines[i].second.y;
-    // Make sure the edge runs top to bottom
-    if ( StartY > EndY ) 
+
+    void PolygonFill::BuildFloatGET( const tEdges& Lines, EdgeState* pNextFreeEdgeStruc )
     {
-      std::swap( StartX, EndX );
-      std::swap( StartY, EndY );
-    }
-    // Skip if this can't ever be an active edge (has 0 height)
-    if ( ( DeltaY = EndY - StartY ) != 0 ) 
-    {
-      // Allocate space for this edge's info, and fill in the structure
-      NewEdgePtr = NextFreeEdgeStruc++;
-      // direction in which X moves
-      NewEdgePtr->XDirection = ( ( DeltaX = EndX - StartX ) > 0) ? 1 : -1;
-      Width               = abs( DeltaX );
-      NewEdgePtr->X       = StartX;
-      NewEdgePtr->StartY  = StartY;
-      NewEdgePtr->Count   = DeltaY;
-      NewEdgePtr->ErrorTermAdjDown = DeltaY;
-      if ( DeltaX >= 0 )    // initial error term going L->R
+
+      int   startX,
+            startY,
+            endX,
+            endY,
+            deltaX,
+            deltaY,
+            width;
+
+      EdgeState*  pNewEdgePtr = NULL;
+      EdgeState*  pFollowingEdge = NULL;
+      EdgeState** pFollowingEdgeLink = NULL;
+
+
+      // Scan through the vertex list and put all non-0-height edges into
+      // the GET, sorted by increasing Y start coordinate
+      pGETPtr = NULL;
+      for ( size_t i = 0; i < Lines.size(); i++ )
       {
-        NewEdgePtr->ErrorTerm = 0;
-      }
-      else                  // initial error term going R->L
-      {
-        NewEdgePtr->ErrorTerm = -DeltaY + 1;
-      }
-      if ( DeltaY >= Width ) 
-      { 
-        // Y-major edge
-        NewEdgePtr->WholePixelXMove = 0;
-        NewEdgePtr->ErrorTermAdjUp = Width;
-      } 
-      else 
-      {
-        // X-major edge
-        NewEdgePtr->WholePixelXMove = ( Width / DeltaY ) * NewEdgePtr->XDirection;
-        NewEdgePtr->ErrorTermAdjUp  = Width % DeltaY;
-      }
-      // Link the new edge into the GET so that the edge list is still sorted by Y coordinate, 
-      // and by X coordinate for all edges with the same Y coordinate
-      FollowingEdgeLink = &GETPtr;
-      while ( true )
-      {
-        FollowingEdge = *FollowingEdgeLink;
-        if ( ( FollowingEdge == NULL ) 
-        ||   ( FollowingEdge->StartY > StartY ) 
-        ||   ( ( FollowingEdge->StartY == StartY ) 
-        &&     ( FollowingEdge->X >= StartX ) ) ) 
+        // Calculate the edge height and width
+        startX  = (int)Lines[i].first.x;
+        startY  = (int)Lines[i].first.y;
+        endX    = (int)Lines[i].second.x;
+        endY    = (int)Lines[i].second.y;
+
+        // Make sure the edge runs top to bottom
+        if ( startY > endY )
         {
-          NewEdgePtr->NextEdge = FollowingEdge;
-          *FollowingEdgeLink = NewEdgePtr;
+          std::swap( startX, endX );
+          std::swap( startY, endY );
+        }
+
+        // Skip if this can't ever be an active edge (has 0 height)
+        if ( ( deltaY = endY - startY ) != 0 )
+        {
+          // Allocate space for this edge's info, and fill in the structure
+          pNewEdgePtr = pNextFreeEdgeStruc++;
+
+          // direction in which X moves
+          pNewEdgePtr->XDirection       = ( ( deltaX = endX - startX ) > 0 ) ? 1 : -1;
+          width                         = abs( deltaX );
+          pNewEdgePtr->X                = startX;
+          pNewEdgePtr->StartY           = startY;
+          pNewEdgePtr->Count            = deltaY;
+          pNewEdgePtr->ErrorTermAdjDown = deltaY;
+          if ( deltaX >= 0 )    
+          {
+            // initial error term going L->R
+            pNewEdgePtr->ErrorTerm = 0;
+          }
+          else                  
+          {
+            // initial error term going R->L
+            pNewEdgePtr->ErrorTerm = -deltaY + 1;
+          }
+          if ( deltaY >= width )
+          {
+            // Y-major edge
+            pNewEdgePtr->WholePixelXMove  = 0;
+            pNewEdgePtr->ErrorTermAdjUp   = width;
+          }
+          else
+          {
+            // X-major edge
+            pNewEdgePtr->WholePixelXMove  = ( width / deltaY ) * pNewEdgePtr->XDirection;
+            pNewEdgePtr->ErrorTermAdjUp   = width % deltaY;
+          }
+
+          // Link the new edge into the GET so that the edge list is still sorted by Y coordinate, 
+          // and by X coordinate for all edges with the same Y coordinate
+          pFollowingEdgeLink = &pGETPtr;
+          while ( true )
+          {
+            pFollowingEdge = *pFollowingEdgeLink;
+            if ( ( pFollowingEdge == NULL )
+            ||   ( pFollowingEdge->StartY > startY )
+            ||   ( ( pFollowingEdge->StartY == startY )
+            &&     ( pFollowingEdge->X >= startX ) ) )
+            {
+              pNewEdgePtr->pNextEdge = pFollowingEdge;
+              *pFollowingEdgeLink = pNewEdgePtr;
+              break;
+            }
+            pFollowingEdgeLink = &pFollowingEdge->pNextEdge;
+          }
+        }
+      }
+    }
+
+
+
+    void PolygonFill::MoveXSortedToAET( int YToMove )
+    {
+      EdgeState*  pAETEdge = NULL;
+      EdgeState** pAETEdgePtr = &_pActiveEdgeTable;
+      EdgeState*  pTempEdge = NULL;
+      int         currentX = 0;
+
+
+      // The GET is Y sorted. Any edges that start at the desired Y coordinate will be first in the GET, 
+      // so we'll move edges from the GET to AET until the first edge left in the GET is no longer
+      // at the desired Y coordinate. Also, the GET is X sorted within each Y coordinate, so each 
+      // successive edge we add to the AET is guaranteed to belong later in the AET than the one just added
+
+      pAETEdgePtr = &_pActiveEdgeTable;
+      while ( ( pGETPtr != NULL )
+      &&      ( pGETPtr->StartY == YToMove ) )
+      {
+        currentX = pGETPtr->X;
+
+        // Link the new edge into the AET so that the AET is still sorted by X coordinate
+        while ( true )
+        {
+          pAETEdge = *pAETEdgePtr;
+
+          if ( ( pAETEdge == NULL )
+          ||   ( pAETEdge->X >= currentX ) )
+          {
+            pTempEdge           = pGETPtr->pNextEdge;
+            *pAETEdgePtr        = pGETPtr;   
+
+            // link the edge into the AET
+            pGETPtr->pNextEdge  = pAETEdge;
+            pAETEdgePtr         = &pGETPtr->pNextEdge;
+
+            // unlink the edge from the GET
+            pGETPtr = pTempEdge;      
+            break;
+          }
+          else
+          {
+            pAETEdgePtr = &pAETEdge->pNextEdge;
+          }
+        }
+      }
+    }
+
+
+
+    void PolygonFill::DrawScanLine( int YToScan, GR::Graphic::ContextDescriptor& cdTarget, GR::u32 Color )
+    {
+      int           leftX = 0;
+      EdgeState*    pCurrentEdge = _pActiveEdgeTable;
+
+      // Scan through the AET, drawing line segments as each pair of edge crossings is encountered. 
+      // The nearest pixel on or to the right of left edges is drawn, and the nearest pixel to the left 
+      // of but not on right edges is drawn
+
+      while ( pCurrentEdge != NULL )
+      {
+        leftX         = pCurrentEdge->X;
+        pCurrentEdge  = pCurrentEdge->pNextEdge;
+
+        if ( pCurrentEdge == NULL )
+        {
           break;
         }
-        FollowingEdgeLink = &FollowingEdge->NextEdge;
+        cdTarget.HLine( leftX, pCurrentEdge->X - 1, YToScan, Color );
+        pCurrentEdge = pCurrentEdge->pNextEdge;
       }
     }
-  }
-
-}
 
 
 
-void CPolygonFill::MoveXSortedToAET( int YToMove ) 
-{
-
-  EdgeState*    AETEdge;
-  EdgeState**   AETEdgePtr;
-  EdgeState*    TempEdge;
-
-  int CurrentX;
-
-
-  // The GET is Y sorted. Any edges that start at the desired Y coordinate will be first in the GET, 
-  // so we'll move edges from the GET to AET until the first edge left in the GET is no longer
-  // at the desired Y coordinate. Also, the GET is X sorted within each Y coordinate, so each 
-  // successive edge we add to the AET is guaranteed to belong later in the AET than the one just added
-
-  AETEdgePtr = &AETPtr;
-  while ( ( GETPtr != NULL ) 
-  &&      ( GETPtr->StartY == YToMove ) ) 
-  {
-    CurrentX = GETPtr->X;
-
-    // Link the new edge into the AET so that the AET is still sorted by X coordinate
-    while ( true )
+    void PolygonFill::AdvanceAET()
     {
-      AETEdge = *AETEdgePtr;
+      EdgeState*    pCurrentEdge    = NULL;
+      EdgeState**   pCurrentEdgePtr = &_pActiveEdgeTable;
 
-      if ( ( AETEdge == NULL ) 
-      ||   ( AETEdge->X >= CurrentX ) ) 
+
+      // Count down and remove or advance each edge in the AET
+      while ( ( pCurrentEdge = *pCurrentEdgePtr ) != NULL )
       {
-        TempEdge    = GETPtr->NextEdge;
-        *AETEdgePtr = GETPtr;   // link the edge into the AET
-        GETPtr->NextEdge = AETEdge;
-        AETEdgePtr  = &GETPtr->NextEdge;
-        GETPtr = TempEdge;      // unlink the edge from the GET
-        break;
-      } 
-      else 
-      {
-        AETEdgePtr = &AETEdge->NextEdge;
-      }
-    }
-  }
-
-}
-
-
-
-void CPolygonFill::DrawScanLine( int YToScan, GR::Graphic::ContextDescriptor& cdTarget, GR::u32 dwColor ) 
-{
-
-  int           LeftX;
-
-  EdgeState*    CurrentEdge;
-
-  // Scan through the AET, drawing line segments as each pair of edge crossings is encountered. 
-  // The nearest pixel on or to the right of left edges is drawn, and the nearest pixel to the left 
-  // of but not on right edges is drawn
-
-  CurrentEdge = AETPtr;
-
-  while ( CurrentEdge != NULL ) 
-  {
-    LeftX       = CurrentEdge->X;
-    CurrentEdge = CurrentEdge->NextEdge;
-
-	  if ( CurrentEdge == NULL )
-    {
-      break;
-    }
-    cdTarget.HLine( LeftX, CurrentEdge->X - 1, YToScan, dwColor );
-    CurrentEdge = CurrentEdge->NextEdge;
-  }
-
-}
-
-
-
-void CPolygonFill::AdvanceAET() 
-{
-
-  EdgeState*    CurrentEdge;
-  EdgeState**   CurrentEdgePtr;
-
-
-  // Count down and remove or advance each edge in the AET
-  CurrentEdgePtr = &AETPtr;
-  while ( ( CurrentEdge = *CurrentEdgePtr ) != NULL ) 
-  {
-    // Count off one scan line for this edge
-    if ( ( --CurrentEdge->Count ) == 0 ) 
-    {
-      // This edge is finished, so remove it from the AET
-      *CurrentEdgePtr = CurrentEdge->NextEdge;
-    } 
-    else 
-    {
-      // Advance the edge's X coordinate by minimum move
-      CurrentEdge->X += CurrentEdge->WholePixelXMove;
-      // Determine whether it's time for X to advance one extra
-      if ( ( CurrentEdge->ErrorTerm += CurrentEdge->ErrorTermAdjUp ) > 0 ) 
-      {
-        CurrentEdge->X += CurrentEdge->XDirection;
-        CurrentEdge->ErrorTerm -= CurrentEdge->ErrorTermAdjDown;
-      }
-      CurrentEdgePtr = &CurrentEdge->NextEdge;
-    }
-  }
-
-}
-
-
-
-void CPolygonFill::XSortAET() 
-{
-
-  EdgeState*    CurrentEdge;
-  EdgeState**   CurrentEdgePtr;
-  EdgeState*    TempEdge;
-
-
-  int           SwapOccurred;
-
-
-  // Scan through the AET and swap any adjacent edges for which the
-  // second edge is at a lower current X coord than the first edge.
-  // Repeat until no further swapping is needed
-
-  if ( AETPtr != NULL ) 
-  {
-    do 
-    {
-      SwapOccurred = 0;
-      CurrentEdgePtr = &AETPtr;
-      while ( ( CurrentEdge = *CurrentEdgePtr )->NextEdge != NULL ) 
-      {
-        if ( CurrentEdge->X > CurrentEdge->NextEdge->X ) 
+        // Count off one scan line for this edge
+        if ( ( --pCurrentEdge->Count ) == 0 )
         {
-          // The second edge has a lower X than the first; swap them in the AET
-          TempEdge        = CurrentEdge->NextEdge->NextEdge;
-          *CurrentEdgePtr = CurrentEdge->NextEdge;
-          CurrentEdge->NextEdge->NextEdge = CurrentEdge;
-          CurrentEdge->NextEdge = TempEdge;
-          SwapOccurred    = 1;
+          // This edge is finished, so remove it from the AET
+          *pCurrentEdgePtr = pCurrentEdge->pNextEdge;
         }
-        CurrentEdgePtr = &(*CurrentEdgePtr)->NextEdge;
+        else
+        {
+          // Advance the edge's X coordinate by minimum move
+          pCurrentEdge->X += pCurrentEdge->WholePixelXMove;
+
+          // Determine whether it's time for X to advance one extra
+          if ( ( pCurrentEdge->ErrorTerm += pCurrentEdge->ErrorTermAdjUp ) > 0 )
+          {
+            pCurrentEdge->X         += pCurrentEdge->XDirection;
+            pCurrentEdge->ErrorTerm -= pCurrentEdge->ErrorTermAdjDown;
+          }
+          pCurrentEdgePtr = &pCurrentEdge->pNextEdge;
+        }
       }
-    } 
-    while ( SwapOccurred != 0 );
+    }
+
+
+
+    void PolygonFill::XSortAET()
+    {
+      EdgeState*    pCurrentEdge = NULL;
+      EdgeState**   pCurrentEdgePtr = NULL;
+      EdgeState*    pTempEdge = NULL;
+      int           swapOccurred = 0;
+
+
+      // Scan through the AET and swap any adjacent edges for which the
+      // second edge is at a lower current X coord than the first edge.
+      // Repeat until no further swapping is needed
+
+      if ( _pActiveEdgeTable != NULL )
+      {
+        do
+        {
+          swapOccurred    = 0;
+          pCurrentEdgePtr = &_pActiveEdgeTable;
+
+          while ( ( pCurrentEdge = *pCurrentEdgePtr )->pNextEdge != NULL )
+          {
+            if ( pCurrentEdge->X > pCurrentEdge->pNextEdge->X )
+            {
+              // The second edge has a lower X than the first; swap them in the AET
+              pTempEdge                           = pCurrentEdge->pNextEdge->pNextEdge;
+              *pCurrentEdgePtr                    = pCurrentEdge->pNextEdge;
+              pCurrentEdge->pNextEdge->pNextEdge  = pCurrentEdge;
+              pCurrentEdge->pNextEdge             = pTempEdge;
+              swapOccurred                        = 1;
+            }
+            pCurrentEdgePtr = &( *pCurrentEdgePtr )->pNextEdge;
+          }
+        }
+        while ( swapOccurred != 0 );
+      }
+    }
+
+
+
+    void PolygonFill::FillPolygon( GR::Graphic::ContextDescriptor& cdTarget, const tEdges& Edges, GR::u32 Color )
+    {
+      EdgeState*  pEdgeTableBuffer = NULL;
+      int         currentY = 0;
+
+      // It takes a minimum of 3 vertices to cause any pixels to be drawn; 
+      // reject polygons that are guaranteed to be invisible
+      if ( Edges.size() < 3 )
+      {
+        return;
+      }
+
+      // Get enough memory to store the entire edge table
+      if ( ( pEdgeTableBuffer = (EdgeState*)( malloc( sizeof( EdgeState ) * Edges.size() ) ) ) == NULL )
+      {
+        return;
+      }
+      BuildFloatGET( Edges, pEdgeTableBuffer );
+
+      // Scan down through the polygon edges, one scan line at a time,
+      // so long as at least one edge remains in either the GET or AET
+
+      // initialize the active edge table to empty
+      _pActiveEdgeTable = NULL;    
+      if ( pGETPtr != NULL )
+      {
+        // start at the top polygon vertex
+        currentY = pGETPtr->StartY;
+      }
+
+      while ( ( pGETPtr != NULL )
+      ||      ( _pActiveEdgeTable != NULL ) )
+      {
+        // update AET for this scan line
+        MoveXSortedToAET( currentY );  
+
+        // draw this scan line from AET
+        DrawScanLine( currentY, cdTarget, Color ); 
+
+        // advance AET edges 1 scan line
+        AdvanceAET();                       
+
+        // resort on X
+        XSortAET();                         
+
+        // advance to the next scan line
+        currentY++;                         
+      }
+
+      free( pEdgeTableBuffer );
+    }
+
+
+
   }
-
-}
-
-
-
-void CPolygonFill::FillPolygon( GR::Graphic::ContextDescriptor& cdTarget, const tVectEdges& vectEdges, GR::u32 dwColor )
-{
-
-  struct EdgeState*   EdgeTableBuffer;
-
-
-  int CurrentY;
-
-  // It takes a minimum of 3 vertices to cause any pixels to be drawn; 
-  // reject polygons that are guaranteed to be invisible
-  if ( vectEdges.size() < 3 )
-  {
-    return;
-  }
-
-  // Get enough memory to store the entire edge table
-  if ( ( EdgeTableBuffer = (EdgeState*)( malloc( sizeof( EdgeState ) * vectEdges.size() ) ) ) == NULL )
-  {
-    return;
-  }
-  BuildFloatGET( vectEdges, EdgeTableBuffer );
-
-  // Scan down through the polygon edges, one scan line at a time,
-  // so long as at least one edge remains in either the GET or AET
-
-  AETPtr = NULL;    // initialize the active edge table to empty
-
-  if ( GETPtr != NULL )
-  {
-    // start at the top polygon vertex
-    CurrentY = GETPtr->StartY; 
-  }
-
-  while ( ( GETPtr != NULL ) 
-  ||      ( AETPtr != NULL ) ) 
-  {
-    MoveXSortedToAET( CurrentY );       // update AET for this scan line
-    DrawScanLine( CurrentY, cdTarget, dwColor ); // draw this scan line from AET
-    AdvanceAET();                       // advance AET edges 1 scan line
-    XSortAET();                         // resort on X
-    CurrentY++;                         // advance to the next scan line
-  }
-
-  free( EdgeTableBuffer );
-
 }

@@ -29,7 +29,7 @@
 /* how much to allocate before next GC step */
 #if !defined(GCSTEPSIZE)
 /* ~100 small strings */
-#define GCSTEPSIZE	(cast_int(100 * sizeof(Tstring)))
+#define GCSTEPSIZE	(cast_int(100 * sizeof(TString)))
 #endif
 
 

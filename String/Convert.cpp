@@ -1183,7 +1183,7 @@ namespace GR
         else if ( ( cChar >= '0' )
         &&        ( cChar <= '9' ) )
         {
-          dwValue *= 10;
+          dwValue *= iBase;
           dwValue += cChar - '0';
         }
         else
@@ -1261,7 +1261,7 @@ namespace GR
 
       while ( iPos < strValue.length() )
       {
-        dwValue *= 10;
+        dwValue *= iBase;
         GR::WChar cChar = strValue[iPos];
 
         // avoided use of toupper
@@ -1277,7 +1277,7 @@ namespace GR
         }
         else
         {
-          dwValue /= 10;
+          dwValue /= iBase;
           break;
         }
         ++iPos;

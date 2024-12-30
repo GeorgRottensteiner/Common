@@ -45,6 +45,7 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
 
     int                   m_Min,
                           m_Max,
+                          m_Value,
                           m_MouseWheelFactor,
                           m_VisibleArea;
 
@@ -80,6 +81,7 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
 
       m_Min               = 0;
       m_Max               = 100;
+      m_Value             = 0;
       m_VisibleArea       = 0;
       m_MouseWheelFactor  = 3;
 
@@ -125,6 +127,7 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
 
       m_Min               = 0;
       m_Max               = 100;
+      m_Value             = 0;
       m_VisibleArea       = 0;
 
       m_Style             = Type;
@@ -176,7 +179,7 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
       m_pButtonRightDown->AddListener( this );
       m_pSlider->AddListener( this );
 
-      m_pSlider->SetSizes( m_Max - m_Min );//, 20 );
+      m_pSlider->SetSizes( m_Max - m_Min );
     }
 
 
@@ -192,11 +195,31 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
     {
       m_Min  = Min;
       m_Max  = Max;
+      if ( m_Value < m_Min )
+      {
+        m_Value = m_Min;
+      }
+      if ( m_Value > m_Max )
+      {
+        m_Value = m_Max;
+      }
       if ( Visible == 0 )
       {
         Visible = 20;
       }
       m_VisibleArea = Visible;
+      if ( m_Min == m_Max )
+      {
+        m_pSlider->Enable( false );
+        m_pButtonLeftUp->Enable( false );
+        m_pButtonRightDown->Enable( false );
+      }
+      else
+      {
+        m_pSlider->Enable();
+        m_pButtonLeftUp->Enable();
+        m_pButtonRightDown->Enable();
+      }
 
       if ( ( ( Visible == 0 )
       &&     ( m_Max - m_Min != 0 ) )
@@ -207,16 +230,23 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
         {
           if ( IsHorizontal() )
           {
-            m_pSlider->SetSizes( m_Max - m_Min, m_pSlider->Width() * Visible / ( Visible + m_Max - m_Min ) );
+            m_pSlider->SetSizes( m_pSlider->Width(), m_pSlider->Width() * Visible / ( Visible + m_Max - m_Min ) );
           }
           else
           {
-            m_pSlider->SetSizes( m_Max - m_Min, m_pSlider->Height() * Visible / ( Visible + m_Max - m_Min ) );
+            m_pSlider->SetSizes( m_pSlider->Height(), m_pSlider->Height() * Visible / ( Visible + m_Max - m_Min ) );
           }
         }
         else
         {
-          m_pSlider->SetSizes( m_Max - m_Min, m_pSlider->GetSliderLength() );
+          if ( IsHorizontal() )
+          {
+            m_pSlider->SetSizes( m_pSlider->Width(), m_pSlider->GetSliderLength() );
+          }
+          else
+          {
+            m_pSlider->SetSizes( m_pSlider->Height(), m_pSlider->GetSliderLength() );
+          }
         }
       }
       else
@@ -250,6 +280,10 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
 
     virtual void SetScrollPosition( int Pos )
     {
+      if ( m_Min == m_Max )
+      {
+        return;
+      }
       if ( m_Min > m_Max )
       {
         if ( Pos < m_Max )
@@ -272,14 +306,44 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
           Pos = m_Max;
         }
       }
-      m_pSlider->SetSliderPosition( Pos - m_Min );
+
+      if ( m_Value != Pos )
+      {
+        m_Value = Pos;
+        int   newPos = ( m_Value - m_Min ) * ( m_pSlider->FullLength() - m_pSlider->GetSliderLength() ) / ( m_Max - m_Min + 1 );
+        int   realValue = m_Min + ( m_Max - m_Min + 1 ) * newPos / ( m_pSlider->FullLength() - m_pSlider->GetSliderLength() );
+
+        // hack - if at max move slider to the very end
+        if ( ( ( m_Min > m_Max )
+        &&     ( m_Value == m_Min ) )
+        ||   ( ( m_Min <= m_Max )
+        &&     ( m_Value == m_Max ) ) )
+        {
+          newPos    = m_pSlider->FullLength() - m_pSlider->GetSliderLength();
+          realValue = m_Value;
+        }
+
+        while ( realValue < m_Value )
+        {
+          ++newPos;
+          realValue = m_Min + ( m_Max - m_Min + 1 ) * newPos / ( m_pSlider->FullLength() - m_pSlider->GetSliderLength() );
+        }
+        while ( realValue > m_Value )
+        {
+          --newPos;
+          realValue = m_Min + ( m_Max - m_Min + 1 ) * newPos / ( m_pSlider->FullLength() - m_pSlider->GetSliderLength() );
+        }
+        m_pSlider->SetSliderPosition( newPos );
+
+        GenerateEventForParent( OET_SCROLLBAR_SCROLLED, m_Value );
+      }
     }
 
 
 
     virtual int GetScrollPosition() const
     {
-      return m_Min + m_pSlider->GetSliderOffset();
+      return m_Value;
     }
     
 
@@ -323,11 +387,11 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
         case CET_MOUSE_WHEEL:
           if ( m_Min > m_Max )
           {
-            m_pSlider->ScrollDelta( -(int)Event.Value * m_MouseWheelFactor );
+            ScrollDelta( -(int)Event.Value * m_MouseWheelFactor );
           }
           else if ( m_Min < m_Max )
           {
-            m_pSlider->ScrollDelta( (int)Event.Value * m_MouseWheelFactor );
+            ScrollDelta( (int)Event.Value * m_MouseWheelFactor );
           }
           return true;
         case CET_KEY_DOWN:
@@ -338,11 +402,11 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
             {
               if ( m_Min > m_Max )
               {
-                m_pSlider->ScrollDelta( -1 );
+                ScrollDelta( -1 );
               }
               else
               {
-                m_pSlider->ScrollDelta( 1 );
+                ScrollDelta( 1 );
               }
               return true;
             }
@@ -351,11 +415,11 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
             {
               if ( m_Min > m_Max )
               {
-                m_pSlider->ScrollDelta( 1 );
+                ScrollDelta( 1 );
               }
               else
               {
-                m_pSlider->ScrollDelta( -1 );
+                ScrollDelta( -1 );
               }
               return true;
             }
@@ -367,11 +431,11 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
             {
               if ( m_Min > m_Max )
               {
-                m_pSlider->ScrollDelta( -1 );
+                ScrollDelta( -1 );
               }
               else
               {
-                m_pSlider->ScrollDelta( 1 );
+                ScrollDelta( 1 );
               }
               return true;
             }
@@ -380,11 +444,11 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
             {
               if ( m_Min > m_Max )
               {
-                m_pSlider->ScrollDelta( 1 );
+                ScrollDelta( 1 );
               }
               else
               {
-                m_pSlider->ScrollDelta( -1 );
+                ScrollDelta( -1 );
               }
               return true;
             }
@@ -420,11 +484,11 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
           {
             if ( m_Min > m_Max )
             {
-              m_pSlider->ScrollDelta( 10 );
+              ScrollDelta( 10 );
             }
             else
             {
-              m_pSlider->ScrollDelta( -10 );
+              ScrollDelta( -10 );
             }
             return true;
           }
@@ -433,11 +497,11 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
           {
             if ( m_Min > m_Max )
             {
-              m_pSlider->ScrollDelta( -10 );
+              ScrollDelta( -10 );
             }
             else
             {
-              m_pSlider->ScrollDelta( 10 );
+              ScrollDelta( 10 );
             }
             return true;
           }
@@ -456,22 +520,22 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
         {
           if ( m_Min > m_Max )
           {
-            m_pSlider->ScrollDelta( 1 );
+            ScrollDelta( 1 );
           }
           else
           {
-            m_pSlider->ScrollDelta( -1 );
+            ScrollDelta( -1 );
           }
         }
         else if ( Event.pComponent == m_pButtonRightDown )
         {
           if ( m_Min > m_Max )
           {
-            m_pSlider->ScrollDelta( -1 );
+            ScrollDelta( -1 );
           }
           else
           {
-            m_pSlider->ScrollDelta( 1 );
+            ScrollDelta( 1 );
           }
         }
       }
@@ -479,7 +543,26 @@ template <class BS_, class BT_, class SC_> class AbstractScrollbar : public BS_
       {
         if ( Event.pComponent == m_pSlider )
         {
-          GenerateEventForParent( OET_SCROLLBAR_SCROLLED, m_Min + m_pSlider->GetSliderOffset() );
+          if ( m_Max != m_Min )
+          {
+            int   newPos = m_Min + m_pSlider->GetSliderOffset();
+
+            int   realValue = m_Min + ( m_Max - m_Min + 1 ) * newPos / ( m_pSlider->FullLength() - m_pSlider->GetSliderLength() );
+            if ( realValue > m_Max )
+            {
+              realValue = m_Max;
+            }
+            else if ( realValue < m_Min )
+            {
+              realValue = m_Min;
+            }
+            dh::Log( "Slider result %d (pos %d, full length %d, height %d)", realValue, newPos, m_pSlider->FullLength() - m_pSlider->GetSliderLength(), m_pSlider->Height() );
+            if ( realValue != m_Value )
+            {
+              m_Value = realValue;
+              GenerateEventForParent( OET_SCROLLBAR_SCROLLED, realValue );
+            }
+          }
         }
       }
       return false;

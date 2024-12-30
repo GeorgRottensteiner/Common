@@ -99,7 +99,7 @@ static Node *mainposition (const Table *t, const TValue *key) {
     case LUA_TNUMBER:
       return hashnum(t, nvalue(key));
     case LUA_TLNGSTR: {
-      Tstring *s = rawtsvalue(key);
+      TString *s = rawtsvalue(key);
       if (s->tsv.extra == 0) {  /* no hash? */
         s->tsv.hash = luaS_hash(getstr(s), s->tsv.len, s->tsv.hash);
         s->tsv.extra = 1;  /* now it has its hash */
@@ -463,7 +463,7 @@ const TValue *luaH_getint (Table *t, int key) {
 /*
 ** search function for short strings
 */
-const TValue *luaH_getstr (Table *t, Tstring *key) {
+const TValue *luaH_getstr (Table *t, TString *key) {
   Node *n = hashstr(t, key);
   lua_assert(key->tsv.tt == LUA_TSHRSTR);
   do {  /* check whether `key' is somewhere in the chain */

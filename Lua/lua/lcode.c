@@ -316,7 +316,7 @@ static int addk (FuncState *fs, TValue *key, TValue *v) {
 }
 
 
-int luaK_stringK (FuncState *fs, Tstring *s) {
+int luaK_stringK (FuncState *fs, TString *s) {
   TValue o;
   setsvalue(fs->ls->L, &o, s);
   return addk(fs, &o, &o);

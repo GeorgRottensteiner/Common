@@ -22,7 +22,7 @@
                                         public: \
                                           C##xClass##StaticRegistrar() \
                                           {\
-                                          GUIComponentDisplayer::Instance().RegisterObject( strClassName, xClass::CreateNewInstance ); \
+                                          GUIComponentDisplayer::Instance().RegisterObject( strClassName, xClass::CreateNewInstance, false ); \
                                           }\
                                       };\
                                       C##xClass##StaticRegistrar register##xClass;
